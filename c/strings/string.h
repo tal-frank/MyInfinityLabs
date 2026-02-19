@@ -1,14 +1,11 @@
 #ifndef _STRINGS_H_
 #define _STRINGS_H_
-
-#include <stdio.h> /* Needed for I/O operations */
-#include <ctype.h>
-#include <stdlib.h>
-#include "string.c"
+#include <stddef.h>
 
 
 
-int IsPalindrome(char* str);
+
+int IsPalindrome(const char* str);
 
 void Print7Boom(int from, int to); 
 

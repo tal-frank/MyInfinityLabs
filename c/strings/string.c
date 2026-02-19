@@ -1,4 +1,8 @@
-
+#include "string.h"
+#include <ctype.h>
+#include <stdio.h> /* Needed for I/O operations */
+#include <stdlib.h>
+#include <assert.h>
 
 
 size_t StrLen(const char* str)
@@ -9,6 +13,7 @@ size_t StrLen(const char* str)
 		len_cnt += 1;
 		str++;
 	}
+	
 	return len_cnt;
 }
 
@@ -64,7 +69,6 @@ int StrNCmp(const char* str1, const char* str2, size_t n)
 	}
 	while (*str1 != '\0' && cnt < n - 1)
 	{
-		printf("shtut %zu\n" , cnt);
 		cnt++;
 		if (*str1 != *str2)
 		{
@@ -119,24 +123,6 @@ char* StrDup(const char* src)
 }
 
 
-/*
-char* StrCat(char* dest, const char* src)
-{	
-	int i = 0; 
-	while (*(dest + i) != '\0')
-	{
-		i++;
-	}
-	while (*src != '\0')
-	{
-		*(dest + i) = *src; 
-		src++; i++;
-	}
-	*(dest + i) = '\0';
-	return dest;
-}
-*/
-
 
 char* StrCat(char* dest, const char* src)
 {	
@@ -176,29 +162,6 @@ char* StrNCat(char* dest, const char* src, size_t cnt)
 }
 
 
-
-
-/*
-char* Strstr( const char* str, const char* substr)
-{
-	const char* ptr = str;
-	const char* sub_ptr = substr;
-	while (*str != '\0')
-	{
-		while (*ptr == *sub_ptr && *ptr != '\0')
-		{
-			ptr++; sub_ptr++;
-			if (*sub_ptr == '\0')
-			{
-				return (char*)str;
-			}	
-		}
-		str++;
-		ptr = str; sub_ptr = substr;
-	}
-	return '\0';	
-}
-*/
 
 char* StrStr(const char* str, const char* substr)
 {
@@ -240,6 +203,7 @@ char* StrTok(char* str, const char* delim)
 {
 	int is_delim;
 	static char* str_ptr;
+	str_ptr = str;
 	if (*str != '\0')
 	{
 		str_ptr = str;
@@ -257,6 +221,29 @@ char* StrTok(char* str, const char* delim)
 	return '\0';
 
 }
+
+
+
+int IsPalindrome(const char* str)
+{
+	int i;
+	int length = StrLen(str);
+	char* end_ptr;
+	end_ptr = (char*)(str + length);
+	for (i = 0; i < (length / 2); ++i)
+	{
+		if (*(str + i) == *(end_ptr - i))
+		{
+			return 1;
+		}
+	}
+	return 0;
+} 
+
+
+/* void Print7Boom(int from, int to); 
+
+void SpaceReview(char* dest, const char* src);*/
 
 
 
