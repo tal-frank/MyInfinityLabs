@@ -4,19 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-/*
-size_t StrLen(const char* str)
-{
-	int len_cnt = 0;
-	while ('\0' != *str)
-	{
-		len_cnt += 1;
-		++str;
-	}
-	
-	return len_cnt;
-}
-*/
+
 
 size_t StrLen(const char* str)
 {
