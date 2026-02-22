@@ -8,22 +8,27 @@
 
 size_t StrLen(const char* str)
 {
-	const char* init_str = str;
+	const char* init_str;
+	
 	assert(str);
+	
+	init_str = str;
 	while ('\0' != *str)
 	{
 		++str;
-	}
-	
+	}	
 	return (size_t)(str - init_str);
 }
 
 
 char* StrCpy (char* dest, const char* src)
 {	
-	char* real_dest = dest;
+	char* real_dest;
+	
 	assert(dest);
 	assert(src);
+	
+	real_dest = dest;
 	while ('\0' != *src)
 	{
 		*dest = *src;
@@ -35,10 +40,13 @@ char* StrCpy (char* dest, const char* src)
 
 char* StrNCpy (char* dest, const char* src, size_t n)
 {
-	char* real_dest = dest;
+	char* real_dest;
 	size_t size = 0;
+	
 	assert(dest);
 	assert(src);
+	
+	real_dest = dest;
 	while ('\0' != *src && n > size)
 	{	
 		*dest = *src;
@@ -57,6 +65,7 @@ int StrCmp(const char* str1, const char* str2)
 {
 	assert(str1);
 	assert(str2);
+	
 	while ('\0' != *str1)
 	{
 		if (*str1 != *str2)
@@ -71,8 +80,10 @@ int StrCmp(const char* str1, const char* str2)
 int StrNCmp(const char* str1, const char* str2, size_t n)
 {
 	size_t cnt = 1;
+	
 	assert(str1);
 	assert(str2);
+	
 	if (NULL == str1 || NULL == str2)
 	{
 		return (*str1 - *str2);
@@ -94,6 +105,7 @@ int StrCaseCmp(const char* s1, const char* s2)
 { 
 	assert(s1);
 	assert(s2);
+	
 	while ('\0' != *s1)
 	{	
 		if (tolower(*s1) != tolower(*s2))
@@ -109,6 +121,7 @@ int StrCaseCmp(const char* s1, const char* s2)
 char* StrChr(const char* str, int ch)
 {
 	assert(str);
+	
 	while ('\0' != *str)
 	{
 		if (*str == (char)ch)
@@ -123,9 +136,12 @@ char* StrChr(const char* str, int ch)
 
 char* StrDup(const char *src)
 {
-	size_t size = StrLen(src);
+	size_t size;
 	char* dest;
+	
 	assert(src);
+	
+	size = StrLen(src);
 	dest = (char*) malloc(sizeof(src) * size + 1);
 	return StrCpy(dest, src);
 }
@@ -134,9 +150,12 @@ char* StrDup(const char *src)
 
 char* StrCat(char* dest, const char* src)
 {	
-	char* real_dest = dest;
+	char* real_dest;
+	
 	assert(dest);
 	assert(src);
+	
+	real_dest = dest;
 	while ('\0' != *dest)
 	{
 		++dest;
@@ -152,10 +171,13 @@ char* StrCat(char* dest, const char* src)
 
 char* StrNCat(char* dest, const char* src, size_t cnt)
 {
-	char* real_dest = dest;
+	char* real_dest;
 	size_t size = 0;
+	
 	assert(dest);
 	assert(src);
+	
+	real_dest = dest;
 	while ('\0' != *dest)
 	{
 		++dest;
@@ -178,10 +200,14 @@ char* StrNCat(char* dest, const char* src, size_t cnt)
 char* StrStr(const char* str, const char* substr)
 {
 	int is_equal_str;
-	size_t substr_len = StrLen(substr);
-	char* search_for_char = (char*)str;
+	size_t substr_len;
+	char* search_for_char;
+	
 	assert(str);
 	assert(substr);
+	
+	substr_len = StrLen(substr);
+	search_for_char = (char*)str;
 	while (NULL != search_for_char)
 	{
 		search_for_char = StrChr(search_for_char, (int)*substr);		
@@ -204,9 +230,12 @@ char* StrStr(const char* str, const char* substr)
 size_t StrSpn(const char* dest, const char* search)
 {
 	int cnt = 0;
-	char* char_in_search = StrChr(search, *dest);
+	char* char_in_search;
+	
 	assert(dest);
 	assert(search);
+	
+	char_in_search = StrChr(search, *dest);
 	while (NULL != char_in_search && '\0' != *dest)
 	{
 		dest++; cnt++;
@@ -220,12 +249,17 @@ char* StrTok(char* str, const char* delim)
 	int is_delim;
 	static char* str_ptr;
 	char* str_init_pnt;
+	
 	assert(delim);
+	
 	if (NULL == str)
 	{
 		str = str_ptr;
 	}
+	
+	
 	assert(str);
+	
 	str_init_pnt = str;
 	while ('\0' != *str)
 	{
@@ -250,7 +284,9 @@ int IsPalindrome(const char* str)
 	int i;
 	int length = StrLen(str);
 	char* end_ptr;
+	
 	assert(str);
+	
 	end_ptr = (char*)(str + length - 1);
 	for (i = 0; i < (length / 2); ++i)
 	{
@@ -307,7 +343,9 @@ void SpaceReview(char* dest, const char* src)
 {	
 	size_t prt_to_cpy;
 	char* tmp_dest = (char*)src;
+	
 	assert(src);
+	
 	while (' ' == *tmp_dest && '\0' != *tmp_dest)
 	{
 		++tmp_dest; ++src;
