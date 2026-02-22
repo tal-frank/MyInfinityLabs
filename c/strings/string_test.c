@@ -67,11 +67,27 @@ int main()
 	char* str12 = "detartrated";
 	char* str13 = "redder";
 	char* str14 = "runner";
+	char* str15 = "       a sentence    with  a   lot of          spaces       ";
+	char str16[100] = "";
 	char phrase_to_delimit[100] = "hey,,this,is8sparta!";
+	char phrase_to_delimit2[100] = "hey,,this,is8sparta!";
 	char* pointer_to_free = NULL;
 	int palindrom_check;
 	
-	printf ("is_palindrom test\n\n");
+	
+	printf("SpacesReview test:\n\n");
+	printf("before: %s\n", str15);
+	SpaceReview(str16, str15);
+	printf("after: %s\n", str16);
+	printf("\n");
+	
+	
+	printf("Print7BOOM test:\n\n");
+	Print7Boom(990, 1027);
+	printf("\n\n");
+	
+	
+	printf ("IsPalindrome test:\n\n");
 	printf("first test :\nexpected: is palindrom\n");
 	palindrom_check = IsPalindrome(str12);
 	if (palindrom_check == 0)
@@ -105,7 +121,7 @@ int main()
 	else
 	{
 		
-		printf("result: is not palindrom\nPASSED\n");
+		printf("result: is not palindrom\nPASSED\n\n");
 	}
 	
 	
@@ -493,15 +509,16 @@ int main()
 	printf("%s\n", str10);
 	
 	printf("StrTok() result: ");
-	/*
-	strcpy(str10, StrTok ( phrase_to_delimit, "," ) );
+	
+	
+	strcpy(str10, StrTok ( phrase_to_delimit2, "," ) );
 	printf("%s ", str10);
 	strcpy(str10, StrTok ( NULL, "8" ) );
 	printf("%s ", str10);
 	strcpy(str10, StrTok ( NULL, ",8" ) );
 	printf("%s\n", str10);
-	*/
 	
+
 	return 0;
 }
 
