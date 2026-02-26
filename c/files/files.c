@@ -180,7 +180,6 @@ logger_status_t Default(const char* file_name, char* cmd)
 		return FAIL_WRITE_FILE;
 	}
 	fclose(cmd_file);
-	
 	return SUCCESS;
 }
 
@@ -230,6 +229,7 @@ logger_status_t Logger(const char* file_name)
 	while (EXIT != prog_state)
 	{
 		scanf ("%[^\n]%*c", user_input);
+
 		for (i = 0; i < 5; ++i)
 		{
 			cmp_length = StrLen(choose_handler[i].cmd);
