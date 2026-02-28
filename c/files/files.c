@@ -48,7 +48,7 @@ logger_status_t Count(const char* file_name, char* cmd)
 	cnt = 0;
 	if (NULL == cmd_file)
 	{
-		printf("%d", cnt);
+		printf("The number of commands is : %d", cnt);
 		return SUCCESS;
 	}
 	while (EOF != ch)
@@ -59,8 +59,8 @@ logger_status_t Count(const char* file_name, char* cmd)
 			++cnt;
 		}
 	}
-	
-	printf("%d\n" , cnt);
+	fclose(cmd_file);
+	printf("The number of commands is : %d\n" , cnt);
 	return SUCCESS;
 }
 
