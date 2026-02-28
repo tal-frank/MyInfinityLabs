@@ -8,8 +8,6 @@ void InputReceiverIfElse();
 void InputReceiverSwitch();
 void PrintLut(int mem_to_prnt);
 
-typedef void (*farr[256])();
-
 
 #endif
 
