@@ -32,7 +32,7 @@ struct logger_handler
 {
 	char* cmd;
 	int (*Cmp)(const char*, const char*, size_t);
-	logger_status_t (*activate)(const char*, char*);
+	logger_status_t (*Activate)(const char*, char*);
 };
 
 /* function definitions */

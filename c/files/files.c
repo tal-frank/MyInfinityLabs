@@ -48,6 +48,7 @@ logger_status_t Count(const char* file_name, char* cmd)
 	cnt = 0;
 	if (NULL == cmd_file)
 	{
+		
 		printf("The number of commands is : %d", cnt);
 		return SUCCESS;
 	}
@@ -190,22 +191,22 @@ void InitHandler(struct logger_handler choose_handler[])
 {
 	choose_handler[0].cmd = "-count";
 	choose_handler[0].Cmp = &StrNCmp;
-	choose_handler[0].activate = &Count;
+	choose_handler[0].Activate = &Count;
 	
 	choose_handler[1].cmd = "-remove";
 	choose_handler[1].Cmp = &StrNCmp;
-	choose_handler[1].activate = &Remove;
+	choose_handler[1].Activate = &Remove;
 	
 	choose_handler[2].cmd = "<";
 	choose_handler[2].Cmp = &StrNCmp;
-	choose_handler[2].activate = &Append;
+	choose_handler[2].Activate = &Append;
 	
 	choose_handler[3].cmd = "-exit";
 	choose_handler[3].Cmp = &StrNCmp;
-	choose_handler[3].activate = &Exit;
+	choose_handler[3].Activate = &Exit;
 	
 	choose_handler[4].Cmp = &StrNCmp;
-	choose_handler[4].activate = &Default;
+	choose_handler[4].Activate = &Default;
 }
 
 
@@ -237,7 +238,7 @@ logger_status_t Logger(const char* file_name)
 							user_input, 
 							cmp_length) || 4 == i)
 			{	
-				prog_state = choose_handler[i].activate(file_name, user_input); 
+				prog_state = choose_handler[i].Activate(file_name, user_input); 
 				break;
 			}
 		}
