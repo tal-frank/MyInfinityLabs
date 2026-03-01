@@ -43,10 +43,10 @@ int main()
 	x = 7;
 	y = 7;
 	z = 32;
-	a = 15;
-	b = 9;
-	aV2 = 15;
-	bV2 = 9;
+	a = 208;
+	b = 105;
+	aV2 = 208;
+	bV2 = 105;
 	add1 = 3984;
 	mirrored = 203;
 	mirrored_noloop = 203;

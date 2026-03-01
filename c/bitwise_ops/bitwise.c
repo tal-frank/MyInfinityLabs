@@ -265,11 +265,11 @@ unsigned int MaxDivisedBy16(unsigned char byte)
 
 void SwapVars(int* a, int* b)
 {
-	*a = *a << 15;	
+	*a = *a << 16;	
 	*b = *b | *a;
 	*a = *b | *a;
-	*a = *a & 0x00FF;
-	*b = *b >> 15;
+	*a = *a & 0x0000FFFF;
+	*b = *b >> 16;
 }
 
 
@@ -317,11 +317,11 @@ unsigned int CountSetBits(unsigned int num)
 	unsigned int a0;
 	unsigned int a1;
 	
-	fst_round = 1431655765;
-	sec_round = 858993459;
-	thrd_round = 252645135;
-	frth_round = 16711935;
-	fifth_round = 65535;
+	fst_round = 0x55555555;
+	sec_round = 0x33333333;
+	thrd_round = 0x0F0F0F0F;
+	frth_round = 0x00FF00FF;
+	fifth_round = 0x0000FFFF;
 	
 	a0 = fst_round & num;
 	a1 = fst_round & num >> 1;
