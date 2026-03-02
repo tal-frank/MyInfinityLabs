@@ -31,14 +31,15 @@ char* reverse_string (char* str)
 {
 	int i;
 	int len;
-	char rev_str;
-	
+	char* rev_str;
+	char temp;
 	len = strlen(str);
 	rev_str = (str + len - 1);
-
 	for (i = 0; i < len / 2; ++i)
 	{
-		*str = rev_str;
+		temp = tolower(*rev_str);
+		*rev_str = tolower(*str);
+		*str = temp;
 		++str; --rev_str;
 	}
 	return rev_str;
@@ -47,12 +48,12 @@ char* reverse_string (char* str)
 
 int main()
 {
-	char* str = "HellO woRld";	
+	char str[] = "HellO woRld";	
 	
 	reverse_string(str);
 	TF(11);
 	
-	printf("%s", str);
+	printf("%s\n", str);
 	
 
 	return 0;
