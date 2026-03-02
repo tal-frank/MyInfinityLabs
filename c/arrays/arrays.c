@@ -2,7 +2,7 @@
 #include <stdio.h> /* printf */
 #include <stdlib.h>
 #include "../strings/string.c"
-
+#include <ctype.h>
 
 size_t Jusephus(size_t start_index, size_t soldier_num)
 {
@@ -43,52 +43,51 @@ size_t instantJuseph(size_t n)
 
 
 
+
 void PrintEnv(const char* envp[])
 {
+	int i;
+	int j;
 	int cnt = 0;
-	char** env_arr;
-	char envp_runner = envp;
-	char** envp_init = (char**)envp;
-	char** env_arr_init;
 	char* item;
-	
-	while (NULL != *envp_runner)
-	{
-		++envp_runner; ++cnt;
+	char** env_arr;
+	int item_len;
+	while (NULL != envp[cnt])
+	{	
+		++cnt;
 	}
 	
-	env_arr = (char**)malloc(cnt * sizeof(char*) + 1);
+	env_arr = (char**)malloc(cnt * (sizeof(char*) + 1));
 	if (NULL == env_arr)
 	{
 		printf("error with buffer allocating\n");
+		return;
 	}
-	envp_runner = envp;
-	env_arr_init = env_arr;
-/*	(char**)envp = envp_init;*/
-	
-	while (NULL != *envp_runner)
+
+	for (i = 0; NULL != envp[i]; ++i)
 	{
-		item = (char*)malloc((StrLen(*envp) + 1)* sizeof(char));
-/*		*env_arr = (char*)malloc((StrLen(*envp) + 1)* sizeof(char));*/
-		*env_arr = StrCpy(item, tolower(*envp_runner));
-		++env_arr; ++envp_runner;
+		item_len = StrLen(envp[i]);
+		item = (char*)malloc(item_len * (sizeof(char) + 1));
+		if (NULL == item)
+		{
+			printf("error with buffer allocating\n");
+			return;
+		}
+		StrCpy(item, envp[i]);
+		for (j = 0; j < item_len; ++j)
+		{
+			item[j] = (char)(tolower(item[j]));
+		}
+		item[j] = '\0';
+		env_arr[i] = item;
 	}
-	
-	env_arr = env_arr_init;
-	
-	while (NULL != arr_env)
+	for (i = 0; NULL != env_arr[i]; ++i)
 	{
-		printf("%s\n", *env_arr);
-		++env_arr;
+		printf("%s\n", env_arr[i]);
+		free(env_arr[i]);
 	}
-	
 	free(env_arr);
 }
-
-
-
-
-
 
 
 
