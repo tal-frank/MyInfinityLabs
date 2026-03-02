@@ -84,8 +84,9 @@ void PrintEnv(const char* envp[])
 	for (i = 0; NULL != env_arr[i]; ++i)
 	{
 		printf("%s\n", env_arr[i]);
+		free(env_arr[i]);
 	}
-
+	free(env_arr);
 }
 
 
