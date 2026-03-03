@@ -33,7 +33,7 @@ int IsPowOf2Loop(unsigned int n)
 }
 
 
-int IsPowOf2(unsigned int n)
+int IsPowOf2Comp(unsigned int n)
 {
 	unsigned int fst_round;
 	unsigned int sec_round;
@@ -78,7 +78,18 @@ int IsPowOf2(unsigned int n)
 }
 
 
-int Add1(int n)
+int IsPowOf2(unsigned int n)
+{
+	if (0 == (n & (n - 1)) && n >= 1)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+
+
+int Add1Comp(int n)
 {
 	size_t i;
 	int tmp;
@@ -103,6 +114,11 @@ int Add1(int n)
 		add = add << 1;
 	}
 	return n;
+}
+
+int Add1(int n)
+{
+	return (-(~n));
 }
 
 unsigned char Add1Char(unsigned char n)
@@ -351,14 +367,8 @@ void FloatAnalysis(float num)
 	size_t i;
 	size_t bit;
 	int print_float;
-	int* print_float_ptr;
-	float* num_ptr;
-	
-	print_float_ptr = &print_float;
-	num_ptr = &num;
-	
-	memcpy(print_float_ptr, num_ptr, 4);
-	
+
+	memcpy(&print_float, &num, 4);
 	for (i = 0; i < 8 * sizeof(int); ++i)
 	{
 		bit = (8 * sizeof(int) - 1 -i);

@@ -14,7 +14,11 @@ long Pow2(unsigned int x, unsigned int y);
 
 int IsPowOf2Loop(unsigned int n);
 
+int IsPowOf2Comp(unsigned int n);
+
 int IsPowOf2(unsigned int n);
+
+int Add1Comp(int n);
 
 int Add1(int n);
 
