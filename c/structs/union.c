@@ -133,18 +133,25 @@ void AddString(void* string, int num)
 {
 	element_t* str_ptr = (element_t*)string;
 	char* num_str;
-	int cnt = 0;	
+	size_t str_len;
+	int len = 0;	
 	int log = num;
 	
+	if (0 == log)
+	{
+		len = 1;
+	}
 	while (0 != log)
 	{
 		log /= 10;
-		++cnt;
+		++len;
 	}
-	num_str = malloc(sizeof(char)*cnt);
+	num_str = malloc(sizeof(char)*len);
 	sprintf(num_str, "%d" , num);
 	
-	str_ptr->data.s = (char*)realloc(str_ptr->data.s, strlen(str_ptr->data.s) + sizeof(char) * cnt);
+	str_len = strlen(str_ptr->data.s);
+	str_ptr->data.s = (char*)realloc(str_ptr->data.s, 
+					 str_len + sizeof(char) * len);
 	strcat(str_ptr->data.s, num_str);
 	free(num_str);
 }
