@@ -1,7 +1,7 @@
 /**********************
 * ws10_serialized_structs
 * Author: Tal Frank
-* Reviewer:
+* Reviewer: Ori Joseph
 * Last update:
 **********************/
 #include "serialization.h"
@@ -15,22 +15,22 @@ void Deserialize(student_t* student, char* file_name);
 /************************************ SERIALIZE FUNCTIONS ************************************/
 
 int SaveStudentData(student_t* student, FILE* file_p)
-{
-	fwrite(&student->grades->humanistic_grades->philosophy, 
+{	
+	fwrite(&student->grades.humanistic_grades.philosophy, 
 		sizeof(float), 1, file_p);
-	fwrite(&student->grades->humanistic_grades->history, 
+	fwrite(&student->grades.humanistic_grades.history, 
 		sizeof(float), 1, file_p);
-	fwrite(&student->grades->humanistic_grades->literature, 
-		sizeof(float), 1, file_p);
-		
-	fwrite(&student->grades->real_grades->math, 
-		sizeof(float), 1, file_p);
-	fwrite(&student->grades->real_grades->physics, 
-		sizeof(float), 1, file_p);
-	fwrite(&student->grades->real_grades->computer_science, 
+	fwrite(&student->grades.humanistic_grades.literature, 
 		sizeof(float), 1, file_p);
 		
-	fwrite(&student->grades->sports, 
+	fwrite(&student->grades.real_grades.math, 
+		sizeof(float), 1, file_p);
+	fwrite(&student->grades.real_grades.physics, 
+		sizeof(float), 1, file_p);
+	fwrite(&student->grades.real_grades.computer_science, 
+		sizeof(float), 1, file_p);
+		
+	fwrite(&student->grades.sports, 
 		sizeof(float), 1, file_p);
 		
 	fwrite(student->first_name, sizeof(char), 
@@ -43,22 +43,22 @@ int SaveStudentData(student_t* student, FILE* file_p)
 
 
 int LoadStudentData(student_t* student, FILE* file_p)
-{
-	fread(&student->grades->humanistic_grades->philosophy, 
+{	
+	fread(&student->grades.humanistic_grades.philosophy, 
 		sizeof(float), 1, file_p);
-	fread(&student->grades->humanistic_grades->history, 
+	fread(&student->grades.humanistic_grades.history, 
 		sizeof(float), 1, file_p);
-	fread(&student->grades->humanistic_grades->literature, 
-		sizeof(float), 1, file_p);
-		
-	fread(&student->grades->real_grades->math, 
-		sizeof(float), 1, file_p);
-	fread(&student->grades->real_grades->physics, 
-		sizeof(float), 1, file_p);
-	fread(&student->grades->real_grades->computer_science, 
+	fread(&student->grades.humanistic_grades.literature, 
 		sizeof(float), 1, file_p);
 		
-	fread(&student->grades->sports, 
+	fread(&student->grades.real_grades.math, 
+		sizeof(float), 1, file_p);
+	fread(&student->grades.real_grades.physics, 
+		sizeof(float), 1, file_p);
+	fread(&student->grades.real_grades.computer_science, 
+		sizeof(float), 1, file_p);
+		
+	fread(&student->grades.sports, 
 		sizeof(float), 1, file_p);
 		
 	fread(student->first_name, sizeof(char), 
@@ -70,21 +70,7 @@ int LoadStudentData(student_t* student, FILE* file_p)
 }
 
 
-/************************************ HELP FUNCTIONS ************************************/
 
-void Serialize(student_t* student, char* file_name)
-{
-	FILE* bin_file = fopen(file_name, "wb");
-	SaveStudentData(student, bin_file);
-	fclose(bin_file);
-}
-
-void Deserialize(student_t* student, char* file_name)
-{	
-	FILE* stream = fopen(file_name, "rb");
-	LoadStudentData(student, stream);
-	fclose(stream);
-}
 
 
 

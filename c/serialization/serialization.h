@@ -1,9 +1,3 @@
-/**********************
-* ws10_serialized_structs
-* Author: Tal Frank
-* Reviewer:
-* Last update:
-**********************/
 
 #ifndef __SERIALIZE_STRUCTS_H__
 #define __SERIALIZE_STRUCTS_H__
@@ -15,14 +9,6 @@
 /************************************ Define statments *********************************/
 #define MAX_NAME_SIZE 30
 
-/************************************ Enums statments *********************************/
-/*
-typedef enum status
-{
-    FAIL = -1,
-    SUCCESS
-} status_t;
-*/
 
 /************************************ Structs statments ***********************************/
 typedef struct Humanistic_grades
@@ -41,14 +27,14 @@ typedef struct Real_grades
 
 typedef struct Grades
 {
-	humanistic_t* humanistic_grades;
-	real_t* real_grades;
+	humanistic_t humanistic_grades;
+	real_t real_grades;
 	float sports;
 } grades_t;
 
 typedef struct Student
 {
-	grades_t* grades;
+	grades_t grades;
 	char first_name[MAX_NAME_SIZE];
 	char last_name[MAX_NAME_SIZE];
 } student_t;
