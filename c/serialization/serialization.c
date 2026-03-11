@@ -8,7 +8,7 @@
 
 /************************************ FUNCTIONS DECLERATIONS ************************************/
 
-void serialize(student_t* student, char* file_name);
+void Serialize(student_t* student, char* file_name);
 void Deserialize(student_t* student, char* file_name);
 
 
