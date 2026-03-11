@@ -16,6 +16,7 @@ void Serialize(student_t* student, char* file_name)
 	if (NULL == bin_file)
 	{
 		printf("can not open the file\n");
+		exit(1);
 	}
 	
 	SaveStudentData(student, bin_file);
@@ -29,6 +30,7 @@ void Deserialize(student_t* student, char* file_name)
 	if (NULL == bin_file)
 	{
 		printf("can not open the file\n");
+		exit(1);
 	}
 	
 	LoadStudentData(student, bin_file);
