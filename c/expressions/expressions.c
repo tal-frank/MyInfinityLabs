@@ -1,3 +1,10 @@
+/**********************
+* ws4_expressions
+* Author: Tal Frank
+* Reviewer: Karak Koifman
+* Last update: 12/03/2026
+**********************/
+
 #include <stdio.h>
 
 void HelloWorld()

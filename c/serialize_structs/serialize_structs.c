@@ -2,9 +2,10 @@
 * ws10_serialized_structs
 * Author: Tal Frank
 * Reviewer: Ori Joseph
-* Last update:
+* Last update: 12/03/2026
 **********************/
-#include "serialization.h"
+
+#include "serialize_structs.h"
 
 /************************************ FUNCTIONS DECLERATIONS ************************************/
 
@@ -68,21 +69,4 @@ int LoadStudentData(student_t* student, FILE* file_p)
 	
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

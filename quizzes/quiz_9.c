@@ -51,16 +51,16 @@ int main()
 	int coupled_bits = 0;
 	int set_bits = 0;
 	int num1 = 8;
-	int num2 = 15;
+	int num2 = 13;
 	char num3 = 27;
 	long num4 = 15;
 	
 	coupled_bits = CountCouples(num3);
-	SwapNums3(&num1, &num2);
+	SwapNums1(&num1, &num2);
 	set_bits = NumSetBits(num4);
 	
 	printf("nunmber of coupled bit in %d is : %d\n", num3, coupled_bits);
-	printf("num1 is : %d\n num2 is %d\n", num1, num2);
+	printf("num1 is : %d\nnum2 is : %d\n", num1, num2);
 	printf("number of set bits in %ld is : %d\n" , num4, set_bits);
 	
 	return 0;

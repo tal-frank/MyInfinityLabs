@@ -5,20 +5,10 @@ typedef char* array;
 
 int main()
 {
-
-	
 	InputReceiverLut();
 	InputReceiverSwitch();
 	InputReceiverIfElse();
-	
-
 
 	return 0;
-
 }
-
-
-
-
-
 

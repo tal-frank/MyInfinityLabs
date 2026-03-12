@@ -1,12 +1,7 @@
 
-/**********************
- * ws6_files
- * Author: Tal Frank
- * Reviewer: Name
-**********************/
 
 #include <stdio.h>
-#include "bitwise.h"
+#include "bitwise_operations.h"
 
 
 

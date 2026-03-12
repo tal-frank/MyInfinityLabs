@@ -4,7 +4,7 @@
 #include <stdlib.h> /* included for malloc and free operations*/
 #include <stdio.h>  /* included for io feedback */
 #include <assert.h> 
-#include "pointer1.c"
+#include "pointers_part_1.c"
 
 
 void SwapInt(int* var1, int* var2);

@@ -1,4 +1,12 @@
-#include "arrays.h"
+/**********************
+* ws5_arrays_and_pointer_to_pointer
+* Author: Tal Frank
+* Reviewer: Maor Gorbman
+* Last update: 12/03/2026
+**********************/
+
+
+#include "arrays_and_pointer_to_pointer.h"
 #include <stdio.h> /* printf */
 #include <stdlib.h>
 #include "../strings/string.c"
@@ -88,17 +96,4 @@ void PrintEnv(const char* envp[])
 	}
 	free(env_arr);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 

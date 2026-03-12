@@ -1,4 +1,9 @@
-
+/**********************
+* pointer_part_1
+* Author: Tal Frank
+* Reviewer: Barak Koifman
+* Last update: 12/03/2026
+**********************/
 
 void SwapInt(int* var1, int* var2)
 {
@@ -14,20 +19,10 @@ void SwapSize_t(size_t* var1, size_t* var2)
 	*var1 = *var1 - *var2;
 }
 
-/*
-void SwapSize_tPointers(size_t** var1, size_t** var2)
-{
-	size_t* temp = *var1;
-	*var1 = *var2;
-	*var2 = temp;
-
-}
-*/
-
 
 void CopyArray(const int* arr_src, const size_t size_src, int* arr_cpy, size_t size_cpy)
 {
-	int i;
+	size_t i;
 	for (i = 0; i < size_src; ++i)
 	{
 		arr_cpy[i] = arr_src[i];

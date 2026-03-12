@@ -1,9 +1,3 @@
-/**********************
- * ws6_files
- * Author: Tal Frank
- * Reviewer: Name
-**********************/
-
 
 #include "files.h"
 #include "files.c"
@@ -22,5 +16,4 @@ int main()
 
 
 	return 0;
-
 }

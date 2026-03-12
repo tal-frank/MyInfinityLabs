@@ -1,9 +1,15 @@
-#include "string.h"
+/**********************
+* strings
+* Author: Tal Frank
+* Reviewer: Barak Koifmam
+* Last update: 12/03/2026
+**********************/
+
+#include "strings.h"
 #include <ctype.h>
 #include <stdio.h> /* Needed for I/O operations */
 #include <stdlib.h>
 #include <assert.h>
-
 
 
 size_t StrLen(const char* str)
@@ -37,6 +43,7 @@ char* StrCpy (char* dest, const char* src)
 	*dest = '\0';
 	return real_dest;
 }
+
 
 char* StrNCpy (char* dest, const char* src, size_t n)
 {
@@ -76,6 +83,7 @@ int StrCmp(const char* str1, const char* str2)
 	}
 	return (*str1 - *str2);
 }
+
 
 int StrNCmp(const char* str1, const char* str2, size_t n)
 {
@@ -147,7 +155,6 @@ char* StrDup(const char *src)
 }
 
 
-
 char* StrCat(char* dest, const char* src)
 {	
 	char* real_dest;
@@ -168,6 +175,7 @@ char* StrCat(char* dest, const char* src)
 	*dest = '\0';
 	return real_dest;
 }
+
 
 char* StrNCat(char* dest, const char* src, size_t cnt)
 {
@@ -194,7 +202,6 @@ char* StrNCat(char* dest, const char* src, size_t cnt)
 	}
 	return real_dest;
 }
-
 
 
 char* StrStr(const char* str, const char* substr)
@@ -226,7 +233,6 @@ char* StrStr(const char* str, const char* substr)
 }
 
 
-
 size_t StrSpn(const char* dest, const char* search)
 {
 	int cnt = 0;
@@ -243,6 +249,7 @@ size_t StrSpn(const char* dest, const char* search)
 	}
 	return cnt;	
 }
+
 
 char* StrTok(char* str, const char* delim)
 {
@@ -276,7 +283,6 @@ char* StrTok(char* str, const char* delim)
 	str_ptr = str;
 	return str_init_pnt;
 }
-
 
 
 int IsPalindrome(const char* str)
@@ -336,9 +342,6 @@ void Print7Boom(int from, int to)
 }
 
 
-
- 
-
 void SpaceReview(char* dest, const char* src)
 {	
 	size_t prt_to_cpy;
@@ -363,24 +366,5 @@ void SpaceReview(char* dest, const char* src)
 		src = tmp_dest;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

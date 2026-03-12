@@ -1,7 +1,8 @@
 /**********************
  * ws6_files
  * Author: Tal Frank
- * Reviewer: Name
+ * Reviewer: Ori Joseph
+ * Last update: 12/03/2026
 **********************/
 
 #include <stdlib.h>
@@ -20,8 +21,6 @@ logger_status_t Exit(const char* file_name, char* cmd);
 logger_status_t Append(const char* file_name, char* cmd);
 
 
-
-
 /******************************* REMOVE_TMP FUNCTION *************************************/
 
 logger_status_t RemoveTmp(char* file_name)
@@ -33,7 +32,6 @@ logger_status_t RemoveTmp(char* file_name)
 	}
 	return SUCCESS;
 }
-
 
 
 /******************************* COUNT FUNCTION *************************************/
@@ -254,7 +252,6 @@ void Print(int num)
 }
 
 
-
 /******************************* PRINT_THE_INT FUNCTION *************************************/
 
 void PrintTheInt(void)
@@ -271,26 +268,5 @@ void PrintTheInt(void)
 		arr[i].print_ptr(arr[i].num);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

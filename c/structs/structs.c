@@ -1,7 +1,8 @@
 /**********************
- * structs
- * Author: Tal Frank
- * Reviewer: Name
+* structs
+* Author: Tal Frank
+* Reviewer: Yael Novick
+* Last update: 12/03/2026
 **********************/
 
 #include <string.h>
@@ -168,9 +169,5 @@ void ClearString(void* string)
 	free(str_ptr->data);
 	str_ptr->data = NULL;
 }
-
-
-
-
 
 

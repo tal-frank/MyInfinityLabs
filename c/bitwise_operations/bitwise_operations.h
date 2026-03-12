@@ -1,10 +1,6 @@
-/**********************
- * ws6_files
- * Author: Tal frank
- * Reviewer: Name
-**********************/
 
-#include "bitwise.c"
+
+#include "bitwise_operations.c"
 
 
 #ifndef __BITWISE_H__
