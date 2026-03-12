@@ -2,7 +2,7 @@
 #define ARRAYS_AND_POINTERS_TO_POINTERS_h
 
 #include <stddef.h> /* needed for size_t*/
-#include "arrays.c"
+#include "arrays_and_pointer_to_pointer.c"
 
 size_t Jusephus( size_t start_index, size_t soldier_num );
 

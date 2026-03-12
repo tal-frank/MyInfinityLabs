@@ -1,4 +1,4 @@
-# include "exp.h"
+# include "expressions.h"
 
 int main()
 {
@@ -29,5 +29,7 @@ int main()
 	printf("a = %d , b = %d \n" , a, b);
 	SwapVars(ptr_a, ptr_b);
 	printf("a = %d , b = %d \n" , a, b);
+	
+	return 0;
 	
 }

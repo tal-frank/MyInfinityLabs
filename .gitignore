@@ -1,2 +1,5 @@
 a.out
 *h.gch
+*.bin
+*.o
+exercises

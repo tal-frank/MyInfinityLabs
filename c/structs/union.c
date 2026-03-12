@@ -1,7 +1,8 @@
 /**********************
- * structs
- * Author: Tal Frank
- * Reviewer: Name
+* union
+* Author: Tal Frank
+* Reviewer: Yael Novick
+* Last update: 12/03/2026
 **********************/
 
 #include <string.h>

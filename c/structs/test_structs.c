@@ -1,14 +1,10 @@
-/**********************
- * structs
- * Author: Tal Frank
- * Reviewer: Name
-**********************/
+
 
 
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include "union.c"
+#include "structs.c"
 
 
 int main()
@@ -21,12 +17,21 @@ int main()
 
 	element_t arr[3];
 	char* str = (char*)malloc(12);
+	int max, max3;
+	int a = 5, b = 10, c = 13;
 	
 	strcpy (str,  "hello world");
+
+	max = MAX(a, b);
+	max3 = MAX3(a, b, c);
+	printf("the max is %d\n", max);
+	printf("the max3 is %d\n", max3);
+	printf("variable size is %ld\n", SIZEOF(arr[0]));
+	printf("type size is %ld\n", TYPE_SIZEOF(double));
 	
-	arr[0].data.i = 6;
-	arr[1].data.f = 6.7;
-	arr[2].data.s = str;
+	*(int*)&arr[0].data = 6;
+	*(float*)&arr[1].data = 6.7;
+	*(char**)&arr[2].data = str;
 	
 	arr[0].op = &int_ops;
 	arr[1].op = &float_ops;
@@ -41,10 +46,5 @@ int main()
 	
 	return 0;
 }
-
-
-
-
-
 
 

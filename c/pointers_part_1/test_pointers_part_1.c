@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include "pointer1.h"
+#include "pointers_part_1.h"
 
 
-void CopyArrTest(int arr[], int new_arr[], int size)
+static void CopyArrTest(int arr[], int new_arr[], int size)
 {
 	int i;
 	for (i = 0; i < size; ++i)
@@ -29,6 +29,13 @@ int main()
 	int arr_cpy6[10];
 	int arr6[] = {1,2,5,47,42,2,23,4,7,94};
 	
+	size_t size1 = 5;
+	size_t size2 = 1;
+	size_t* size1_ptr = &size1;
+	size_t* size2_ptr = &size2;
+	size_t** size1_pp = &size1_ptr;
+	size_t** size2_pp = &size2_ptr;
+
 	CopyArray(arr1, 6, arr_cpy1, 6);
 	CopyArray(arr2, 5, arr_cpy2, 5);
 	CopyArray(arr3, 2, arr_cpy3, 2);
@@ -42,14 +49,6 @@ int main()
 	CopyArrTest(arr6, arr_cpy6, 10);
 	
 	PrintVarAddrss();
-
-
-	size_t size1 = 5;
-	size_t size2 = 1;
-	size_t* size1_ptr = &size1;
-	size_t* size2_ptr = &size2;
-	size_t** size1_pp = &size1_ptr;
-	size_t** size2_pp = &size2_ptr;
 	
 	printf("size1_ptr = %p\nsize2_ptr = %p\n", (void*)size1_ptr, (void*)size2_ptr);
 	printf("\n\n");
@@ -57,16 +56,6 @@ int main()
 	printf("size1_ptr = %p\nsize2_ptr = %p\n", (void*)size1_ptr, (void*)size2_ptr);
 	printf("\n\n");
 
-
-
+	return 0;
 }
-
-
-
-
-
-
-
-
-
 

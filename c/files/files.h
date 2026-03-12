@@ -1,8 +1,3 @@
-/**********************
- * ws6_files
- * Author: Tal Frank
- * Reviewer: Name
-**********************/
 
 #ifndef __WS6_FILES_H__
 #define __WS6_FILES_H__

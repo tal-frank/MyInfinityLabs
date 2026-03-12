@@ -2,9 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "serialization.c"
+#include "serialize_structs.c"
 
-#define FILE_NAME "binary_file.bin"
+#define FILE_NAME "exercises/binary_file.bin"
 
 
 /************************************ HELP FUNCTIONS ************************************/
@@ -131,17 +131,4 @@ int main()
 	
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 

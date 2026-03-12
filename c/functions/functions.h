@@ -12,12 +12,3 @@ void PrintLut(int mem_to_prnt);
 #endif
 
 
-
-
-
-
-
-
-
-
-

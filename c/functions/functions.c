@@ -1,14 +1,14 @@
+/**********************
+* functions
+* Author: Tal Frank
+* Reviewer: Ori Joseph
+* Last update: 12/03/2026
+**********************/
+
+
 #include "functions.h"
 #include <stdio.h>
 
-/*
-typedef void (*farr[256])()
-{
-	
-;
-
-}
-*/
 
 void InputReceiverIfElse()
 {
@@ -96,10 +96,4 @@ void InputReceiverLut()
 	
 	system("stty icanon echo");
 }
-
-
-
-
-
-
 
