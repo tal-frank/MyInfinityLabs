@@ -2,13 +2,17 @@
  * ws6_files
  * Author: Tal Frank
  * Reviewer: Ori Joseph
- * Last update: 12/03/2026
+ * Last update: 14/03/2026
 **********************/
 
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "files.h"
-#include "../strings/string.c"
+#include "../strings/strings.c"
+
+#define HANDLERS_NUM 5
+#define DEFAULT_FILE_NAME "exercises/Logger.txt"
 #define UNUSED(X) ((void)X)
 
 
@@ -21,9 +25,36 @@ logger_status_t Exit(const char* file_name, char* cmd);
 logger_status_t Append(const char* file_name, char* cmd);
 
 
-/******************************* REMOVE_TMP FUNCTION *************************************/
+/******************************* HANDLER STRUCT *************************************/
 
-logger_status_t RemoveTmp(char* file_name)
+struct logger_handler
+{
+	char* cmd;
+	int (*Cmp)(const char* cmd_line, const char* user_input, size_t num_ch_to_check);
+	logger_status_t (*Activate)(const char* file_name, char* user_input);
+};
+
+/******************************* LINE COUNTER COUNT FUNCTION *************************************/
+
+static int CountLines(FILE* file)
+{
+	int ch = 0;
+	int cnt = 0;
+	while (EOF != ch)
+	{
+		ch = fgetc(file);
+		if ('\n' == ch)
+		{
+			++cnt;
+		}
+	}
+	return cnt;	
+}
+
+
+/******************************* REMOVE TMP FUNCTION *************************************/
+
+static logger_status_t RemoveTmp(char* file_name)
 {
 	if (0 != remove(file_name))
 	{
@@ -34,30 +65,34 @@ logger_status_t RemoveTmp(char* file_name)
 }
 
 
+/******************************* FILE COPY FUNCTION *************************************/
+
+static logger_status_t CopyFile(FILE* dest_file, FILE* src_file, char* cmd_line)
+{
+	logger_status_t status = SUCCESS;
+	while (NULL != fgets(cmd_line, BUFSIZ, src_file))
+	{
+		if (EOF == fputs(cmd_line, dest_file))
+		{
+			printf("Error : can not write to this file.\n");
+			status = RemoveTmp("tmp_file.txt");
+			return status == FAIL_REMOVE_FILE ? FAIL_REMOVE_FILE : FAIL_WRITE_FILE;
+		}
+	}
+	return status;
+}
+
+
 /******************************* COUNT FUNCTION *************************************/
 
 logger_status_t Count(const char* file_name, char* cmd)
 {
-	int ch;
-	int cnt;
-	FILE* cmd_file = fopen(file_name, "r");
+	int cnt = 0;
+	FILE* cmd_file = fopen(file_name, "a+");
 	UNUSED(cmd);
 	
-	cnt = 0;
-	if (NULL == cmd_file)
-	{
-		
-		printf("The number of commands is : %d", cnt);
-		return SUCCESS;
-	}
-	while (EOF != ch)
-	{
-		ch = fgetc(cmd_file);
-		if ('\n' == ch)
-		{
-			++cnt;
-		}
-	}
+	cnt = CountLines(cmd_file);
+	
 	fclose(cmd_file);
 	printf("The number of commands is : %d\n" , cnt);
 	return SUCCESS;
@@ -88,13 +123,11 @@ logger_status_t Remove(const char* file_name, char* cmd)
 
 logger_status_t Append(const char* file_name, char* cmd)
 {
-	char* enter;
-	char cmd_line[100];
-	logger_status_t status;
+	char* enter = "\n";
+	char cmd_line[BUFSIZ] = {0};
+	logger_status_t status = SUCCESS;
 	FILE* cmd_file = fopen(file_name, "r+");
 	FILE* tmp_file;
-	
-	enter = "\n";
 	
 	if (NULL == cmd_file)
 	{
@@ -106,15 +139,10 @@ logger_status_t Append(const char* file_name, char* cmd)
 	++cmd;
 	
 	tmp_file = fopen("tmp_file.txt" , "w");
-
-	while (NULL != fgets(cmd_line, 100, cmd_file))
+	status = CopyFile(tmp_file, cmd_file, cmd_line);
+	if (SUCCESS != status)
 	{
-		if (EOF == fputs(cmd_line, tmp_file))
-		{
-			printf("Error : can not write to this file.\n");
-			status = RemoveTmp("tmp_file.txt");
-			return status == FAIL_REMOVE_FILE ? FAIL_REMOVE_FILE : FAIL_WRITE_FILE;
-		}
+		return status;
 	}
 
 	fclose(tmp_file);
@@ -128,20 +156,16 @@ logger_status_t Append(const char* file_name, char* cmd)
 		return status == FAIL_REMOVE_FILE ? FAIL_REMOVE_FILE : FAIL_WRITE_FILE;
 	}
 	
-	while (NULL != fgets(cmd_line, 100, tmp_file))
+	status = CopyFile(cmd_file, tmp_file, cmd_line);
+	if (SUCCESS != status)
 	{
-		if (EOF == fputs(cmd_line, cmd_file))
-		{
-			printf("Error : can not write to this file.\n");
-			status = RemoveTmp("tmp_file.txt");
-			return status == FAIL_REMOVE_FILE ? FAIL_REMOVE_FILE : FAIL_WRITE_FILE;
-		}
+		return status;
 	}
 	
 	fclose(tmp_file);
 	status = RemoveTmp("tmp_file.txt");	
 	fclose(cmd_file);
-	return status == FAIL_REMOVE_FILE ? FAIL_REMOVE_FILE : SUCCESS;
+	return status;
 }
 
 
@@ -160,10 +184,8 @@ logger_status_t Exit(const char* file_name, char* cmd)
 
 logger_status_t Default(const char* file_name, char* cmd)
 {
-	char* enter;
+	char* enter = "\n";
 	FILE* cmd_file = fopen(file_name, "a+");
-	
-	enter = "\n";
 	
 	if (NULL == cmd_file)
 	{
@@ -212,15 +234,15 @@ void InitHandler(struct logger_handler choose_handler[])
 
 logger_status_t Logger(const char* file_name)
 {
-	int i;
-	size_t cmp_length;
-	char user_input[100];	
-	logger_status_t prog_state;
-	struct logger_handler choose_handler[5];
+	int i = 0;
+	int is_handler_found = 0;
+	static char user_input[BUFSIZ] = {0};	
+	logger_status_t prog_state = SUCCESS;
+	struct logger_handler choose_handler[HANDLERS_NUM] = {0};
 
 	if (NULL == file_name)
 	{
-		file_name = "Logger.txt";
+		file_name = DEFAULT_FILE_NAME;
 	}
 
 	InitHandler(choose_handler);
@@ -229,16 +251,19 @@ logger_status_t Logger(const char* file_name)
 	{
 		scanf ("%[^\n]%*c", user_input);
 
-		for (i = 0; i < 5; ++i)
+		for (i = 0; i < HANDLERS_NUM - 1; ++i)
 		{
-			cmp_length = StrLen(choose_handler[i].cmd);
+			size_t cmp_length = StrLen(choose_handler[i].cmd);
 			if(0 == choose_handler[i].Cmp(choose_handler[i].cmd, 
-							user_input, 
-							cmp_length) || 4 == i)
+							user_input, cmp_length))
 			{	
 				prog_state = choose_handler[i].Activate(file_name, user_input); 
-				break;
+				is_handler_found = 1;
 			}
+		}
+		if (!is_handler_found)
+		{
+			prog_state = choose_handler[HANDLERS_NUM - 1].Activate(file_name, user_input);
 		}
 	}
 	return 0;

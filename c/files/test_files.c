@@ -2,7 +2,7 @@
 #include "files.h"
 #include "files.c"
 
-
+/* exercises/new_file.txt */
 int main()
 {
 /*	char user_input[100];
@@ -10,7 +10,7 @@ int main()
 	printf("choose a file name : ");
 	scanf("%s\0", user_input);
 	printf("%s\n", user_input);*/
-	Logger("new_file.txt");
+	Logger("exercises/new_file.txt");
 
 	PrintTheInt(); 
 
