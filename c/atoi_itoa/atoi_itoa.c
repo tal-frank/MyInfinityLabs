@@ -6,13 +6,18 @@
 
 #include "atoi_itoa.h"
 
+
+/*********************************** MACROS ***********************************/
+
+#define ASCII_TABLE_SIZE (377)
 #define TEST_VAL (1)
 #define NEG (-1)
 #define POS (1)
-#define ASCII_TABLE_SIZE (377)
+
 #define DECIMAL (10)
 #define MIN_BASE (2)
 #define MAX_BASE (36)
+
 #define CHAR_0_ALIGN (48)
 #define CHAR_9_ALIGN (58)
 #define CHAR_A_ALIGN (65)
@@ -21,15 +26,50 @@
 
 /*********************************** FUNCTION DECLARATIONS ***********************************/
 
-static void MakeConvertListTo10(int arr[], size_t size, size_t base);
+static void MakeConvertList(int arr[], size_t size, size_t base);
 static void MakeConvertListTo36(int arr[], size_t base);
 static void CheckApearanceInArr(int arr_dest[], const char arr_src[], size_t size_src);
 static void PrintCommonChars(int arr[3][ASCII_TABLE_SIZE], size_t size);
 static char FindValChar(int* val, int base);
 static char* ReverseString (char* str);
-/*static void EraseSpaces(char* str);*/
+static void EraseSpaces(const char** str);
+static int DecideSign(const char** str);
+static void AddSign(char** str, int sign);
+
 
 /*********************************** STATIC FUNCTIONS ***********************************/
+
+static void AddSign(char** str, int sign)
+{
+	if (sign)
+	{
+		**str = '-';
+		++*str;
+	}
+}
+
+
+static int DecideSign(const char** str)
+{
+	int neg_flag = POS;
+	
+	if ('-' == **str || '+' == **str)
+	{
+		neg_flag = '-' == **str ? NEG : POS;
+		++*str;
+	}
+	
+	return neg_flag;
+}
+
+
+static void EraseSpaces(const char** str)
+{
+	while (' ' == **str)
+	{
+		++*str;
+	}
+}
 
 
 static char* ReverseString (char* str)
@@ -37,8 +77,10 @@ static char* ReverseString (char* str)
 	int i = 0;
 	int len = 0;
 	char* rev_str = NULL;
+	
 	len = strlen(str);
 	rev_str = (str + len - 1);
+	
 	for (i = 0; i < len / 2; ++i)
 	{
 		char temp = *rev_str;
@@ -46,6 +88,7 @@ static char* ReverseString (char* str)
 		*str = temp;
 		++str; --rev_str;
 	}
+	
 	return rev_str;
 }
 
@@ -64,6 +107,7 @@ static char FindValChar(int* val, int base)
 	{
 		val_char += CHAR_A_ALIGN - DECIMAL;
 	}
+	
 	return (char)val_char;
 }
 
@@ -94,9 +138,10 @@ static void PrintCommonChars(int arr[3][ASCII_TABLE_SIZE], size_t size)
 }
 
 
-static void MakeConvertListTo10(int arr[], size_t size, size_t base)
+static void MakeConvertList(int arr[], size_t size, size_t base)
 {
 	size_t i = 0;
+	
 	for (i = 0; i < size; ++i)
 	{
 		if (i >= CHAR_0_ALIGN && i < base + CHAR_0_ALIGN)
@@ -108,6 +153,7 @@ static void MakeConvertListTo10(int arr[], size_t size, size_t base)
 			arr[i] = NEG;
 		}
 	}
+	
 	if (base > 10)
 	{
 		MakeConvertListTo36(arr, base);
@@ -117,6 +163,7 @@ static void MakeConvertListTo10(int arr[], size_t size, size_t base)
 static void MakeConvertListTo36(int arr[], size_t base)
 {
 	size_t i = 0;
+	
 	for (i = CHAR_A_ALIGN ; i < base + CHAR_A_ALIGN - DECIMAL; ++i)
 	{
 		arr[i] = i - CHAR_A_ALIGN + DECIMAL;
@@ -146,17 +193,10 @@ int Atoi(const char *str)
 
 	assert(str);
 	
-	MakeConvertListTo10(convert_list, ASCII_TABLE_SIZE, DECIMAL);
-	while (' ' == *str)
-	{
-		++str;
-	}
+	MakeConvertList(convert_list, ASCII_TABLE_SIZE, DECIMAL);
 	
-	if ('-' == *str || '+' == *str)
-	{
-		neg_flag = '-' == *str ? NEG : POS;
-		++str;
-	}
+	EraseSpaces(&str);	
+	neg_flag = DecideSign(&str);
 	
 	while ('\0' != *str)
 	{
@@ -185,17 +225,10 @@ int AtoiBase(const char* str, size_t base)
 		return 0;
 	}
 	
-	MakeConvertListTo10(convert_list, ASCII_TABLE_SIZE, base);
-	while (' ' == *str)
-	{
-		++str;
-	}
+	MakeConvertList(convert_list, ASCII_TABLE_SIZE, base);
 	
-	if ('-' == *str || '+' == *str)
-	{
-		neg_flag = '-' == *str ? NEG : POS;
-		++str;
-	}
+	EraseSpaces(&str);
+	neg_flag = DecideSign(&str);
 	
 	while ('\0' != *str)
 	{
@@ -208,9 +241,6 @@ int AtoiBase(const char* str, size_t base)
 	}
 	return neg_flag * conv_num;
 }
-
-
-
 
 
 /*********************************** ITOA FUNCTIONS ***********************************/
@@ -231,14 +261,11 @@ char* Itoa(int value, char* str)
 		*str = FindValChar(&value, DECIMAL);
 		++str;
 	}
-	if (neg_flag)
-	{
-		*str = '-';
-		++str;
-	}
 	
+	AddSign((char**)&str, neg_flag);
 	*str = '\0';
 	ReverseString(real_str);
+	
 	return real_str;
 }
 
@@ -249,6 +276,12 @@ char* ItoaBase(int value, char* str,  size_t base)
 	
 	assert(str);
 	
+	if (base > MAX_BASE || base < MIN_BASE)
+	{
+		printf("unsupported base\n");
+		return 0;
+	}
+	
 	neg_flag = value < 0 ? 1 : 0;	
 	value = value < 0 ? -value : value;
 	
@@ -257,14 +290,11 @@ char* ItoaBase(int value, char* str,  size_t base)
 		*str = FindValChar(&value, base);
 		++str;
 	}
-	if (neg_flag)
-	{
-		*str = '-';
-		++str;
-	}
-	
+
+	AddSign((char**)&str, neg_flag);
 	*str = '\0';
 	ReverseString(real_str);
+	
 	return real_str;
 }
 
@@ -283,14 +313,4 @@ void RepeatingChars(const char* array_1, size_t array_1_length,
 	
 	PrintCommonChars(arr, ASCII_TABLE_SIZE);
 }
-
-
-
-
-
-
-
-
-
-
 
