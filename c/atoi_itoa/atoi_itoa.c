@@ -163,7 +163,6 @@ static void MakeConvertList(int arr[], size_t size, size_t base)
 		}
 	}
 
-
 	if (base > 10)
 	{
 		MakeConvertListTo36(arr, base);
@@ -338,5 +337,4 @@ void RepeatingChars(const char* array_1, size_t array_1_length,
 	
 	PrintCommonChars(arr, ASCII_TABLE_SIZE);
 }
-
 
