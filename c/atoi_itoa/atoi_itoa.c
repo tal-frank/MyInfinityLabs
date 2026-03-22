@@ -1,3 +1,10 @@
+/**********************
+* Atoi_Itoa
+* Author: Tal Frank
+* Reviewer: Yael Novick
+* Last update: 21/03/2026
+**********************/
+
 
 #include <stdio.h> /* printf */
 #include <stddef.h> /* size_t */
@@ -21,6 +28,7 @@
 #define CHAR_0_ALIGN (48)
 #define CHAR_9_ALIGN (58)
 #define CHAR_A_ALIGN (65)
+#define CHAR_a_ALIGN (97)
 #define APEARS_IN_ARR (1)
 
 
@@ -168,6 +176,12 @@ static void MakeConvertListTo36(int arr[], size_t base)
 	{
 		arr[i] = i - CHAR_A_ALIGN + DECIMAL;
 	}
+	
+	for (i = CHAR_a_ALIGN ; i < base + CHAR_a_ALIGN - DECIMAL; ++i)
+	{
+		arr[i] = i - CHAR_a_ALIGN + DECIMAL;
+	}
+	
 }
 
 
@@ -179,7 +193,7 @@ int IsLittleEndian(void)
 	char* endian_check = NULL;
 	
 	endian_check = (char*)&i;
-	return (TEST_VAL == *endian_check) ? 1 : 0;
+	return TEST_VAL == *endian_check;
 }
 
 /*********************************** ATOI FUNCTIONS ***********************************/
@@ -255,6 +269,11 @@ char* Itoa(int value, char* str)
 	
 	neg_flag = value < 0 ? 1 : 0;	
 	value = value < 0 ? -value : value;
+	if (0 == value)
+	{
+		*str = '0';
+		++str;
+	}
 	
 	while (value > 0)
 	{
@@ -280,6 +299,12 @@ char* ItoaBase(int value, char* str,  size_t base)
 	{
 		printf("unsupported base\n");
 		return 0;
+	}
+	
+	if (0 == value)
+	{
+		*str = '0';
+		return str;
 	}
 	
 	neg_flag = value < 0 ? 1 : 0;	
