@@ -21,7 +21,7 @@ int main()
 	int num9 = 9;
 	int num10 = 10;
 */
-	stack_t* stack = StackCreateOneMalloc(capacity, size_of_element);
+	stack_t* stack = StackCreate(capacity, size_of_element);
 
 	if (StackIsEmpty(stack))
 	{
@@ -86,7 +86,7 @@ int main()
 		printf("stack is not empty\n");
 	}
 	
-	StackDestroyOneMalloc(stack);
+	StackDestroy(stack);
 	
 	
 	

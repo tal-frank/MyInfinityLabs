@@ -1,5 +1,5 @@
 /**********************
-* Atoi_Itoa
+* Stack
 * Author: Tal Frank
 * Reviewer: Roman Polugrudov
 * Last update: 23/03/2026
@@ -85,6 +85,8 @@ void StackDestroy(stack_t* stack)
 void StackPush(stack_t* stack, const void* data)
 {
 	assert(stack);
+	assert(data);
+	
 	if (stack->capacity != stack->size)
 	{
 		memcpy(&stack->buffer[stack->size * stack->size_of_element], 
@@ -106,6 +108,8 @@ void StackPop(stack_t* stack)
 
 void* StackPeek(const stack_t* stack)
 {
+	assert(stack);	
+	
 	return &stack->buffer[(stack->size - 1) * stack->size_of_element];
 }
 
