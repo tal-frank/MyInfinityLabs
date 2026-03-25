@@ -29,7 +29,6 @@
 #define CHAR_9_ALIGN (58)
 #define CHAR_A_ALIGN (65)
 #define CHAR_a_ALIGN (97)
-
 #define APEARS_IN_ARR (1)
 
 
@@ -116,7 +115,7 @@ static char FindValChar(int* val, int base)
 	{
 		val_char += CHAR_A_ALIGN - DECIMAL;
 	}
-
+	
 	return (char)val_char;
 }
 
@@ -162,7 +161,7 @@ static void MakeConvertList(int arr[], size_t size, size_t base)
 			arr[i] = NEG;
 		}
 	}
-
+	
 	if (base > 10)
 	{
 		MakeConvertListTo36(arr, base);
@@ -172,7 +171,7 @@ static void MakeConvertList(int arr[], size_t size, size_t base)
 static void MakeConvertListTo36(int arr[], size_t base)
 {
 	size_t i = 0;
-
+	
 	for (i = CHAR_A_ALIGN ; i < base + CHAR_A_ALIGN - DECIMAL; ++i)
 	{
 		arr[i] = i - CHAR_A_ALIGN + DECIMAL;
@@ -182,6 +181,7 @@ static void MakeConvertListTo36(int arr[], size_t base)
 	{
 		arr[i] = i - CHAR_a_ALIGN + DECIMAL;
 	}
+	
 }
 
 
@@ -258,6 +258,7 @@ int AtoiBase(const char* str, size_t base)
 
 
 /*********************************** ITOA FUNCTIONS ***********************************/
+
 
 char* Itoa(int value, char* str)
 {

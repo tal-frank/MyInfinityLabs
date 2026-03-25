@@ -2,7 +2,7 @@
 * Stack
 * Author: Tal Frank
 * Reviewer: Roman Polugrudov
-* Last update: 25/03/2026
+* Last update: 23/03/2026
 **********************/
 
 #include <string.h> /* memcpy */
@@ -28,11 +28,11 @@ struct Stack
 
 stack_t* StackCreateOneMalloc(size_t capacity, size_t size_of_element)
 {
-	stack_t* stack = (stack_t*)malloc(sizeof(stack_t) + (size_of_element * (capacity - 1)));
+	stack_t* stack = (stack_t*)malloc(sizeof(stack_t) - sizeof(size_t) + (size_of_element * capacity));
 	if (NULL == stack)
 	{
 		printf("can't creat struct\n");
-		return NULL;
+		return 0;
 	}
 	stack->buffer = (char*)(stack + 1);
 	stack->capacity = capacity;
@@ -50,14 +50,13 @@ stack_t* StackCreate(size_t capacity, size_t size_of_element)
 	if (NULL == stack)
 	{
 		printf("can't creat struct\n");
-		return NULL;
+		return 0;
 	}
 	stack->buffer = (char*)malloc(size_of_element * capacity);
 	if (NULL == stack->buffer)
 	{
 		printf("can't creat buffer\n");
-		free(stack);
-		return NULL;
+		return 0;
 	}
 	stack->capacity = capacity;
 	stack->size_of_element = size_of_element;
@@ -85,8 +84,8 @@ void StackDestroy(stack_t* stack)
 
 void StackPush(stack_t* stack, const void* data)
 {
-	assert(NULL != stack);
-	assert(NULL != data);
+	assert(stack);
+	assert(data);
 	
 	if (stack->capacity != stack->size)
 	{
@@ -99,7 +98,7 @@ void StackPush(stack_t* stack, const void* data)
 
 void StackPop(stack_t* stack)
 {
-	assert(NULL != stack);
+	assert(stack);
 	if (0 != stack->size)
 	{
 		stack->size -= 1;
@@ -109,7 +108,7 @@ void StackPop(stack_t* stack)
 
 void* StackPeek(const stack_t* stack)
 {
-	assert(NULL != stack);	
+	assert(stack);	
 	
 	return &stack->buffer[(stack->size - 1) * stack->size_of_element];
 }
@@ -119,21 +118,21 @@ void* StackPeek(const stack_t* stack)
 
 size_t StackSize(const stack_t* stack)
 {
-	assert(NULL != stack);
+	assert(stack);
 	return stack->size;
 }
 
 
 size_t StackCapacity(const stack_t* stack)
 {
-	assert(NULL != stack);
+	assert(stack);
 	return stack->capacity;
 }
 
 
 size_t StackIsEmpty(const stack_t* stack)
 {
-	assert(NULL != stack);
+	assert(stack);
 	return 0 == stack->size;
 }
 
