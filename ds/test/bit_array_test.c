@@ -41,6 +41,10 @@ int main()
 	bitarray = BitarraySetBitOn(bitarray, 8);
 	BitarrayToString(bitarray, str);
 	
+	printf("set on the 63th bit\n");
+	bitarray = BitarraySetBitOn(bitarray, 63);
+	BitarrayToString(bitarray, str);
+	
 	printf("check if the 8th bit is set\n");
 	check_bit = BitarrayGetBit(bitarray, 8);
 	printf("8th bit is : %d\n" , check_bit);

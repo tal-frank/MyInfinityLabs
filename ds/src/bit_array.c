@@ -120,7 +120,7 @@ bitarray_t BitarrayRotL(bitarray_t bitarray, size_t amount)
 {	
 	size_t rotation_mask = bitarray >> ((CHAR_BIT * sizeof(bitarray_t)) - amount);	
 	
-	assert(amount < WORD_SIZE);
+	assert(amount <= WORD_SIZE);
 	
 	return (bitarray << amount) | (rotation_mask);
 }
@@ -130,7 +130,7 @@ bitarray_t BitarrayRotR(bitarray_t bitarray, size_t amount)
 {	
 	size_t rotation_mask = bitarray << ((CHAR_BIT * sizeof(bitarray_t)) - amount);
 	
-	assert(amount < WORD_SIZE);
+	assert(amount <= WORD_SIZE);
 	
 	return (bitarray >> amount | (rotation_mask));
 }
@@ -179,13 +179,13 @@ size_t BitarrayCountOn2(bitarray_t bitarray)
 
 size_t BitarrayCountOff2(bitarray_t bitarray)
 {
-	size_t cnt_off = 0;
+	size_t cnt_on = 0;
 	while (0 != bitarray)
 	{
 		bitarray = bitarray & (bitarray -1);
-		++cnt_off;
+		++cnt_on;
 	}
-	return (CHAR_BIT * sizeof(bitarray_t)) - cnt_off;
+	return (CHAR_BIT * sizeof(bitarray_t)) - cnt_on;
 }
 
 
@@ -231,7 +231,7 @@ char* BitarrayToString(bitarray_t bitarray, char* dest)
 		bitarray >>= 1;
 	}
 	
-	dest[CHAR_BIT * sizeof(size_t) + 1] = '\0';
+	dest[CHAR_BIT * sizeof(size_t)] = '\0';
 	ReverseString(dest);
 	printf("%s\n", dest);
 	return dest;
