@@ -18,10 +18,10 @@
 
 /*********************************** STATIC LUTS ***********************************/
 
-static size_t left_mask_lut[6] = {0x5555555555555555, 0x3333333333333333, 
+static unsigned long left_mask_lut[6] = {0x5555555555555555, 0x3333333333333333, 
 				  0x0F0F0F0F0F0F0F0F, 0x00FF00FF00FF00FF, 
 				  0x0000FFFF0000FFFF, 0x00000000FFFFFFFF};
-static size_t right_mask_lut[6] = {0xAAAAAAAAAAAAAAAA, 0xCCCCCCCCCCCCCCCC, 
+static unsigned long right_mask_lut[6] = {0xAAAAAAAAAAAAAAAA, 0xCCCCCCCCCCCCCCCC, 
 				   0xF0F0F0F0F0F0F0F0, 0xFF00FF00FF00FF00, 
 				   0xFFFF0000FFFF0000, 0xFFFFFFFF00000000};
 
@@ -39,9 +39,9 @@ static char* ReverseString (char* str);
 
 static char* ReverseString (char* str)
 {
-	int i = 0;
+	size_t i = 0;
 	char* rev_str = NULL;
-	int len = strlen(str);
+	size_t len = strlen(str);
 		
 	rev_str = (str + len - 1);	
 	for (i = 0; i < len / 2; ++i)
@@ -193,7 +193,7 @@ size_t BitarrayCountOn(bitarray_t bitarray)
 {
 	size_t cnt_on = 0;
 	
-	while (bitarray > 0)
+	while (bitarray != 0)
 	{
 		cnt_on += bit_cnt_on_lut[bitarray & 0x0F];
 		bitarray >>= (CHAR_BIT / 2);
