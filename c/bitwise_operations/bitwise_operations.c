@@ -7,17 +7,20 @@
 
 #include <string.h>
 
+
 long Pow2(unsigned int x, unsigned int y)
 {
-	long pow;
-	pow = x << y;
+	long pow = 0;
+	pow = (long)(x << y);
 	return pow;
 }
 
-int IsPowOf2Loop(unsigned int n)
+
+int IsPowOf2Loop2(unsigned int n)
 {
-	unsigned int i;
+	unsigned int i = 0;
 	int cnt = 0;
+	
 	for (i = 0; i < 8 * sizeof(unsigned int); ++i)
 	{
 		if (n & 1)
@@ -26,29 +29,31 @@ int IsPowOf2Loop(unsigned int n)
 		}
 		n = n >> 1;
 	}
-	if (1 == cnt)
+	return !(cnt ^ 1);
+}
+
+
+int IsPowOf2Loop(unsigned int n)
+{
+	int set_bits_cnt = 0;
+	while (0 != n)
 	{
-		return 1;
+		n &= (n - 1);
+		++set_bits_cnt;
 	}
-	return 0;
+	return !(set_bits_cnt ^ 1);
 }
 
 
 int IsPowOf2Comp(unsigned int n)
 {
-	unsigned int fst_round;
-	unsigned int sec_round;
-	unsigned int thrd_round;
-	unsigned int frth_round;
-	unsigned int fifth_round;
+	unsigned int fst_round = 0x55555555;
+	unsigned int sec_round = 0x33333333;
+	unsigned int thrd_round = 0x0F0F0F0F;
+	unsigned int frth_round = 0x00FF00FF;
+	unsigned int fifth_round = 0x0000FFFF;
 	unsigned int a0;
 	unsigned int a1;
-	
-	fst_round = 0x55555555;
-	sec_round = 0x33333333;
-	thrd_round = 0x0F0F0F0F;
-	frth_round = 0x00FF00FF;
-	fifth_round = 0x0000FFFF;
 	
 	a0 = fst_round & n;
 	a1 = fst_round & n >> 1;
@@ -69,13 +74,8 @@ int IsPowOf2Comp(unsigned int n)
 	a0 = fifth_round & n;
 	a1 = fifth_round & n >> 16;
 	n = a0 + a1;
-	
-	if (1 == n)
-	{
-		return 1;
-	}
-	return 0;
 
+	return !(n ^ 1);	
 }
 
 
@@ -89,15 +89,11 @@ int IsPowOf2(unsigned int n)
 }
 
 
-
 int Add1Comp(int n)
 {
-	size_t i;
-	int tmp;
-	int add;
-	
-	tmp = n;
-	add = 1;
+	size_t i = 0;
+	int tmp = n;
+	int add = 1;
 	
 	for (i = 0; i < 8 * sizeof(int); ++i)
 	{
@@ -109,7 +105,6 @@ int Add1Comp(int n)
 		{
 			n = n | add;
 			return n;
-			break;
 		}
 		tmp = tmp >> 1;
 		add = add << 1;
@@ -117,19 +112,30 @@ int Add1Comp(int n)
 	return n;
 }
 
+
+int Add1_sec(int num)
+{
+	size_t mask = 1;
+	while(num & mask)
+	{
+		num ^= mask;
+		mask <<=1;
+	}
+	return num | mask;
+}
+
+
 int Add1(int n)
 {
 	return (-(~n));
 }
 
+
 unsigned char Add1Char(unsigned char n)
 {
 	size_t i;
-	unsigned char tmp;
-	unsigned char add;
-	
-	tmp = n;
-	add = 1;
+	unsigned char tmp = n;
+	unsigned char add = 1;
 	
 	for (i = 0; i < 8 * sizeof(unsigned char); ++i)
 	{
@@ -141,7 +147,6 @@ unsigned char Add1Char(unsigned char n)
 		{
 			n = n | add;
 			return n;
-			break;
 		}
 		tmp = tmp >> 1;
 		add = add << 1;
@@ -152,9 +157,9 @@ unsigned char Add1Char(unsigned char n)
 
 void PrintNumsWith3BitsOn(unsigned int* arr, size_t size)
 {
-	size_t i;
-	size_t j;
-	int cnt;
+	size_t i = 0;
+	size_t j = 0;
+	int cnt = 0;
 	unsigned int check = 1;
 	
 	for (i = 0; i < size; ++i)
@@ -177,16 +182,12 @@ void PrintNumsWith3BitsOn(unsigned int* arr, size_t size)
 }
 
 
-
 unsigned char ByteMirrorLoop(unsigned char byte)
 {
-	int i;	
-	unsigned char start;
-	unsigned char end;
+	int i = 0;	
+	unsigned char start = 0x01;
+	unsigned char end = 0x80;
 	unsigned char mirrored = 0;
-	
-	start = 0x01;
-	end = 0x80;
 	
 	for (i = 0; i < 8; ++i)
 	{
@@ -200,9 +201,10 @@ unsigned char ByteMirrorLoop(unsigned char byte)
 	return mirrored;
 }
 
+
 unsigned char ByteMirror(unsigned char byte)
 {
-	unsigned char mirrored;
+	unsigned char mirrored = 0;
 	mirrored = ((byte & 0x01) << 7)
 		 | ((byte & 0x02) << 5)
 		 | ((byte & 0x04) << 3)
@@ -216,14 +218,10 @@ unsigned char ByteMirror(unsigned char byte)
 }
 
 
-
 int IsSecondAndSixthBitOn(unsigned char byte)
 {
-	int sec;
-	int sixth;
-	
-	sec = 1 << 1;
-	sixth = 1 << 5;
+	int sec = 0x2;
+	int sixth = 0x2;
 	
 	return (byte & sec) && (byte & sixth);
 }
@@ -231,32 +229,27 @@ int IsSecondAndSixthBitOn(unsigned char byte)
 
 int IsSecondOrSixthBitOn(unsigned char byte)
 {
-	int sec;
-	int sixth;
-	
-	sec = 1 << 1;
-	sixth = 1 << 5;
+	int sec = 0x2;
+	int sixth = 0x2;
 	
 	return (byte & sec) || (byte & sixth);
 }
-
 
 
 unsigned char SwapThirdAndFifthBits(unsigned char byte)
 {
 	unsigned char swap3_5;
 	swap3_5 = (byte & 0x01)
-		 | (byte & 0x02)
-		 | ((byte & 0x04) << 2)
-		 | (byte & 0x08)
-		 | ((byte & 0x10) >> 2)
-		 | (byte & 0x20)
-		 | (byte & 0x40)
-		 | (byte & 0x80);
+		| (byte & 0x02)
+		| ((byte & 0x04) << 2)
+		| (byte & 0x08)
+		| ((byte & 0x10) >> 2)
+		| (byte & 0x20)
+		| (byte & 0x40)
+		| (byte & 0x80);
 	
 	return swap3_5;
 }
-
 
 
 unsigned int MaxDivisedBy16(unsigned char byte)
@@ -264,8 +257,8 @@ unsigned int MaxDivisedBy16(unsigned char byte)
 	unsigned char fourth_bit;
 	unsigned char divide_16;
 	
-	fourth_bit = 1 << 3;
-	divide_16 = 15;
+	fourth_bit = 0x8;
+	divide_16 = 0xF;
 	
 	if (byte & fourth_bit)
 	{
@@ -290,18 +283,12 @@ void SwapVars(int* a, int* b)
 }
 
 
-
 void SwapVarsV2(int* a, int* b)
 {
 	*a = *a ^ *b;
 	*b = *a ^ *b;
 	*a = *a ^ *b;
 }
-
-
-/*
-void SwapVarsV3(int* a, int* b);
-*/
 
 
 unsigned int CountSetBitsLoop(unsigned int byte)
@@ -326,19 +313,13 @@ unsigned int CountSetBitsLoop(unsigned int byte)
 
 unsigned int CountSetBits(unsigned int num)
 {
-	unsigned int fst_round;
-	unsigned int sec_round;
-	unsigned int thrd_round;
-	unsigned int frth_round;
-	unsigned int fifth_round;
+	unsigned int fst_round = 0x55555555;
+	unsigned int sec_round = 0x33333333;
+	unsigned int thrd_round = 0x0F0F0F0F;
+	unsigned int frth_round = 0x00FF00FF;
+	unsigned int fifth_round = 0x0000FFFF;
 	unsigned int a0;
 	unsigned int a1;
-	
-	fst_round = 0x55555555;
-	sec_round = 0x33333333;
-	thrd_round = 0x0F0F0F0F;
-	frth_round = 0x00FF00FF;
-	fifth_round = 0x0000FFFF;
 	
 	a0 = fst_round & num;
 	a1 = fst_round & num >> 1;
@@ -365,9 +346,9 @@ unsigned int CountSetBits(unsigned int num)
 
 void FloatAnalysis(float num)
 {
-	size_t i;
-	size_t bit;
-	int print_float;
+	size_t i = 0;
+	size_t bit = 0;
+	int print_float = 0;
 
 	memcpy(&print_float, &num, 4);
 	for (i = 0; i < 8 * sizeof(int); ++i)
