@@ -44,22 +44,22 @@ dvector_t* DvectorCreate(size_t capacity, size_t element_size)
 {
 	dvector_t* dvector = (dvector_t*)malloc(sizeof(dvector_t));
 
-	if (0 == capacity || 0 ==element_size)
+	if (NULL == dvector)
+	{
+		printf("can not allocate space for vector\n");
+		return NULL;
+	}
+	
+	if (0 == capacity || 0 == element_size)
 	{
 		free(dvector);
 		return NULL;
 	}	
 	
-	if (NULL == dvector)
-	{
-		printf("can not allocate sapce for vector\n");
-		return NULL;
-	}
-	
 	dvector->data = (char*)malloc(capacity * element_size);
 	if (NULL == dvector->data)
 	{
-		printf("can not allocate sapce for vector\n");
+		printf("can not allocate space for vector\n");
 		free(dvector);
 		return NULL;
 	}
@@ -110,8 +110,8 @@ int DvectorPush(dvector_t* vector, const void* element)
 
 int DvectorPop(dvector_t* vector)
 {	
-	assert(0 < vector->size);
 	assert(NULL != vector);
+	assert(0 < vector->size);
 
 	--vector->size;
 	if (vector->size < (vector->capacity / (2 * GROWTH_FACTOR)))
@@ -136,8 +136,8 @@ void* DvectorGetAccessToElement(dvector_t* vector, size_t index)
 
 void DvectorSafePop(dvector_t* vector)
 {
-	assert(0 < vector->size);
 	assert(NULL != vector);
+	assert(0 < vector->size);
 	--vector->size;
 }
 
@@ -166,7 +166,7 @@ size_t DvectorCapacity(const dvector_t* vector)
 
 int DvectorExpand(dvector_t* vector, size_t new_amount)
 {
-	char* new_data = 0;
+	char* new_data = NULL;
 	
 	assert(NULL != vector);	
 	
@@ -194,13 +194,13 @@ int DvectorExpand(dvector_t* vector, size_t new_amount)
 
 int DvectorShrink(dvector_t* vector)
 {
-	char* new_data = 0;
+	char* new_data = NULL;
 
 	assert(NULL != vector);
 	
 	if (vector->size > vector->capacity / GROWTH_FACTOR)
 	{
-		new_data = realloc(vector->data, vector->size * vector->element_size);
+		new_data = (char*)realloc(vector->data, vector->size * vector->element_size);
 		if (NULL ==  new_data)
 		{
 			printf("can not resize\n");
@@ -212,7 +212,7 @@ int DvectorShrink(dvector_t* vector)
 	
 	else
 	{
-		new_data = realloc(vector->data, 
+		new_data = (char*)realloc(vector->data, 
 				  (vector->capacity / GROWTH_FACTOR) * vector->element_size);
 		if (NULL == new_data)
 		{
