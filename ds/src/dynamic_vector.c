@@ -15,6 +15,7 @@
 
 #define GROWTH_FACTOR (2)
 
+
 /*-------------------------------------------------------------------------------*/
 /***************************** DYNAMIC VECTOR STRUCT *****************************/
 /*-------------------------------------------------------------------------------*/
@@ -42,6 +43,13 @@ enum
 dvector_t* DvectorCreate(size_t capacity, size_t element_size)
 {
 	dvector_t* dvector = (dvector_t*)malloc(sizeof(dvector_t));
+
+	if (0 == capacity || 0 ==element_size)
+	{
+		free(dvector);
+		return NULL;
+	}	
+	
 	if (NULL == dvector)
 	{
 		printf("can not allocate sapce for vector\n");
@@ -65,6 +73,11 @@ dvector_t* DvectorCreate(size_t capacity, size_t element_size)
 
 void DvectorDestroy(dvector_t* vector)
 {
+	if (NULL == vector)
+	{
+		return;
+	}
+	
 	free(vector->data);
 	free(vector);
 }
@@ -76,21 +89,15 @@ void DvectorDestroy(dvector_t* vector)
 
 int DvectorPush(dvector_t* vector, const void* element)
 {
-	char* new_data = 0;
-	
 	assert(NULL != vector);
 	assert(NULL != element);
 
 	if (vector->size >= vector->capacity)
 	{
-		vector->capacity *= GROWTH_FACTOR;
-		new_data = realloc(vector->data, vector->capacity * vector->element_size);
-		if (NULL == new_data)
+		if (DvectorExpand(vector, vector->capacity * GROWTH_FACTOR))
 		{
-			printf("can not insert data\n");
 			return FAILURE;
 		}
-		vector->data = new_data;
 	}
 	
 	memcpy(&vector->data[vector->size * vector->element_size],
@@ -102,22 +109,17 @@ int DvectorPush(dvector_t* vector, const void* element)
 
 
 int DvectorPop(dvector_t* vector)
-{
-	char* new_data = 0;
-	
+{	
+	assert(0 < vector->size);
 	assert(NULL != vector);
 
 	--vector->size;
 	if (vector->size < (vector->capacity / (2 * GROWTH_FACTOR)))
 	{
-		vector->capacity /= GROWTH_FACTOR;
-		new_data = realloc(vector->data, vector->capacity * vector->element_size);
-		if (NULL ==  new_data)
+		if (DvectorShrink(vector))
 		{
-			printf("can not resize\n");
 			return FAILURE;
 		}
-		vector->data = new_data;
 	}
 	return SUCCESS;
 }
@@ -125,12 +127,16 @@ int DvectorPop(dvector_t* vector)
 
 void* DvectorGetAccessToElement(dvector_t* vector, size_t index)
 {
+	assert(NULL != vector);
+	assert(index < vector->capacity);
+	
 	return &vector->data[index * vector->element_size];
 }
 
 
 void DvectorSafePop(dvector_t* vector)
 {
+	assert(0 < vector->size);
 	assert(NULL != vector);
 	--vector->size;
 }

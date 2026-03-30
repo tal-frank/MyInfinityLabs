@@ -1,6 +1,7 @@
 #ifndef __DYNAMIC_VECTOR_H__
 #define __DYNAMIC_VECTOR_H__
 
+#include <stddef.h>
 
 typedef struct Dynamic_vector dvector_t;
 
