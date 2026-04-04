@@ -34,6 +34,7 @@ int is_equal(void* num1, void* num2)
 	return *(int*)num1 == *(int*)num2 ? 1 : 0;
 }
 
+
 /*-------------------------------------------------------------*/
 /************************* INSERT TEST *************************/
 /*-------------------------------------------------------------*/
@@ -674,6 +675,8 @@ void FlipTest(void)
 	sll_t* sll = SllCreate();
 	sll_iter_t iter = 0;
 	sll_iter_t iter_begin = SllBegin(sll);
+	sll_iter_t iter_destroy = 0;
+	sll_iter_t iter_destroy2 = 0;
 	int check = 9;
 	
 	printf("started " CYAN "FLIP" RESET_COLOR " test:\n");
@@ -690,20 +693,24 @@ void FlipTest(void)
 	iter = SllBegin(sll);
 	
 	iter = Flip(iter);
+	free(sll);
 	
 	while(!SllIterIsEqual(iter, iter_begin))
 	{
-	if ((check) != *(int*)SllGetData(iter))
+		if ((check) != *(int*)SllGetData(iter))
 		{
 			printf(RED "flip FAILED\n\n" RESET_COLOR);
-			SllDestroy(sll);
 			return;
 		}
+		iter_destroy = iter;
 		iter = SllGetNext(iter);
+		free(iter_destroy);
 		--check;
 	}
 	
 	printf(GREEN "flip PASSED\n\n" RESET_COLOR);
+	iter_destroy = iter;
+	free(iter_destroy);
 }
 
 
@@ -717,6 +724,7 @@ void LoopTest(void)
 	sll_t* sll2 = SllCreate();
 	sll_iter_t iter = 0;
 	sll_iter_t iter_next = 0;
+	sll_iter_t iter_dummy = 0;
 	int has_loop = 0;
 	
 	printf("started " CYAN "LOOP" RESET_COLOR " test:\n");
@@ -740,6 +748,8 @@ void LoopTest(void)
 	iter = SllGetNext(iter);
 	iter = SllGetNext(iter);
 	
+	iter_dummy = SllGetNext(iter);
+	
 	iter_next = SllBegin(sll1);
 	iter_next = SllGetNext(iter_next);
 	iter_next = SllGetNext(iter_next);
@@ -759,6 +769,20 @@ void LoopTest(void)
 		SllDestroy(sll2);
 		return;
 	}
+	
+	iter = SllBegin(sll1);
+	iter = SllGetNext(iter);
+	iter = SllGetNext(iter);
+	iter = SllGetNext(iter);
+	iter = SllGetNext(iter);
+	iter = SllGetNext(iter);
+	iter = SllGetNext(iter);
+	iter = SllGetNext(iter);
+	iter = SllGetNext(iter);
+	
+	SllSetAddr(iter, iter_dummy);
+	
+	SllDestroy(sll1);
 	
 	iter = SllInsertBefore(SllBegin(sll2), &num1);
 	iter = SllInsertBefore(iter, &num2);

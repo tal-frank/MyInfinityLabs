@@ -172,22 +172,70 @@ void SllSetData(sll_iter_t iter, const void* data);
 int IsEmpty(const sll_t* sll);
 
 /**
-* Description: Activates a chosen by the user operation on a range of the  list one by
-* 	       one from 
+* Description: 	Activates a chosen by the user operation on a range of the list one by
+* 	       	one in a specified range from ... to (not include to).
 * 
-* Arguments:      
+* Arguments:    from   - An iterator to start the action on.
+*		to     - An iterator to stop the action on. (not acting on that specific iteratpr).
+*		action - A function pointer to the action the user want to activate.
+*			 The function should recieve the iterator data and a parameter to act with.
+*		param  - A parameter to insert to the function.
 * 
-* Return:      
+* Return:	The to iterator if succeeded, and the last iterator tried to act on when failure occur.
 *   
-* Complexity:     
+* Complexity: 	O(n)
 */
 
 sll_iter_t SllForEach(sll_iter_t from, sll_iter_t to, int (*action_func)(void* data, void* param), void* param); 
 
+/**
+* Description: 	Reverse the order of a chosen list.
+* 
+* Arguments: 	head - an iterator to the beginning of the list.
+* 
+* Return: 	The iterator to the new beginning of the list.
+*   
+* Complexity: 	o(n)
+*/
 
 sll_iter_t Flip(sll_iter_t head);
+
+/**
+* Description: 	Find out if the list has a loop in it.
+* 
+* Arguments: 	head - An iterator to the beginning of the list.
+* 
+* Return: 	1 if a loop found, 0 if not.
+*   
+* Complexity:	O(n)
+*/
+
 int HasLoop(const sll_iter_t head);
+
+/**
+* Description: 	Get an iterator and sets the next address in the place it points on.
+* 
+* Arguments: 	iter      - An element to set the address into.
+* 		iter_next - An iterator to store in the next of iter.
+*
+* Return:	none.
+*   
+* Complexity:	O(1)
+*/
+
 void SllSetAddr(sll_iter_t iter, sll_iter_t iter_next);
+
+/**
+* Description: 	Get 2 iterators of lists and find out if they have a common element.
+* 
+* Arguments: 	head1 - An iterator to the first list beginning.
+* 		head2 - An iterator to the second list beginning.
+*
+* Return:	the common element if found one, the last element of head1 if not.
+*   
+* Complexity:	O(1)
+*/
+
 sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2);
 
 

@@ -17,6 +17,7 @@ struct Node
 	void* data;
 };
 
+
 struct Single_linked_list
 {
 	node_t* head;
@@ -275,6 +276,7 @@ sll_iter_t Flip(sll_iter_t head)
 		cur_node = next_node;
 		next_node = SllGetNext(next_node);
 	}
+	free(cur_node->next);
 	cur_node->next = prev_node;
 	
 	
@@ -322,45 +324,47 @@ int HasLoop(const sll_iter_t head)
 /************************* FIND INTERSECTION *************************/
 /*-------------------------------------------------------------------*/
 
+static size_t GetLength(const sll_iter_t iter)
+{
+	int cnt = 0;
+	node_t* cnt_iter = iter;
+	
+	assert(NULL != cnt_iter);
+	
+	while(NULL != cnt_iter)
+	{
+		cnt_iter = cnt_iter->next;
+		++cnt;
+	}
+	return cnt;
+}
+
+
 sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2)
 {
 	node_t* iter1 = head1;
 	node_t* iter2 = head2;
 	size_t len1 = 0;
 	size_t len2 = 0;
+	int difference = 0;
 	int i = 0;
 	
 	assert(NULL != head1);
 	assert(NULL != head2);
-	
-	while(NULL != iter1)
+
+	len1 = GetLength(iter1);
+	len2 = GetLength(iter2);
+		
+	difference = len1 - len2;    
+	for (i = 0; i < difference; ++i)
 	{
-		iter1 = iter1->next;
-		++len1;
+		head1 = SllGetNext(head1);
 	}
-	
-	while(NULL != iter2)
+
+	difference = len2 - len1;
+	for (i = 0; i < difference; ++i)
 	{
-		iter2 = iter2->next;
-		++len2;
-	}
-	
-	if (len1 > len2)
-	{
-		int difference = len1 - len2;    
-		for (i = 0; i < difference; ++i)
-		{
-			head1 = SllGetNext(head1);
-		}
-	}
-	
-	else
-	{
-		int difference = len2 - len1;
-		for (i = 0; i < difference; ++i)
-		{
-			head2 = SllGetNext(head2);
-		}
+		head2 = SllGetNext(head2);
 	}
 	
 	while (NULL != head1)
