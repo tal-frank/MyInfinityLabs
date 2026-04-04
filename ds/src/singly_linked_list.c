@@ -1,0 +1,394 @@
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* malloc */
+#include <assert.h> /*assert*/
+
+#include "../include/singly_linked_list.h"
+
+typedef struct Node node_t;
+
+
+/*-------------------------------------------------------------*/
+/************************* SLL STRUCTS *************************/
+/*-------------------------------------------------------------*/
+
+struct Node
+{
+	node_t* next;
+	void* data;
+};
+
+struct Single_linked_list
+{
+	node_t* head;
+	node_t* tail;
+};
+
+
+/*------------------------------------------------------------------*/
+/************************* CREATE & DESTROY *************************/
+/*------------------------------------------------------------------*/
+
+sll_t* SllCreate(void)
+{
+	sll_t* sll = (sll_t*)malloc(sizeof(sll_t));
+	node_t* dummy = (node_t*)malloc(sizeof(node_t));
+	if (NULL == sll)
+	{
+		printf("can't creat struct\n");
+		return 0;
+	}
+	
+	if (NULL == dummy)
+	{
+		printf("can't creat struct\n");
+		free(sll);
+		return 0;
+	}
+	
+	dummy->next = NULL;
+	dummy->data = sll;
+	sll->head = dummy;
+	sll->tail = dummy;
+	
+	return sll;
+}
+
+
+void SllDestroy(sll_t* sll)
+{
+	node_t* freed = SllBegin(sll);
+	node_t* iter = SllBegin(sll);
+	
+	assert(NULL != sll);
+	
+	while (!SllIterIsEqual(SllEnd(sll), iter))
+	{
+		iter = iter->next;
+		free(freed);
+		freed = iter;
+	}
+	free(sll->tail);
+	free(sll);
+}
+
+
+/*------------------------------------------------------------------------*/
+/************************* BEGIN & END & GET NEXT *************************/
+/*------------------------------------------------------------------------*/
+
+sll_iter_t SllBegin(const sll_t* sll)
+{
+	assert(NULL != sll);	
+	
+	return sll->head;
+}
+
+
+sll_iter_t SllEnd(const sll_t* sll)
+{
+	assert(NULL != sll);
+
+	return sll->tail;
+}
+
+
+sll_iter_t SllGetNext(sll_iter_t iter)
+{
+	assert(NULL != iter);
+
+	return iter->next;
+}
+
+
+/*---------------------------------------------------------------------*/
+/************************* IS EQUAL & IS EMPTY *************************/
+/*---------------------------------------------------------------------*/
+
+int IsEmpty(const sll_t* sll)
+{
+	assert(NULL != sll);
+	
+	return SllIterIsEqual(SllEnd(sll), SllBegin(sll));
+}
+
+
+int SllIterIsEqual(sll_iter_t iter1, sll_iter_t iter2)
+{
+	int is_equal = 0;
+	if (iter1->next == iter2->next && iter1->data == iter2->data)
+	{
+		is_equal = 1;
+	}
+	return is_equal;
+}
+
+
+/*--------------------------------------------------------*/
+/************************* LENGTH *************************/
+/*--------------------------------------------------------*/
+
+size_t SllGetLength(const sll_t* sll)
+{
+	int cnt = 0;
+	node_t* cnt_iter= SllBegin(sll);
+	node_t* end = SllEnd(sll);
+	
+	assert(NULL != sll);
+	
+	while(!SllIterIsEqual(cnt_iter, end))
+	{
+		cnt_iter = cnt_iter->next;
+		++cnt;
+	}
+	return cnt;
+}
+
+
+/*-----------------------------------------------------------------*/
+/************************* INSERT & REMOVE *************************/
+/*-----------------------------------------------------------------*/
+
+sll_iter_t SllInsertBefore(sll_iter_t where, const void* data)
+{
+	node_t* insert = (node_t*)malloc(sizeof(node_t));
+	
+	assert(NULL != data);
+
+	if (NULL == insert)
+	{
+		printf("can't creat struct\n");
+		return 0;
+	}
+			
+	insert->data = where->data;
+	insert->next = where->next;
+	
+	where->data = (void*)data;
+	where->next = insert;
+
+	if(NULL == insert->next)
+	{
+		((sll_t*)insert->data)->tail = insert;
+	}
+	
+	return insert;
+}
+
+
+sll_iter_t SllRemove(sll_iter_t iter)
+{
+	node_t* temp = iter->next;
+
+	assert(NULL != iter);
+	
+	iter->data = iter->next->data;
+	iter->next = iter->next->next;
+	
+	if(NULL == iter->next)
+	{
+		((sll_t*)iter->data)->tail = iter;
+	}
+	
+	free(temp);
+	
+	return iter;
+}
+
+
+/*---------------------------------------------------------------*/
+/************************* GET & SET DATA*************************/
+/*---------------------------------------------------------------*/
+
+void* SllGetData(sll_iter_t iter)
+{
+	assert(NULL != iter);
+
+	return iter->data;
+}
+
+
+void SllSetData(sll_iter_t iter, const void* data)
+{
+	assert(NULL != iter);
+	assert(NULL != data);	
+	
+	iter->data = (void*)data;
+}
+
+
+/*------------------------------------------------------*/
+/************************* FIND *************************/
+/*------------------------------------------------------*/
+
+sll_iter_t SllFind(sll_iter_t from, sll_iter_t to, 
+		   int (*is_match_func)(void* data, void* param), void* param)
+{
+	int is_equal = is_match_func(from->data, param);
+	while (!is_equal && !SllIterIsEqual(to , from))
+	{
+		from = from->next;
+		is_equal = is_match_func(from->data, param);
+	}
+	return from;
+}
+
+
+/*----------------------------------------------------------*/
+/************************* FOR EACH *************************/
+/*----------------------------------------------------------*/
+
+sll_iter_t SllForEach(sll_iter_t from, sll_iter_t to, 
+		      int (*action_func)(void* data, void* param), void* param)
+{
+	int success = 1;
+	while (success && !SllIterIsEqual(to , from))
+	{
+		success = action_func(from->data, param);
+		from = from->next;
+	}
+	return from;
+}
+
+
+/*-----------------------------------------------------------*/
+/************************* FLIP LIST *************************/
+/*-----------------------------------------------------------*/
+
+sll_iter_t Flip(sll_iter_t head)
+{
+	node_t* prev_node = head;
+	node_t* cur_node = head;
+	node_t* next_node = head;
+	
+	assert(NULL != head);
+	
+	cur_node = SllGetNext(cur_node);
+	next_node = SllGetNext(next_node);
+	next_node = SllGetNext(next_node);
+	
+	prev_node->next = NULL;
+	
+	while (NULL != next_node->next)
+	{
+		cur_node->next = prev_node;
+		prev_node = cur_node;
+		cur_node = next_node;
+		next_node = SllGetNext(next_node);
+	}
+	cur_node->next = prev_node;
+	
+	
+	return cur_node;
+}
+
+
+/*----------------------------------------------------------*/
+/************************* HAS LOOP *************************/
+/*----------------------------------------------------------*/
+
+void SllSetAddr(sll_iter_t iter, sll_iter_t iter_next)
+{
+	assert(NULL != iter);
+	assert(NULL != iter_next);	
+	
+	iter->next = iter_next;
+}
+
+
+int HasLoop(const sll_iter_t head)
+{
+	node_t* one_step = head;
+	node_t* two_steps = head;
+
+	assert(NULL != head);
+	assert(NULL != head->next);
+
+	do
+	{
+		if ((NULL == two_steps->next) || (NULL == two_steps->next->next))
+		{
+			return 0;
+		}
+		one_step = SllGetNext(one_step);
+		two_steps = SllGetNext(two_steps);
+		two_steps = SllGetNext(two_steps);
+	} while (!SllIterIsEqual(one_step, two_steps));
+	
+	return 1;
+}
+
+
+/*-------------------------------------------------------------------*/
+/************************* FIND INTERSECTION *************************/
+/*-------------------------------------------------------------------*/
+
+sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2)
+{
+	node_t* iter1 = head1;
+	node_t* iter2 = head2;
+	size_t len1 = 0;
+	size_t len2 = 0;
+	int i = 0;
+	
+	assert(NULL != head1);
+	assert(NULL != head2);
+	
+	while(NULL != iter1)
+	{
+		iter1 = iter1->next;
+		++len1;
+	}
+	
+	while(NULL != iter2)
+	{
+		iter2 = iter2->next;
+		++len2;
+	}
+	
+	if (len1 > len2)
+	{
+		int difference = len1 - len2;    
+		for (i = 0; i < difference; ++i)
+		{
+			head1 = SllGetNext(head1);
+		}
+	}
+	
+	else
+	{
+		int difference = len2 - len1;
+		for (i = 0; i < difference; ++i)
+		{
+			head2 = SllGetNext(head2);
+		}
+	}
+	
+	while (NULL != head1)
+	{
+		if (SllIterIsEqual(head1, head2))
+		{
+			return head1;
+		}
+		head1 = SllGetNext(head1);
+		head2 = SllGetNext(head2);
+	}
+	
+	return head1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
