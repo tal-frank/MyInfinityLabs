@@ -81,6 +81,7 @@ sll_iter_t SllRemove(sll_iter_t iter);
 
 /**
 * Description: 	Gets an element and inserts it before the one pointed by the iterator.
+* 		After the operation the iterator is no more valid.
 * 
 * Arguments:	where - An iterator to insert the new data before it.
 *		data  - New data to insert to the list.
@@ -93,7 +94,8 @@ sll_iter_t SllRemove(sll_iter_t iter);
 sll_iter_t SllInsertBefore(sll_iter_t where, const void* data);
 
 /**
-* Description:	iterates on the elements of the list and counts them.
+* Description:	Iterates on the elements of the list and counts them.
+* 		After the operation the iterator is no more valid.
 * 
 * Arguments:	sll - A linked list to count its elements.
 * 

@@ -116,7 +116,7 @@ int IsEmpty(const sll_t* sll)
 int SllIterIsEqual(sll_iter_t iter1, sll_iter_t iter2)
 {
 	int is_equal = 0;
-	if (iter1->next == iter2->next && iter1->data == iter2->data)
+	if (iter1 == iter2)
 	{
 		is_equal = 1;
 	}

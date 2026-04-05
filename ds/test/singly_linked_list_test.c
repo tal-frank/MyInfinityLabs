@@ -22,6 +22,16 @@ static int num9 = 9;
 static int num10 = 10;
 static int num11 = 11;
 
+int CountForEach(void* data, void* cnt)
+{
+	if (NULL != data)
+	{
+		*(int*)cnt += 1;
+	}
+	return 1;
+}
+
+
 int AddNum(void* data, void* num)
 {
 	*(int*)data += *(int*)num;
@@ -676,7 +686,6 @@ void FlipTest(void)
 	sll_iter_t iter = 0;
 	sll_iter_t iter_begin = SllBegin(sll);
 	sll_iter_t iter_destroy = 0;
-	sll_iter_t iter_destroy2 = 0;
 	int check = 9;
 	
 	printf("started " CYAN "FLIP" RESET_COLOR " test:\n");
@@ -878,6 +887,73 @@ void IntersectionTest(void)
 }
 
 
+/*---------------------------------------------------------------*/
+/************************* FOR EACH TEST *************************/
+/*---------------------------------------------------------------*/
+
+void CountForEachTest(void)
+{
+	sll_t* sll = SllCreate();
+	sll_iter_t iter = 0;
+	int cnt = 0;
+	
+	printf("started " CYAN "COUNT FOREACH" RESET_COLOR " test:\n");
+	SllForEach(SllBegin(sll), SllEnd(sll), CountForEach, &cnt);
+	if (0 != cnt)
+	{
+		printf(RED "count foreach FAILED 1\n\n" RESET_COLOR);
+		SllDestroy(sll);
+		return;
+	}
+	cnt = 0;
+	
+	iter = SllInsertBefore(SllBegin(sll), &num1);
+	SllForEach(SllBegin(sll), SllEnd(sll), CountForEach, &cnt);
+	if (1 != cnt)
+	{
+		printf(RED "count foreach FAILED 2\n\n" RESET_COLOR);
+		SllDestroy(sll);
+		return;
+	}
+	
+	cnt = 0;
+	iter = SllInsertBefore(iter, &num2);
+	SllForEach(SllBegin(sll), SllEnd(sll), CountForEach, &cnt);
+	if (2 != cnt)
+	{
+		printf(RED "count foreach FAILED 3\n\n" RESET_COLOR);
+		SllDestroy(sll);
+		return;
+	}
+	cnt = 0;
+	
+	iter = SllInsertBefore(iter, &num3);
+	SllForEach(SllBegin(sll), SllEnd(sll), CountForEach, &cnt);
+	if (3 != cnt)
+	{
+		printf(RED "count foreach FAILED 4\n\n" RESET_COLOR);
+		SllDestroy(sll);
+		return;
+	}
+	cnt = 0;
+	
+	iter = SllBegin(sll);
+	iter = SllGetNext(iter);
+	iter = SllRemove(iter);
+	SllForEach(SllBegin(sll), SllEnd(sll), CountForEach, &cnt);
+	if (2 != cnt)
+	{
+		printf(RED "count foreach FAILED 5\n\n" RESET_COLOR);
+		SllDestroy(sll);
+		return;
+	}
+	
+	printf(GREEN "count foreach PASSED\n\n" RESET_COLOR);
+	SllDestroy(sll);
+
+}
+
+
 /*------------------------------------------------------*/
 /************************* MAIN *************************/
 /*------------------------------------------------------*/
@@ -901,6 +977,7 @@ int main()
 	LoopTest();
 	IntersectionTest();
 	ForEachTest();
+	CountForEachTest();
 	
 	return 0;
 }
