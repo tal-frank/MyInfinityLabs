@@ -50,14 +50,14 @@ sll_t* SllCreate(void)
 	if (NULL == sll)
 	{
 		printf("can't creat struct\n");
-		return 0;
+		return NULL;
 	}
 	
 	if (NULL == dummy)
 	{
 		printf("can't creat struct\n");
 		free(sll);
-		return 0;
+		return NULL;
 	}
 	
 	dummy->next = NULL;
@@ -124,14 +124,8 @@ int IsEmpty(const sll_t* sll)
 
 
 int SllIterIsEqual(sll_iter_t iter1, sll_iter_t iter2)
-{
-	int is_equal = 0;
-	if (iter1 == iter2)
-	{
-		is_equal = 1;
-	}
-	
-	return is_equal;
+{	
+	return iter1 == iter2;
 }
 
 
@@ -142,7 +136,7 @@ int SllIterIsEqual(sll_iter_t iter1, sll_iter_t iter2)
 size_t SllGetLength(const sll_t* sll)
 {
 	size_t cnt = 0;
-	node_t* cnt_iter= SllBegin(sll);
+	node_t* cnt_iter = SllBegin(sll);
 	node_t* end = SllEnd(sll);
 	
 	assert(NULL != sll);
@@ -174,7 +168,7 @@ sll_iter_t SllInsertBefore(sll_iter_t where, const void* data)
 	if (NULL == insert)
 	{
 		printf("can't creat struct\n");
-		return 0;
+		return NULL;
 	}
 			
 	insert->data = where->data;
@@ -274,6 +268,7 @@ sll_iter_t Flip(sll_iter_t head)
 	node_t* next_node = head;
 	
 	assert(NULL != head);
+	assert(NULL != head->next);
 	
 	cur_node = SllGetNext(cur_node);
 	next_node = SllGetNext(next_node);
@@ -338,7 +333,7 @@ int HasLoop(const sll_iter_t head)
 
 static size_t GetLength(const sll_iter_t iter)
 {
-	int cnt = 0;
+	size_t cnt = 0;
 	node_t* cnt_iter = iter;
 	
 	assert(NULL != cnt_iter);
@@ -367,13 +362,13 @@ sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2)
 	len1 = GetLength(iter1);
 	len2 = GetLength(iter2);
 		
-	difference = (int)(len1 - len2);    
+	difference = (long)(len1 - len2);    
 	for (i = 0; i < difference; ++i)
 	{
 		head1 = SllGetNext(head1);
 	}
 
-	difference = (int)(len2 - len1);
+	difference = (long)(len2 - len1);
 	for (i = 0; i < difference; ++i)
 	{
 		head2 = SllGetNext(head2);
