@@ -138,6 +138,7 @@ sll_iter_t SllFind(sll_iter_t from, sll_iter_t to, int (*is_match_func)(void* da
 
 /**
 * Description: 	Get an iterator and return the data it points on.
+*		"from" can not be equal to "to".
 * 
 * Arguments: 	iter - An iterator to get the data from.
 * 
@@ -239,6 +240,8 @@ void SllSetAddr(sll_iter_t iter, sll_iter_t iter_next);
 */
 
 sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2);
+
+size_t SllCount(sll_iter_t from, sll_iter_t to);
 
 
 #endif /* END of __SINGLE_LINKED_LIST_H__ */

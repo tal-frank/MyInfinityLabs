@@ -4,6 +4,8 @@
 
 #include "../include/singly_linked_list.h"
 
+#define UNUSED(x) ((void)x)
+
 typedef struct Node node_t;
 
 
@@ -23,6 +25,18 @@ struct Single_linked_list
 	node_t* head;
 	node_t* tail;
 };
+
+
+/*------------------------------------------------------------------*/
+/************************* STATIC FUNCTIONS *************************/
+/*------------------------------------------------------------------*/
+
+int CountForEach(void* data, void* cnt)
+{
+	UNUSED(data);
+	*(int*)cnt += 1;
+	return 1;
+}
 
 
 /*------------------------------------------------------------------*/
@@ -60,8 +74,6 @@ void SllDestroy(sll_t* sll)
 	node_t* freed = SllBegin(sll);
 	node_t* iter = SllBegin(sll);
 	
-	assert(NULL != sll);
-	
 	while (!SllIterIsEqual(SllEnd(sll), iter))
 	{
 		iter = iter->next;
@@ -95,8 +107,6 @@ sll_iter_t SllEnd(const sll_t* sll)
 
 sll_iter_t SllGetNext(sll_iter_t iter)
 {
-	assert(NULL != iter);
-
 	return iter->next;
 }
 
@@ -120,6 +130,7 @@ int SllIterIsEqual(sll_iter_t iter1, sll_iter_t iter2)
 	{
 		is_equal = 1;
 	}
+	
 	return is_equal;
 }
 
@@ -130,7 +141,7 @@ int SllIterIsEqual(sll_iter_t iter1, sll_iter_t iter2)
 
 size_t SllGetLength(const sll_t* sll)
 {
-	int cnt = 0;
+	size_t cnt = 0;
 	node_t* cnt_iter= SllBegin(sll);
 	node_t* end = SllEnd(sll);
 	
@@ -145,6 +156,13 @@ size_t SllGetLength(const sll_t* sll)
 }
 
 
+size_t SllCount(sll_iter_t from, sll_iter_t to)
+{
+	size_t cnt = 0;
+	SllForEach(from, to, CountForEach, &cnt);
+	return cnt;
+}
+
 /*-----------------------------------------------------------------*/
 /************************* INSERT & REMOVE *************************/
 /*-----------------------------------------------------------------*/
@@ -152,8 +170,6 @@ size_t SllGetLength(const sll_t* sll)
 sll_iter_t SllInsertBefore(sll_iter_t where, const void* data)
 {
 	node_t* insert = (node_t*)malloc(sizeof(node_t));
-	
-	assert(NULL != data);
 
 	if (NULL == insert)
 	{
@@ -179,8 +195,6 @@ sll_iter_t SllInsertBefore(sll_iter_t where, const void* data)
 sll_iter_t SllRemove(sll_iter_t iter)
 {
 	node_t* temp = iter->next;
-
-	assert(NULL != iter);
 	
 	iter->data = iter->next->data;
 	iter->next = iter->next->next;
@@ -202,17 +216,12 @@ sll_iter_t SllRemove(sll_iter_t iter)
 
 void* SllGetData(sll_iter_t iter)
 {
-	assert(NULL != iter);
-
 	return iter->data;
 }
 
 
 void SllSetData(sll_iter_t iter, const void* data)
-{
-	assert(NULL != iter);
-	assert(NULL != data);	
-	
+{		
 	iter->data = (void*)data;
 }
 
@@ -223,8 +232,11 @@ void SllSetData(sll_iter_t iter, const void* data)
 
 sll_iter_t SllFind(sll_iter_t from, sll_iter_t to, 
 		   int (*is_match_func)(void* data, void* param), void* param)
-{
+{	
 	int is_equal = is_match_func(from->data, param);
+
+	assert(from != to);
+
 	while (!is_equal && !SllIterIsEqual(to , from))
 	{
 		from = from->next;
@@ -355,13 +367,13 @@ sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2)
 	len1 = GetLength(iter1);
 	len2 = GetLength(iter2);
 		
-	difference = len1 - len2;    
+	difference = (int)(len1 - len2);    
 	for (i = 0; i < difference; ++i)
 	{
 		head1 = SllGetNext(head1);
 	}
 
-	difference = len2 - len1;
+	difference = (int)(len2 - len1);
 	for (i = 0; i < difference; ++i)
 	{
 		head2 = SllGetNext(head2);
@@ -379,20 +391,4 @@ sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2)
 	
 	return head1;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

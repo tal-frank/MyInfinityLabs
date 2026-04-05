@@ -22,7 +22,7 @@ static int num9 = 9;
 static int num10 = 10;
 static int num11 = 11;
 
-int CountForEach(void* data, void* cnt)
+int CountForEachUser(void* data, void* cnt)
 {
 	if (NULL != data)
 	{
@@ -887,9 +887,9 @@ void IntersectionTest(void)
 }
 
 
-/*---------------------------------------------------------------*/
-/************************* FOR EACH TEST *************************/
-/*---------------------------------------------------------------*/
+/*---------------------------------------------------------------------*/
+/************************* COUNT FOR EACH TEST *************************/
+/*---------------------------------------------------------------------*/
 
 void CountForEachTest(void)
 {
@@ -898,7 +898,7 @@ void CountForEachTest(void)
 	int cnt = 0;
 	
 	printf("started " CYAN "COUNT FOREACH" RESET_COLOR " test:\n");
-	SllForEach(SllBegin(sll), SllEnd(sll), CountForEach, &cnt);
+	cnt = SllCount(SllBegin(sll), SllEnd(sll));
 	if (0 != cnt)
 	{
 		printf(RED "count foreach FAILED 1\n\n" RESET_COLOR);
@@ -908,7 +908,7 @@ void CountForEachTest(void)
 	cnt = 0;
 	
 	iter = SllInsertBefore(SllBegin(sll), &num1);
-	SllForEach(SllBegin(sll), SllEnd(sll), CountForEach, &cnt);
+	cnt = SllCount(SllBegin(sll), SllEnd(sll));
 	if (1 != cnt)
 	{
 		printf(RED "count foreach FAILED 2\n\n" RESET_COLOR);
@@ -918,7 +918,7 @@ void CountForEachTest(void)
 	
 	cnt = 0;
 	iter = SllInsertBefore(iter, &num2);
-	SllForEach(SllBegin(sll), SllEnd(sll), CountForEach, &cnt);
+	cnt = SllCount(SllBegin(sll), SllEnd(sll));
 	if (2 != cnt)
 	{
 		printf(RED "count foreach FAILED 3\n\n" RESET_COLOR);
@@ -928,7 +928,7 @@ void CountForEachTest(void)
 	cnt = 0;
 	
 	iter = SllInsertBefore(iter, &num3);
-	SllForEach(SllBegin(sll), SllEnd(sll), CountForEach, &cnt);
+	cnt = SllCount(SllBegin(sll), SllEnd(sll));
 	if (3 != cnt)
 	{
 		printf(RED "count foreach FAILED 4\n\n" RESET_COLOR);
@@ -940,7 +940,7 @@ void CountForEachTest(void)
 	iter = SllBegin(sll);
 	iter = SllGetNext(iter);
 	iter = SllRemove(iter);
-	SllForEach(SllBegin(sll), SllEnd(sll), CountForEach, &cnt);
+	cnt = SllCount(SllBegin(sll), SllEnd(sll));
 	if (2 != cnt)
 	{
 		printf(RED "count foreach FAILED 5\n\n" RESET_COLOR);
