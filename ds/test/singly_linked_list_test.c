@@ -500,7 +500,7 @@ void IsEmptyTest(void)
 	sll_iter_t iter = 0;
 	
 	printf("started " CYAN "IS EMPTY" RESET_COLOR " test:\n");
-	if (!IsEmpty(sll))
+	if (!SllIsEmpty(sll))
 	{
 		printf(RED "is empty FAILED 1\n\n" RESET_COLOR);
 		SllDestroy(sll);
@@ -508,7 +508,7 @@ void IsEmptyTest(void)
 	}
 	
 	iter = SllInsertBefore(SllBegin(sll), &num1);
-	if (IsEmpty(sll))
+	if (SllIsEmpty(sll))
 	{
 		printf(RED "is empty FAILED 2\n\n" RESET_COLOR);
 		SllDestroy(sll);
@@ -517,7 +517,7 @@ void IsEmptyTest(void)
 	
 	iter = SllBegin(sll);
 	iter = SllRemove(iter);
-	if (!IsEmpty(sll))
+	if (!SllIsEmpty(sll))
 	{
 		printf(RED "is empty FAILED 3\n\n" RESET_COLOR);
 		SllDestroy(sll);
