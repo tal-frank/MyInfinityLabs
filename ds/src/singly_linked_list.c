@@ -403,14 +403,14 @@ sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2)
 /************************* APPEND *************************/
 /*--------------------------------------------------------*/
 
-sll_t* SllAppend(sll_t* dest, sll_t* src)
+void SllAppend(sll_t* dest, sll_t* src)
 {
 	assert(NULL != dest);
 	assert(NULL != src);
 	
 	if (SllIsEmpty(src))
 	{
-		return dest;
+		return;
 	}
 	
 	SllSetData(SllEnd(dest), SllGetData(SllBegin(src)));
@@ -422,8 +422,6 @@ sll_t* SllAppend(sll_t* dest, sll_t* src)
 	SllSetData(SllBegin(src), src);
 	SllSetAddr(SllBegin(src), NULL);
 	src->tail = src->head;
-	
-	return dest;
 }
 
 

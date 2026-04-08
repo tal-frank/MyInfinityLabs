@@ -1,7 +1,7 @@
 /**********************
 * queue
 * Author: Tal Frank
-* Reviewer: 
+* Reviewer: Ori Joseph
 * Last update: 07/04/2026
 **********************/
 
@@ -16,12 +16,6 @@
 struct Queue
 {
 	sll_t* sll;
-};
-
-enum
-{
-	SUCCESS = 0,
-	FAILURE
 };
 
 
@@ -42,7 +36,6 @@ queue_t* QueueCreate(void)
 	queue->sll = SllCreate();
 	if (NULL == queue->sll)
 	{
-		printf("can't creat struct\n");
 		free(queue);
 		return NULL;
 	}
@@ -67,18 +60,9 @@ void QueueDestroy(queue_t* queue)
 
 int QueueEnqueue(queue_t* queue, const void* element)
 {
-	sll_iter_t first = 0;
-	
 	assert(NULL != queue);
 	
-	first = SllBegin(queue->sll);
-	
-	if (SllIterIsEqual(first, SllInsertBefore(SllEnd(queue->sll), element)))
-	{
-		return FAILURE;
-	}
-	
-	return SUCCESS;
+	return NULL != SllInsertBefore(SllEnd(queue->sll), element);
 }
 
 
@@ -128,7 +112,7 @@ void QueueAppend(queue_t* dest, queue_t* src)
 {
 	assert(NULL != dest);
 	assert(NULL != src);
-	dest->sll = SllAppend(dest->sll, src->sll);
+	SllAppend(dest->sll, src->sll);
 }
 
 

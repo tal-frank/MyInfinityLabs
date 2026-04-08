@@ -236,12 +236,12 @@ void SllSetAddr(sll_iter_t iter, sll_iter_t iter_next);
 *
 * Return:	the common element if found one, the last element of head1 if not.
 *   
-* Complexity:	O(1)
+* Complexity:	O(n)
 */
 
-sll_t* SllAppend(sll_t* dest, sll_t* src);
-
 sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2);
+
+void SllAppend(sll_t* dest, sll_t* src);
 
 size_t SllCount(sll_iter_t from, sll_iter_t to);
 
