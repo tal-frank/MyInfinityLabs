@@ -172,7 +172,7 @@ void SllSetData(sll_iter_t iter, const void* data);
 * Complexity:   O(1);  
 */
 
-int IsEmpty(const sll_t* sll);
+int SllIsEmpty(const sll_t* sll);
 
 /**
 * Description: 	Activates a chosen by the user operation on a range of the list one by
@@ -236,10 +236,12 @@ void SllSetAddr(sll_iter_t iter, sll_iter_t iter_next);
 *
 * Return:	the common element if found one, the last element of head1 if not.
 *   
-* Complexity:	O(1)
+* Complexity:	O(n)
 */
 
 sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2);
+
+void SllAppend(sll_t* dest, sll_t* src);
 
 size_t SllCount(sll_iter_t from, sll_iter_t to);
 
