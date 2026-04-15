@@ -2,8 +2,8 @@
 #define __DOUBLY_LINKED_LIST_H__
 
 
-typedef Doubly_linked_list dll_t;
-typedef Dll_Iterator dll_iter_t;
+typedef struct Doubly_linked_list dll_t;
+typedef struct Dll_Iterator* dll_iter_t;
 
 
 /**************************************************************** DllCreate *
@@ -18,9 +18,9 @@ typedef Dll_Iterator dll_iter_t;
 *		
 *		
 ******************************************************************************/
-dll_t* DllCreate( void);
+dll_t* DllCreate(void);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllDestroy *
 * 		
 * Description: 
 *		        
@@ -35,7 +35,7 @@ dll_t* DllCreate( void);
 
 void DllDestroy(dll_t* dll);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllBegin *
 * 		
 * Description: 
 *		        
@@ -48,9 +48,9 @@ void DllDestroy(dll_t* dll);
 *		
 ******************************************************************************/
 
-dll_iter_t DllBegin(const dll_t* dll;
+dll_iter_t DllBegin(const dll_t* dll);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllEnd *
 * 		
 * Description: 
 *		        
@@ -63,9 +63,9 @@ dll_iter_t DllBegin(const dll_t* dll;
 *		
 ******************************************************************************/
 
-dll_iter_t DllEnd(const dll_t* dll;
+dll_iter_t DllEnd(const dll_t* dll);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllInsert *
 * 		
 * Description: 
 *		        
@@ -80,7 +80,7 @@ dll_iter_t DllEnd(const dll_t* dll;
 
 dll_iter_t DllInsert(dll_t* dll, dll_iter_t iter, const void* data);/* return the current on success and the end at fail */
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllRemove *
 * 		
 * Description: 
 *		        
@@ -95,7 +95,7 @@ dll_iter_t DllInsert(dll_t* dll, dll_iter_t iter, const void* data);/* return th
 
 dll_iter_t DllRemove(dll_t* dll, dll_iter_t iter);/* return next iter */
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllCount *
 * 		
 * Description: 
 *		        
@@ -110,7 +110,7 @@ dll_iter_t DllRemove(dll_t* dll, dll_iter_t iter);/* return next iter */
 
 size_t DllCount(const dll_t* dll);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllGetData *
 * 		
 * Description: 
 *		        
@@ -125,7 +125,7 @@ size_t DllCount(const dll_t* dll);
 
 void* DllGetData(dll_iter_t iter);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllIsEmpty *
 * 		
 * Description: 
 *		        
@@ -140,7 +140,7 @@ void* DllGetData(dll_iter_t iter);
 
 int DllIsEmpty(const dll_t* dll);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllGetNext *
 * 		
 * Description: 
 *		        
@@ -155,7 +155,7 @@ int DllIsEmpty(const dll_t* dll);
 
 dll_iter_t DllGetNext(dll_iter_t iter);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllGetPrev *
 * 		
 * Description: 
 *		        
@@ -170,7 +170,7 @@ dll_iter_t DllGetNext(dll_iter_t iter);
 
 dll_iter_t DllGetPrev(dll_iter_t iter);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllIsIterEqual *
 * 		
 * Description: 
 *		        
@@ -185,7 +185,7 @@ dll_iter_t DllGetPrev(dll_iter_t iter);
 
 int DllIsIterEqual(dll_iter_t iter1, dll_iter_t iter2);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllFind *
 * 		
 * Description: 
 *		        
@@ -200,7 +200,7 @@ int DllIsIterEqual(dll_iter_t iter1, dll_iter_t iter2);
 
 dll_iter_t DllFind(dll_iter_t from, dll_iter_t to, int (*comp_func)(const void* data, const void* param), void* param);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllForEach *
 * 		
 * Description: 
 *		        
@@ -215,7 +215,7 @@ dll_iter_t DllFind(dll_iter_t from, dll_iter_t to, int (*comp_func)(const void* 
 
 dll_iter_t DllForEach(dll_iter_t from, dll_iter_t to, int (*action_func)(void* data, void* param), void* param);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllMultiFind *
 * 		
 * Description: 
 *		        
@@ -232,9 +232,9 @@ dll_iter_t DllForEach(dll_iter_t from, dll_iter_t to, int (*action_func)(void* d
 dll_iter_t DllMultiFind(dll_iter_t from, dll_iter_t to,
                         int (*IsMatch)(const void* list_data, const void* param),
                         const void* param,
-                        dll_t* dest_dll); - O(n), O(n)
+                        dll_t* dest_dll);
                         
-                        /**************************************************************** DllCreate *
+/**************************************************************** DLLSplice *
 * 		
 * Description: 
 *		        
@@ -250,7 +250,7 @@ dll_iter_t DllMultiFind(dll_iter_t from, dll_iter_t to,
 /* take the nodes from "from" up to "to" not included and isert the m before where  */
 dll_iter_t DLLSplice(dll_iter_t where, dll_iter_t from, dll_iter_t to);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllPushFront *
 * 		
 * Description: 
 *		        
@@ -266,7 +266,7 @@ dll_iter_t DLLSplice(dll_iter_t where, dll_iter_t from, dll_iter_t to);
 /* insert before the head */
 dll_iter_t DllPushFront(dll_t* dll, void* data);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllPushBack *
 * 		
 * Description: 
 *		        
@@ -280,9 +280,9 @@ dll_iter_t DllPushFront(dll_t* dll, void* data);
 ******************************************************************************/
 
 /* insert before end */
-dll_iter_t DllPushBack(dll_t* dll, void* data); - O(1), O(1)
+dll_iter_t DllPushBack(dll_t* dll, void* data);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DllPopFront *
 * 		
 * Description: 
 *		        
@@ -295,9 +295,9 @@ dll_iter_t DllPushBack(dll_t* dll, void* data); - O(1), O(1)
 *		
 ******************************************************************************/
 
-dll_iter_t DllPopFront(dll_t* dll); - O(1), O(1)
+dll_iter_t DllPopFront(dll_t* dll);
 
-/**************************************************************** DllCreate *
+/**************************************************************** DLlPopBacke *
 * 		
 * Description: 
 *		        
@@ -310,7 +310,7 @@ dll_iter_t DllPopFront(dll_t* dll); - O(1), O(1)
 *		
 ******************************************************************************/
 
-dll_iter_t DLlPopBack(dll_t* dll); - O(1), O(1)
+dll_iter_t DLlPopBack(dll_t* dll);
 
 
 #endif /** End of __DOUBLY_LINKED_LIST_H__ */
