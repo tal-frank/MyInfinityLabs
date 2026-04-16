@@ -39,12 +39,12 @@ static int num9 = 9;
 int AddNum(void* data, void* num)
 {
 	*(int*)data += *(int*)num;
-	return 1;
+	return 0;
 }
 
 int is_equal(const void* num1, const void* num2)
 {
-	return *(int*)num1 == *(int*)num2 ? 1 : 0;
+	return *(int*)num1 == *(int*)num2 ? 0 : 1;
 }
 
 
@@ -331,7 +331,7 @@ void RemoveTest(void)
 	iter = DllInsert(dll, iter, &num7);
 	iter = DllInsert(dll, iter, &num8);
 
-	iter = DllRemove(dll, iter);
+	iter = DllRemove(iter);
 
 	if (7 != *(int*)DllGetData(DllBegin(dll)))
 	{
@@ -343,7 +343,7 @@ void RemoveTest(void)
 	iter = DllGetNext(iter);
 	iter = DllGetNext(iter);
 	iter = DllGetNext(iter);
-	iter = DllRemove(dll, iter);
+	iter = DllRemove(iter);
 
 	if (3 != *(int*)DllGetData(iter))
 	{
@@ -354,7 +354,7 @@ void RemoveTest(void)
 	
 	iter = DllGetNext(iter);
 	iter = DllGetNext(iter);
-	iter = DllRemove(dll, iter);
+	iter = DllRemove(iter);
 
 	if (2 != *(int*)DllGetData(DllGetPrev(iter)))
 	{
@@ -388,7 +388,7 @@ void PushFrontBackTest(void)
 		return;
 	}
 	
-	DllRemove(dll, DllGetPrev(iter));	
+	DllRemove(DllGetPrev(iter));	
 	DllPushFront(dll, &num6);
 	iter = DllBegin(dll);
 	if (6 != *(int*)DllGetData(iter))
@@ -495,7 +495,7 @@ void IsEmptyTest(void)
 		return;
 	}
 	
-	DllRemove(dll, iter);
+	DllRemove(iter);
 	if (!DllIsEmpty(dll))
 	{
 		printf(RED " is empty FAILED 2\n\n" RESET_COLOR);
@@ -591,8 +591,8 @@ void CountTest(void)
 		return;
 	}
 
-	iter = DllRemove(dll, iter);
-	iter = DllRemove(dll, iter);
+	iter = DllRemove(iter);
+	iter = DllRemove(iter);
 
 	if (2 != DllCount(dll))
 	{
@@ -863,7 +863,6 @@ void SpliceTest()
 	dll_t* dll_1 = DllCreate();
 	dll_t* dll_2 = DllCreate();
 	dll_iter_t iter_1 = 0;
-	dll_iter_t iter_1_to = 0;
 	dll_iter_t iter_2 = 0;
 	dll_iter_t iter_2_to = 0;
 
@@ -959,9 +958,9 @@ int main()
 	IsEqualTest();
 	CountTest();
 	FindTest();
+	ForEachTest();
 	MultiFind();
 	SpliceTest();
-	ForEachTest();
 	
 	return 0;
 }

@@ -64,10 +64,12 @@ dll_t* DllCreate(void)
 	
 	head_dummy->prev = NULL;
 	head_dummy->next = tail_dummy;
+	head_dummy->data = dll;
+	
 	tail_dummy->prev = head_dummy;
 	tail_dummy->next = NULL;
-	head_dummy->data = dll;
 	tail_dummy->data = dll;
+	
 	dll->head = head_dummy;
 	dll->tail = tail_dummy;
 	
@@ -119,7 +121,7 @@ dll_iter_t DllEnd(const dll_t* dll)
 
 size_t DllCount(const dll_t* dll)
 {
-	int cnt = 0;	
+	size_t cnt = 0;	
 	dll_iter_t cnt_iter = DllBegin(dll);
 	dll_iter_t end = DllEnd(dll);
 	
@@ -180,14 +182,16 @@ void* DllGetData(dll_iter_t iter)
 dll_iter_t DllInsert(dll_t* dll, dll_iter_t where, const void* data)
 {
 	dll_iter_t prev_iter = DllGetPrev(where);
+	dnode_t* new_dnode = NULL;
+	
+	assert(NULL != dll);
 
-	dnode_t* new_dnode = (dnode_t*)malloc(sizeof(dnode_t));
+	new_dnode = (dnode_t*)malloc(sizeof(dnode_t));
 	if (NULL == new_dnode)
 	{
 		return DllEnd(dll);
 	}
 	
-	assert(NULL != dll);
 	
 	new_dnode->data = (void*)data;
 	new_dnode->prev = prev_iter;
@@ -204,8 +208,6 @@ dll_iter_t DllRemove(dll_iter_t iter)
 {
 	dll_iter_t prev_iter = DllGetPrev(iter);
 	dll_iter_t next_iter = DllGetNext(iter);
-
-	assert(NULL != dll);
 	
 	prev_iter->next = next_iter;
 	next_iter->prev = prev_iter;
@@ -222,14 +224,14 @@ dll_iter_t DllRemove(dll_iter_t iter)
 dll_iter_t DllFind(dll_iter_t from, dll_iter_t to, 
 		   int (*comp_func)(const void* data, const void* param), const void* param)
 {	
-	int is_equal = comp_func(from->data, param);
+	int compare = comp_func(from->data, param);
 
 	assert(from != to);
 
-	while (!is_equal && !DllIsIterEqual(to , from))
+	while (compare && !DllIsIterEqual(to , from))
 	{
 		from = from->next;
-		is_equal = comp_func(from->data, param);
+		compare = comp_func(from->data, param);
 	}
 	return from;
 }
@@ -241,8 +243,8 @@ dll_iter_t DllFind(dll_iter_t from, dll_iter_t to,
 dll_iter_t DllForEach(dll_iter_t from, dll_iter_t to, 
 		      int (*action_func)(void* data, void* param), void* param)
 {
-	int success = 1;
-	while (success && !DllIsIterEqual(to , from))
+	int success = 0;
+	while (!success && !DllIsIterEqual(to , from))
 	{
 		success = action_func(from->data, param);
 		from = from->next;
@@ -278,7 +280,7 @@ dll_iter_t DllPopFront(dll_t* dll)
 {
 	assert(NULL != dll);
 
-	return DllRemove(dll, DllBegin(dll));
+	return DllRemove(DllBegin(dll));
 }
 
 
@@ -286,7 +288,7 @@ dll_iter_t DllPopBack(dll_t* dll)
 {
 	assert(NULL != dll);
 	
-	return DllRemove(dll, DllGetPrev(DllEnd(dll)));
+	return DllRemove(DllGetPrev(DllEnd(dll)));
 }
 
 
@@ -300,9 +302,11 @@ int DllMultiFind(dll_iter_t from, dll_iter_t to,
 {	
 	int cnt = 0;
 	dll_iter_t iter = from;
-	dll_iter_t null_check_iter = dest_dll->head;
+	dll_iter_t null_check_iter = 0;
 	
 	assert(dest_dll);
+	
+	null_check_iter = dest_dll->head;
 	
 	while (!DllIsIterEqual(iter, to))
 	{
@@ -311,6 +315,7 @@ int DllMultiFind(dll_iter_t from, dll_iter_t to,
 		{
 			iter = DllGetNext(iter);
 			++cnt;
+			
 			null_check_iter = 
 			DllInsert(dest_dll, DllEnd(dest_dll), iter->data);
 			if (DllIsIterEqual(null_check_iter, DllEnd(dest_dll)))

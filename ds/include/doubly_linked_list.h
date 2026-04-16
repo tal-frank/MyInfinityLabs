@@ -95,7 +95,7 @@ dll_iter_t DllInsert(dll_t* dll, dll_iter_t where, const void* data);/* return t
 *		
 ******************************************************************************/
 
-dll_iter_t DllRemove(dll_t* dll, dll_iter_t iter);/* return next iter */
+dll_iter_t DllRemove(dll_iter_t iter);/* return next iter */
 
 /**************************************************************** DllCount *
 * 		
@@ -230,7 +230,7 @@ dll_iter_t DllForEach(dll_iter_t from, dll_iter_t to, int (*action_func)(void* d
 /**************************************************************** DllMultiFind *
 * 		
 * Description: Gets a list and finds out if there are occurances of a specific 
-*	       parameter. if found search for another occurance until there are 
+*	       parameter. if found, searches for another occurance until there are 
 *	       none left. every occurance found is copied into "dest_dll".
 *		        
 *   Arguments: from     - An iterator to start the search on (inclusive).
