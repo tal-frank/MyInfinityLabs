@@ -2,7 +2,7 @@
 * singly linked list
 * Author: Tal Frank
 * Reviewer: Matan Shaked
-* Last update: 05/04/2026
+* Last update: 20/04/2026
 **********************/
 
 #include <stdio.h> /* printf */
@@ -435,4 +435,22 @@ void SllAppend(sll_t* dest, sll_t* src)
 	src->tail = src->head;
 }
 
+/*------------------------------------------------------------------*/
+/************************* STATIC FUNCTIONS *************************/
+/*------------------------------------------------------------------*/
+
+static void LinkNodes(node_t* node_1, node_t* node_2)
+{
+	node_1->next = node_2;
+}
+
+static sll_iter_t NodeToIter(node_t* node)
+{
+	return (sll_iter_t)node;
+}
+
+static node_t* IterToNode(sll_iter_t iter)
+{
+	return (node_t*)iter;
+}
 
