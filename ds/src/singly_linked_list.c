@@ -1,8 +1,8 @@
 /**********************
-* Bit Array
+* singly linked list
 * Author: Tal Frank
 * Reviewer: Matan Shaked
-* Last update: 20/04/2026
+* Last update: 05/04/2026
 **********************/
 
 #include <stdio.h> /* printf */
@@ -134,7 +134,7 @@ sll_iter_t SllGetNext(sll_iter_t iter)
 /************************* IS EQUAL & IS EMPTY *************************/
 /*---------------------------------------------------------------------*/
 
-int IsEmpty(const sll_t* sll)
+int SllIsEmpty(const sll_t* sll)
 {
 	assert(NULL != sll);
 	
@@ -320,8 +320,7 @@ sll_iter_t Flip(sll_iter_t head)
 
 void SllSetAddr(sll_iter_t iter, sll_iter_t iter_next)
 {
-	assert(NULL != iter);
-	assert(NULL != iter_next);	
+	assert(NULL != iter);	
 	
 	iter->next = iter_next;
 }
@@ -411,23 +410,29 @@ sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2)
 }
 
 
-/*------------------------------------------------------------------*/
-/************************* STATIC FUNCTIONS *************************/
-/*------------------------------------------------------------------*/
+/*--------------------------------------------------------*/
+/************************* APPEND *************************/
+/*--------------------------------------------------------*/
 
-static void LinkNodes(node_t* node_1, node_t* node_2)
+void SllAppend(sll_t* dest, sll_t* src)
 {
-	node_1->next = node_2;
-}
+	assert(NULL != dest);
+	assert(NULL != src);
+	
+	if (SllIsEmpty(src))
+	{
+		return;
+	}
+	
+	SllSetData(SllEnd(dest), SllGetData(SllBegin(src)));
+	SllSetAddr(SllEnd(dest), SllGetNext(SllBegin(src)));
+	
+	SllSetData(SllEnd(src), dest);
+	dest->tail = src->tail;
 
-static sll_iter_t NodeToIter(node_t* node)
-{
-	return (sll_iter_t)node;
-}
-
-static node_t* IterToNode(sll_iter_t iter)
-{
-	return (node_t*)iter;
+	SllSetData(SllBegin(src), src);
+	SllSetAddr(SllBegin(src), NULL);
+	src->tail = src->head;
 }
 
 
