@@ -286,7 +286,7 @@ dll_iter_t DllSplice(dll_iter_t where, dll_iter_t from, dll_iter_t to);
 ******************************************************************************/
 
 /* insert before the head */
-dll_iter_t DllPushFront(dll_t* dll, void* data);
+dll_iter_t DllPushFront(dll_t* dll, const void* data);
 
 /**************************************************************** DllPushBack *
 * 		
@@ -302,7 +302,7 @@ dll_iter_t DllPushFront(dll_t* dll, void* data);
 ******************************************************************************/
 
 /* insert before end */
-dll_iter_t DllPushBack(dll_t* dll, void* data);
+dll_iter_t DllPushBack(dll_t* dll, const void* data);
 
 /**************************************************************** DllPopFront *
 * 		

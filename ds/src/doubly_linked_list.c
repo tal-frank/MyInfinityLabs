@@ -12,6 +12,14 @@
 
 typedef struct Dll_Node dnode_t;
 
+/*------------------------------------------------------------------------------*/
+/************************* STATIC FUNCTIONS DECLARATION *************************/
+/*------------------------------------------------------------------------------*/
+
+static dll_iter_t NodeToIter(dnode_t* dnode);
+static dnode_t* IterToNode(dll_iter_t iter);
+static void LinkNodes(dnode_t* node_1, dnode_t* node_2);
+
 
 /*---------------------------------------------------------*/
 /************************* STRUCTS *************************/
@@ -100,10 +108,10 @@ void DllDestroy(dll_t* dll)
 /*-------------------------------------------------------------*/
 
 dll_iter_t DllBegin(const dll_t* dll)
-{
+{	
 	assert(NULL != dll);
 	
-	return dll->head->next;
+	return DllGetNext(NodeToIter(dll->head));
 }
 
 
@@ -111,7 +119,7 @@ dll_iter_t DllEnd(const dll_t* dll)
 {
 	assert(NULL != dll);
 	
-	return dll->tail;
+	return NodeToIter(dll->tail);
 }
 
 
@@ -140,12 +148,22 @@ size_t DllCount(const dll_t* dll)
 
 dll_iter_t DllGetNext(dll_iter_t iter)
 {
-	return iter->next;
+	dnode_t* dnode = IterToNode(iter);
+	
+	assert(NULL != dnode);
+	
+	dnode = dnode->next;
+	return NodeToIter(dnode);
 }
 
 dll_iter_t DllGetPrev(dll_iter_t iter)
 {
-	return iter->prev;
+	dnode_t* dnode = IterToNode(iter);
+	
+	assert(NULL != dnode);
+	
+	dnode = dnode->prev;
+	return NodeToIter(dnode);
 }
 
 
@@ -155,7 +173,7 @@ dll_iter_t DllGetPrev(dll_iter_t iter)
 
 int DllIsIterEqual(dll_iter_t iter1, dll_iter_t iter2)
 {
-	return iter1 == iter2;
+	return IterToNode(iter1) == IterToNode(iter2);
 }
 
 
@@ -167,11 +185,10 @@ int DllIsEmpty(const dll_t* dll)
 }
 
 
-
-
 void* DllGetData(dll_iter_t iter)
 {
-	return iter->data;
+	dnode_t* dnode = IterToNode(iter);
+	return NodeToIter(dnode->data);
 }
 
 
@@ -181,7 +198,8 @@ void* DllGetData(dll_iter_t iter)
 
 dll_iter_t DllInsert(dll_t* dll, dll_iter_t where, const void* data)
 {
-	dll_iter_t prev_iter = DllGetPrev(where);
+	dnode_t* prev_node = IterToNode(DllGetPrev(where));
+	dnode_t* where_n = IterToNode(where);
 	dnode_t* new_dnode = NULL;
 	
 	assert(NULL != dll);
@@ -192,28 +210,23 @@ dll_iter_t DllInsert(dll_t* dll, dll_iter_t where, const void* data)
 		return DllEnd(dll);
 	}
 	
-	
 	new_dnode->data = (void*)data;
-	new_dnode->prev = prev_iter;
-	new_dnode->next = where;
+	LinkNodes(prev_node, new_dnode);
+	LinkNodes(new_dnode, where_n);
 	
-	prev_iter->next = new_dnode;
-	where->prev = new_dnode;
-	
-	return new_dnode;
+	return NodeToIter(new_dnode);
 }
 
 
 dll_iter_t DllRemove(dll_iter_t iter)
 {
-	dll_iter_t prev_iter = DllGetPrev(iter);
-	dll_iter_t next_iter = DllGetNext(iter);
+	dnode_t* prev_node = IterToNode(DllGetPrev(iter));
+	dnode_t* next_node = IterToNode(DllGetNext(iter));
 	
-	prev_iter->next = next_iter;
-	next_iter->prev = prev_iter;
+	LinkNodes(prev_node, next_node);
 	
-	free(iter);
-	return next_iter;
+	free(IterToNode(iter));
+	return IterToNode(next_node);
 }
 
 
@@ -224,14 +237,14 @@ dll_iter_t DllRemove(dll_iter_t iter)
 dll_iter_t DllFind(dll_iter_t from, dll_iter_t to, 
 		   int (*comp_func)(const void* data, const void* param), const void* param)
 {	
-	int compare = comp_func(from->data, param);
+	int compare = comp_func(DllGetData(from), param);
 
 	assert(from != to);
 
 	while (compare && !DllIsIterEqual(to , from))
 	{
 		from = from->next;
-		compare = comp_func(from->data, param);
+		compare = comp_func(DllGetData(from), param);
 	}
 	return from;
 }
@@ -244,10 +257,10 @@ dll_iter_t DllForEach(dll_iter_t from, dll_iter_t to,
 		      int (*action_func)(void* data, void* param), void* param)
 {
 	int success = 0;
-	while (!success && !DllIsIterEqual(to , from))
+	while (!DllIsIterEqual(to , from) && !success)
 	{
-		success = action_func(from->data, param);
-		from = from->next;
+		success = action_func(DllGetData(from), param);
+		from = DllGetNext(from);
 	}
 	return from;
 }
@@ -256,7 +269,7 @@ dll_iter_t DllForEach(dll_iter_t from, dll_iter_t to,
 /************************* PUSH FRONT/BACK *************************/
 /*-----------------------------------------------------------------*/
 
-dll_iter_t DllPushFront(dll_t* dll, void* data)
+dll_iter_t DllPushFront(dll_t* dll, const void* data)
 {
 	assert(NULL != dll);
 
@@ -264,7 +277,7 @@ dll_iter_t DllPushFront(dll_t* dll, void* data)
 }
 
 
-dll_iter_t DllPushBack(dll_t* dll, void* data)
+dll_iter_t DllPushBack(dll_t* dll, const void* data)
 {
 	assert(NULL != dll);
 
@@ -301,23 +314,22 @@ int DllMultiFind(dll_iter_t from, dll_iter_t to,
                         const void* param, dll_t* dest_dll)
 {	
 	int cnt = 0;
-	dll_iter_t iter = from;
 	dll_iter_t null_check_iter = 0;
 	
-	assert(dest_dll);
+	assert(NULL != dest_dll);
 	
-	null_check_iter = dest_dll->head;
+	null_check_iter = DllBegin(dest_dll);
 	
-	while (!DllIsIterEqual(iter, to))
+	while (!DllIsIterEqual(from, to))
 	{
-		iter = DllFind(iter, to, IsMatch, (void*)param);
-		if (!DllIsIterEqual(iter, to))
+		from = DllFind(from, to, IsMatch, (void*)param);
+		if (!DllIsIterEqual(from, to))
 		{
-			iter = DllGetNext(iter);
+			from = DllGetNext(from);
 			++cnt;
 			
 			null_check_iter = 
-			DllInsert(dest_dll, DllEnd(dest_dll), iter->data);
+			DllInsert(dest_dll, DllEnd(dest_dll), DllGetData(from));
 			if (DllIsIterEqual(null_check_iter, DllEnd(dest_dll)))
 			{
 				return -1;
@@ -334,21 +346,40 @@ int DllMultiFind(dll_iter_t from, dll_iter_t to,
 
 dll_iter_t DllSplice(dll_iter_t where, dll_iter_t from, dll_iter_t to)
 {
-	dll_iter_t where_prev = DllGetPrev(where);
-	dll_iter_t from_prev = DllGetPrev(from);
-	dll_iter_t to_prev = DllGetPrev(to);
+	dnode_t* where_n = IterToNode(where);
+	dnode_t* from_n = IterToNode(from);
+	dnode_t* to_n = IterToNode(to);
+
+	dnode_t* where_prev = IterToNode(DllGetPrev(where));
+	dnode_t* from_prev = IterToNode(DllGetPrev(from));
+	dnode_t* to_prev = IterToNode(DllGetPrev(to));
 	
-	where_prev->next = from;
-	where->prev = to_prev;
-	
-	from_prev->next = to;
-	to->prev = from_prev;
-	
-	from->prev = where_prev;
-	to_prev->next  = where;
+	LinkNodes(from_prev, to_n);
+	LinkNodes(where_prev, from_n);
+	LinkNodes(to_prev, where_n);
 	
 	return where;
+
 }
 
 
+/*-----------------------------------------------------------------*/
+/************************* STATIC FUNCTION *************************/
+/*-----------------------------------------------------------------*/
+
+static void LinkNodes(dnode_t* node_1, dnode_t* node_2)
+{
+	node_1->next = node_2;
+	node_2->prev = node_1;
+}
+
+static dll_iter_t NodeToIter(dnode_t* dnode)
+{
+	return (dll_iter_t)dnode;
+}
+
+static dnode_t* IterToNode(dll_iter_t iter)
+{
+	return (dnode_t*)iter;
+}
 
