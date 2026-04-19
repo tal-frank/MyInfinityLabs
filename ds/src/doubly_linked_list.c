@@ -71,12 +71,12 @@ dll_t* DllCreate(void)
 	}
 	
 	head_dummy->prev = NULL;
-	head_dummy->next = tail_dummy;
-	head_dummy->data = dll;
-	
-	tail_dummy->prev = head_dummy;
 	tail_dummy->next = NULL;
+
+	head_dummy->data = dll;
 	tail_dummy->data = dll;
+
+	LinkNodes(head_dummy, tail_dummy);
 	
 	dll->head = head_dummy;
 	dll->tail = tail_dummy;
@@ -241,7 +241,7 @@ dll_iter_t DllFind(dll_iter_t from, dll_iter_t to,
 
 	assert(from != to);
 
-	while (compare && !DllIsIterEqual(to , from))
+	while (!DllIsIterEqual(to , from) && 0 != compare)
 	{
 		from = from->next;
 		compare = comp_func(DllGetData(from), param);
@@ -256,10 +256,10 @@ dll_iter_t DllFind(dll_iter_t from, dll_iter_t to,
 dll_iter_t DllForEach(dll_iter_t from, dll_iter_t to, 
 		      int (*action_func)(void* data, void* param), void* param)
 {
-	int success = 0;
-	while (!DllIsIterEqual(to , from) && !success)
+	int failure = 0;
+	while (!DllIsIterEqual(to , from) && !failure)
 	{
-		success = action_func(DllGetData(from), param);
+		failure = action_func(DllGetData(from), param);
 		from = DllGetNext(from);
 	}
 	return from;
