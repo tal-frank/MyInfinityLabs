@@ -19,13 +19,14 @@ static dll_iter_t SIterToDIter(sorted_list_iter_t iter);
 
 #ifndef NDEBUG
 static sorted_list_t* ListID(sorted_list_iter_t iter);
+static int IsSameList(const sorted_list_t* sl, const sorted_list_iter_t iter);
 #endif /*NDEBUG*/
 
 /*---------------------------------------------------------*/
 /************************* STRUCTS *************************/
 /*---------------------------------------------------------*/
 
-struct Sorted_list
+struct sorted_list
 {
 	dll_t* dll;
 	int (*cmp_func)(const void* param1, const void* param2);
@@ -78,9 +79,9 @@ sorted_list_iter_t SortedListBegin(const sorted_list_t* sl)
 	assert(NULL != sl);	
 	
 	iter.inner_iter = DllBegin(sl->dll);
-	#ifndef NDEBUG
-	    	iter.list = (sorted_list_t*)sl;
-	#endif /*NDEBUG*/
+#ifndef NDEBUG
+    	iter.list = (sorted_list_t*)sl;
+#endif /*NDEBUG*/
 	return iter;
 }
 
@@ -92,9 +93,9 @@ sorted_list_iter_t SortedListEnd(const sorted_list_t* sl)
 	assert(NULL != sl);
 	
 	iter.inner_iter = DllEnd(sl->dll);
-	#ifndef NDEBUG
-	    	iter.list = (sorted_list_t*)sl;
-	#endif /*NDEBUG*/
+#ifndef NDEBUG
+    	iter.list = (sorted_list_t*)sl;
+#endif /*NDEBUG*/
 	return iter;
 }
 
@@ -197,9 +198,9 @@ sorted_list_iter_t SortedListInsert(sorted_list_t* sl, const void* data)
 	}
 	
 	iter.inner_iter = DllInsert(sl->dll, SIterToDIter(iter), data);
-	#ifndef NDEBUG 
-		 iter.list = sl;
-	#endif /*NDEBUG*/
+#ifndef NDEBUG 
+	iter.list = sl;
+#endif /*NDEBUG*/
 	return iter;
 }
 
@@ -217,6 +218,8 @@ sorted_list_iter_t SortedListRemove(sorted_list_iter_t iter)
 
 size_t SortedListSize(const sorted_list_t* sorted_list)
 {
+	assert(0 != sorted_list);
+	
 	return DllCount(sorted_list->dll);
 }
 
@@ -248,9 +251,15 @@ sorted_list_iter_t SortedListFindIf(sorted_list_iter_t from,
                                     int (*is_match_func)(const void* param1, const void* param2),
                                     const void* param)
 {
-	sorted_list_iter_t iter = {0};
-	iter.inner_iter = DllFind(SIterToDIter(from), SIterToDIter(to), is_match_func, param);
-	return iter;
+#ifndef NDEBUG
+	if (0 == IsSameList(to.list, from))
+	{
+		return to;
+    	}
+#endif
+
+	from.inner_iter = DllFind(SIterToDIter(from), SIterToDIter(to), is_match_func, param);
+	return from;
 }
 
 /*---------------------------------------------------------*/
@@ -262,9 +271,15 @@ sorted_list_iter_t SortedListForEach(sorted_list_iter_t from,
                                     int (*action_func)(void* data, void* param),
                                     void* param)
 {
-	sorted_list_iter_t iter = {0};
-	iter.inner_iter = DllForEach(SIterToDIter(from), SIterToDIter(to), action_func, param);
-	return iter;
+#ifndef NDEBUG
+	if (0 == IsSameList(to.list, from))
+	{
+		return to;
+    	}
+#endif
+
+	from.inner_iter = DllForEach(SIterToDIter(from), SIterToDIter(to), action_func, param);
+	return from;
 }
 
 
@@ -328,4 +343,10 @@ static sorted_list_t* ListID(sorted_list_iter_t iter)
 {
 	return iter.list;
 }
+
+static int IsSameList(const sorted_list_t* sl, const sorted_list_iter_t iter)
+{
+    return (sl == iter.list);
+}
 #endif /*NDEBUG*/
+

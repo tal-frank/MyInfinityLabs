@@ -5,7 +5,7 @@
 
 #include "../include/doubly_linked_list.h"
 
-typedef struct Sorted_list sorted_list_t;
+typedef struct sorted_list sorted_list_t;
 typedef struct SortedListIter sorted_list_iter_t;
 
 struct SortedListIter

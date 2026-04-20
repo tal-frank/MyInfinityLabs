@@ -15,7 +15,7 @@ struct Doubly_linked_list
 	dnode_t* tail;
 };
 
-struct Sorted_list
+struct sorted_list
 {
 	dll_t* dll;
 	int (*cmp_func)(const void* param1, const void* param2);
