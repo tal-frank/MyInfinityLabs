@@ -9,7 +9,7 @@
 #include <stdlib.h> /* malloc */
 #include <assert.h> /*assert*/
 
-#include "../include/singly_linked_list.h"
+#include "singly_linked_list.h"
 
 #define UNUSED(x) ((void)x)
 
