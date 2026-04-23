@@ -63,13 +63,11 @@ sll_t* SllCreate(void)
 	node_t* dummy = (node_t*)malloc(sizeof(node_t));
 	if (NULL == sll)
 	{
-		printf("can't creat struct\n");
 		return NULL;
 	}
 	
 	if (NULL == dummy)
 	{
-		printf("can't creat struct\n");
 		free(sll);
 		return NULL;
 	}
@@ -187,14 +185,13 @@ sll_iter_t SllInsertBefore(sll_iter_t where, const void* data)
 	
 	if (NULL == insert)
 	{
-		printf("can't creat struct\n");
 		return NULL;
 	}
 			
 	insert->data = where_n->data;
 	insert->next = where_n->next;
 	
-	where->data = (void*)data;
+	where_n->data = (void*)data;
 	LinkNodes(where_n, insert);
 
 	if(NULL == insert->next)
@@ -214,9 +211,9 @@ sll_iter_t SllRemove(sll_iter_t iter)
 	node->data = SllGetData(SllGetNext(node));
 	LinkNodes(node, SllGetNext(SllGetNext(node)));
 
-	if(NULL == iter->next)
+	if(NULL == node->next)
 	{
-		((sll_t*)iter->data)->tail = iter;
+		((sll_t*)node->data)->tail = iter;
 	}
 	
 	free(temp);
@@ -273,7 +270,7 @@ sll_iter_t SllForEach(sll_iter_t from, sll_iter_t to,
 	int failure = 0;
 	while (!SllIterIsEqual(to , from) && !failure)
 	{
-		failure = action_func(from->data, param);
+		failure = action_func(IterToNode(from)->data, param);
 		from = SllGetNext(from);
 	}
 	return from;
