@@ -2,19 +2,26 @@
 * singly linked list
 * Author: Tal Frank
 * Reviewer: Matan Shaked
-* Last update: 05/04/2026
+* Last update: 20/04/2026
 **********************/
 
 #include <stdio.h> /* printf */
 #include <stdlib.h> /* malloc */
 #include <assert.h> /*assert*/
 
-#include "../include/singly_linked_list.h"
+#include "singly_linked_list.h"
 
 #define UNUSED(x) ((void)x)
 
 typedef struct Node node_t;
 
+/*------------------------------------------------------------------------------*/
+/************************* STATIC FUNCTIONS DECLARATION *************************/
+/*------------------------------------------------------------------------------*/
+
+static node_t* IterToNode(sll_iter_t iter);
+static sll_iter_t NodeToIter(node_t* node);
+static void LinkNodes(node_t* node_1, node_t* node_2);
 
 /*-------------------------------------------------------------*/
 /************************* SLL STRUCTS *************************/
@@ -42,7 +49,7 @@ int CountForEach(void* data, void* cnt)
 {
 	UNUSED(data);
 	*(int*)cnt += 1;
-	return 1;
+	return 0;
 }
 
 
@@ -57,14 +64,14 @@ sll_t* SllCreate(void)
 	if (NULL == sll)
 	{
 		printf("can't creat struct\n");
-		return 0;
+		return NULL;
 	}
 	
 	if (NULL == dummy)
 	{
 		printf("can't creat struct\n");
 		free(sll);
-		return 0;
+		return NULL;
 	}
 	
 	dummy->next = NULL;
@@ -100,7 +107,7 @@ sll_iter_t SllBegin(const sll_t* sll)
 {
 	assert(NULL != sll);	
 	
-	return sll->head;
+	return NodeToIter(sll->head);
 }
 
 
@@ -108,13 +115,18 @@ sll_iter_t SllEnd(const sll_t* sll)
 {
 	assert(NULL != sll);
 
-	return sll->tail;
+	return NodeToIter(sll->tail);
 }
 
 
 sll_iter_t SllGetNext(sll_iter_t iter)
 {
-	return iter->next;
+	node_t* node = IterToNode(iter);
+	
+	assert(NULL != node);
+	
+	node = node->next;
+	return NodeToIter(node);
 }
 
 
@@ -131,14 +143,8 @@ int SllIsEmpty(const sll_t* sll)
 
 
 int SllIterIsEqual(sll_iter_t iter1, sll_iter_t iter2)
-{
-	int is_equal = 0;
-	if (iter1 == iter2)
-	{
-		is_equal = 1;
-	}
-	
-	return is_equal;
+{	
+	return IterToNode(iter1) == IterToNode(iter2);
 }
 
 
@@ -149,14 +155,14 @@ int SllIterIsEqual(sll_iter_t iter1, sll_iter_t iter2)
 size_t SllGetLength(const sll_t* sll)
 {
 	size_t cnt = 0;
-	node_t* cnt_iter= SllBegin(sll);
+	node_t* cnt_iter = SllBegin(sll);
 	node_t* end = SllEnd(sll);
 	
 	assert(NULL != sll);
 	
 	while(!SllIterIsEqual(cnt_iter, end))
 	{
-		cnt_iter = cnt_iter->next;
+		cnt_iter = SllGetNext(cnt_iter);
 		++cnt;
 	}
 	return cnt;
@@ -177,35 +183,37 @@ size_t SllCount(sll_iter_t from, sll_iter_t to)
 sll_iter_t SllInsertBefore(sll_iter_t where, const void* data)
 {
 	node_t* insert = (node_t*)malloc(sizeof(node_t));
-
+	node_t* where_n = IterToNode(where);
+	
 	if (NULL == insert)
 	{
 		printf("can't creat struct\n");
-		return 0;
+		return NULL;
 	}
 			
-	insert->data = where->data;
-	insert->next = where->next;
+	insert->data = where_n->data;
+	insert->next = where_n->next;
 	
 	where->data = (void*)data;
-	where->next = insert;
+	LinkNodes(where_n, insert);
 
 	if(NULL == insert->next)
 	{
 		((sll_t*)insert->data)->tail = insert;
 	}
 	
-	return insert;
+	return NodeToIter(insert);
 }
 
 
 sll_iter_t SllRemove(sll_iter_t iter)
 {
-	node_t* temp = iter->next;
+	node_t* temp = SllGetNext(IterToNode(iter));
+	node_t* node = IterToNode(iter);
 	
-	iter->data = iter->next->data;
-	iter->next = iter->next->next;
-	
+	node->data = SllGetData(SllGetNext(node));
+	LinkNodes(node, SllGetNext(SllGetNext(node)));
+
 	if(NULL == iter->next)
 	{
 		((sll_t*)iter->data)->tail = iter;
@@ -223,13 +231,15 @@ sll_iter_t SllRemove(sll_iter_t iter)
 
 void* SllGetData(sll_iter_t iter)
 {
-	return iter->data;
+	node_t* node = IterToNode(iter);
+	return NodeToIter(node)->data;
 }
 
 
 void SllSetData(sll_iter_t iter, const void* data)
 {		
-	iter->data = (void*)data;
+	node_t* node = IterToNode(iter);
+	node->data = (void*)data;
 }
 
 
@@ -240,14 +250,14 @@ void SllSetData(sll_iter_t iter, const void* data)
 sll_iter_t SllFind(sll_iter_t from, sll_iter_t to, 
 		   int (*is_match_func)(void* data, void* param), void* param)
 {	
-	int is_equal = is_match_func(from->data, param);
+	int is_equal = is_match_func(SllGetData(from), param);
 
 	assert(from != to);
 
-	while (!is_equal && !SllIterIsEqual(to , from))
+	while (!is_equal && !SllIterIsEqual(to, from))
 	{
-		from = from->next;
-		is_equal = is_match_func(from->data, param);
+		from = SllGetNext(from);
+		is_equal = is_match_func(SllGetData(from), param);
 	}
 	return from;
 }
@@ -260,11 +270,11 @@ sll_iter_t SllFind(sll_iter_t from, sll_iter_t to,
 sll_iter_t SllForEach(sll_iter_t from, sll_iter_t to, 
 		      int (*action_func)(void* data, void* param), void* param)
 {
-	int success = 1;
-	while (success && !SllIterIsEqual(to , from))
+	int failure = 0;
+	while (!SllIterIsEqual(to , from) && !failure)
 	{
-		success = action_func(from->data, param);
-		from = from->next;
+		failure = action_func(from->data, param);
+		from = SllGetNext(from);
 	}
 	return from;
 }
@@ -281,6 +291,7 @@ sll_iter_t Flip(sll_iter_t head)
 	node_t* next_node = head;
 	
 	assert(NULL != head);
+	assert(NULL != head->next);
 	
 	cur_node = SllGetNext(cur_node);
 	next_node = SllGetNext(next_node);
@@ -344,7 +355,7 @@ int HasLoop(const sll_iter_t head)
 
 static size_t GetLength(const sll_iter_t iter)
 {
-	int cnt = 0;
+	size_t cnt = 0;
 	node_t* cnt_iter = iter;
 	
 	assert(NULL != cnt_iter);
@@ -373,13 +384,13 @@ sll_iter_t FindIntersection(sll_iter_t head1, sll_iter_t head2)
 	len1 = GetLength(iter1);
 	len2 = GetLength(iter2);
 		
-	difference = (int)(len1 - len2);    
+	difference = (long)(len1 - len2);    
 	for (i = 0; i < difference; ++i)
 	{
 		head1 = SllGetNext(head1);
 	}
 
-	difference = (int)(len2 - len1);
+	difference = (long)(len2 - len1);
 	for (i = 0; i < difference; ++i)
 	{
 		head2 = SllGetNext(head2);
@@ -424,4 +435,22 @@ void SllAppend(sll_t* dest, sll_t* src)
 	src->tail = src->head;
 }
 
+/*------------------------------------------------------------------*/
+/************************* STATIC FUNCTIONS *************************/
+/*------------------------------------------------------------------*/
+
+static void LinkNodes(node_t* node_1, node_t* node_2)
+{
+	node_1->next = node_2;
+}
+
+static sll_iter_t NodeToIter(node_t* node)
+{
+	return (sll_iter_t)node;
+}
+
+static node_t* IterToNode(sll_iter_t iter)
+{
+	return (node_t*)iter;
+}
 
