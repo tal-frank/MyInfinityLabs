@@ -28,14 +28,14 @@ int CountForEachUser(void* data, void* cnt)
 	{
 		*(int*)cnt += 1;
 	}
-	return 1;
+	return 0;
 }
 
 
 int AddNum(void* data, void* num)
 {
 	*(int*)data += *(int*)num;
-	return 1;
+	return 0;
 }
 
 
