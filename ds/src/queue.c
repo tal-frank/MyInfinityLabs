@@ -9,8 +9,8 @@
 #include <stdlib.h> /* malloc */
 #include <assert.h> /*assert*/
 
-#include "../include/queue.h"
-#include "../include/singly_linked_list.h"
+#include "queue.h"
+#include "singly_linked_list.h"
 
 
 struct Queue
