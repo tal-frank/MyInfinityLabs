@@ -218,7 +218,7 @@ sorted_list_iter_t SortedListRemove(sorted_list_iter_t iter)
 
 size_t SortedListSize(const sorted_list_t* sorted_list)
 {
-	assert(0 != sorted_list);
+	assert(NULL != sorted_list);
 	
 	return DllCount(sorted_list->dll);
 }
