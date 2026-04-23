@@ -1,15 +1,15 @@
 /**********************
 * sorted list
 * Author: Tal Frank
-* Reviewer: 
-* Last update: 17/04/2026
+* Reviewer: Roman Polugrudov
+* Last update: 23/04/2026
 **********************/
 
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 
-#include "../include/doubly_linked_list.h"
-#include "../include/sorted_list.h"
+#include "doubly_linked_list.h"
+#include "sorted_list.h"
 
 /*-------------------------------------------------------------------------------*/
 /************************* STATIC FUNCTIONS DECLERATIONS *************************/
@@ -300,7 +300,7 @@ void SortedListMerge(sorted_list_t* dest, sorted_list_t* src)
 	
 	while (!SortedListIsIterEqual(iter_src_runner, src_end))
 	{
-		while (!SortedListIsIterEqual(iter_dest, dest_end)           &&
+		while (!SortedListIsIterEqual(iter_dest, dest_end) &&
 		       0 <= dest->cmp_func(SortedListGetData(iter_src_cur), 
 					   SortedListGetData(iter_dest)))
 		{
@@ -312,7 +312,7 @@ void SortedListMerge(sorted_list_t* dest, sorted_list_t* src)
 		}
 		else
 		{
-			while (!SortedListIsIterEqual(iter_src_runner, src_end)      &&
+			while (!SortedListIsIterEqual(iter_src_runner, src_end) &&
 			       0 > dest->cmp_func(SortedListGetData(iter_src_runner), 
 						  SortedListGetData(iter_dest)))
 			{
