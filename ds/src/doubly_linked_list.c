@@ -8,7 +8,7 @@
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 
-#include "../include/doubly_linked_list.h"
+#include "doubly_linked_list.h"
 
 typedef struct Dll_Node dnode_t;
 
