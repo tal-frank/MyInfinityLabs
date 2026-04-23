@@ -87,10 +87,13 @@ dll_t* DllCreate(void)
 
 void DllDestroy(dll_t* dll)
 {
-	dnode_t* freed = dll->head;
-	dnode_t* iter = dll->head;
+	dnode_t* freed = NULL;
+	dnode_t* iter = NULL;
 	
 	assert(NULL != dll);
+	
+	freed = dll->head;
+	iter = dll->head;
 	
 	while (!DllIsIterEqual(DllEnd(dll), iter))
 	{
@@ -188,7 +191,7 @@ int DllIsEmpty(const dll_t* dll)
 void* DllGetData(dll_iter_t iter)
 {
 	dnode_t* dnode = IterToNode(iter);
-	return NodeToIter(dnode->data);
+	return dnode->data;
 }
 
 
@@ -214,7 +217,7 @@ dll_iter_t DllInsert(dll_t* dll, dll_iter_t where, const void* data)
 	LinkNodes(prev_node, new_dnode);
 	LinkNodes(new_dnode, where_n);
 	
-	return NodeToIter(new_dnode);
+	return IterToNode(new_dnode);
 }
 
 
@@ -243,7 +246,7 @@ dll_iter_t DllFind(dll_iter_t from, dll_iter_t to,
 
 	while (!DllIsIterEqual(to , from) && 0 != compare)
 	{
-		from = from->next;
+		from = DllGetNext(from);
 		compare = comp_func(DllGetData(from), param);
 	}
 	return from;
