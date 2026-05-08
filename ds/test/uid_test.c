@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 
-#include "UID.h"
+#include "uid.h"
 
 
 static void PrintUID(ilrd_uid_t uid)

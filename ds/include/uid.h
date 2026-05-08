@@ -3,12 +3,14 @@
 
 #include <sys/types.h>
 
+#define IPSIZE (14)
+
 typedef struct Unique_id
 {
 	pid_t pid;
 	time_t time;
 	size_t counter;
-	char ip[14];
+	char ip[IPSIZE];
 } ilrd_uid_t;
 
 extern const ilrd_uid_t UIDBadUID;
@@ -33,8 +35,8 @@ ilrd_uid_t UIDCreate(void);
 * 		
 * Description: Finds out if two UID's are equal.
 *		        
-*   Arguments: iter1 - A UID to compare.
-*	       iter2 - A UID to compare.
+*   Arguments: uid1 - A UID to compare.
+*	       uid2 - A UID to compare.
 *		
 *      Return: 1 if equal, 0 if not.
 *		

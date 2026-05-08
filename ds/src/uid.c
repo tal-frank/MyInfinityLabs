@@ -9,11 +9,11 @@
 #include <ifaddrs.h> /* getifaddrs ,  freeifaddrs */
 #include <time.h> /* time , ctime */
 #include <string.h> /* memcpy , memcmp */
+#include <arpa/inet.h>	/* struct sockaddr_in */
 
-#include "UID.h"
+#include "uid.h"
 
-#define IS_EQUAL (1)
-#define IP_SIZE (14)
+#define COMP_SAME (0)
 
 const ilrd_uid_t UIDBadUID = {0};
 
@@ -63,8 +63,7 @@ int UIDIsEqual(ilrd_uid_t uid1, ilrd_uid_t uid2)
 	return (uid1.pid     == uid2.pid     &&
 		uid1.time    == uid2.time    &&
 		uid1.counter == uid2.counter &&
-		0            == memcmp(uid1.ip, uid2.ip, IP_SIZE)) 
-		? IS_EQUAL : !IS_EQUAL;
+		COMP_SAME    == memcmp(uid1.ip, uid2.ip, IPSIZE));
 }
 
 
@@ -81,8 +80,9 @@ static size_t SetCounter(void)
 
 static void SetIP(ilrd_uid_t* uid)
 {
-	struct ifaddrs* ifa = NULL;
-	struct ifaddrs* tmp = NULL;
+	struct ifaddrs* ifa = {0};
+	struct ifaddrs* ifa_runner = {0};
+	struct sockaddr_in* ip_converter = NULL;
 
 	if (ERROR == getifaddrs(&ifa))
 	{
@@ -90,23 +90,24 @@ static void SetIP(ilrd_uid_t* uid)
 		return;
 	}
 		
-	for (tmp = ifa; NULL != tmp; tmp = tmp->ifa_next)
+	for (ifa_runner = ifa; NULL != ifa_runner; ifa_runner = ifa_runner->ifa_next)
 	{
-		if (NULL    != tmp->ifa_addr            &&
-		    AF_INET == tmp->ifa_addr->sa_family)
+		if (NULL      != ifa_runner->ifa_addr            &&
+		    AF_INET   == ifa_runner->ifa_addr->sa_family &&
+		    COMP_SAME != strcmp(ifa_runner->ifa_name, "lo"))
 		{
-			memcpy(uid->ip, ifa->ifa_addr, IP_SIZE);
+			ip_converter = (struct sockaddr_in*)ifa_runner;
+			memcpy(uid->ip, (char*)&ip_converter->sin_addr, IPSIZE);
 			freeifaddrs(ifa);
 			return;
 		}
 	}
 	
-	if (NULL == tmp)
+	if (NULL == ifa_runner)
 	{
 		*uid = UIDBadUID;
 	}
 	
 	freeifaddrs(ifa);
-
 }
 
