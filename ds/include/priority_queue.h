@@ -135,14 +135,13 @@ void PQClear(pq_t* pq);
 *
 *   Arguments: IsMatch - A match function provided by the user to find the element to erase.
 *		
-*      Return: Data of the erased element.
+*      Return: Data of the erased element if element found, NULL if not found.
 *		
 *  Complexity: O(n), Space: O(1)
 *		
 *		
 ******************************************************************************/
 
-/*delete only first*/
 void* PQErase(pq_t* pq, int (*IsMatch)(const void* data, const void* param),const void* param);
 
 #endif

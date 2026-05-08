@@ -1,7 +1,7 @@
 /**********************
 * priority queue
 * Author: Tal Frank
-* Reviewer: 
+* Reviewer: Or Zelner
 * Last update: 06/05/2026
 **********************/
 
@@ -25,21 +25,21 @@ typedef enum
 
 pq_t* PQCreate(int (*CmpFunc)(const void* data, const void* param))
 {
-	pq_t* p_q = (pq_t*)malloc(sizeof(p_q));
-	if (NULL == p_q)
+	pq_t* pq = (pq_t*)malloc(sizeof(pq_t));
+	if (NULL == pq)
 	{
 		return NULL;
 	}
 	
-	p_q->sl = SortedListCreate(CmpFunc);
-	if (NULL == p_q->sl)
+	pq->sl = SortedListCreate(CmpFunc);
+	if (NULL == pq->sl)
 	{
-		free(p_q);
-		p_q = NULL;
+		free(pq);
+		pq = NULL;
 		return NULL;
 	}
 	
-	return p_q;
+	return pq;
 }
 
 
@@ -48,20 +48,18 @@ void PQDestroy(pq_t* pq)
 	assert(NULL != pq);	
 	
 	SortedListDestroy(pq->sl);
+	pq->sl = NULL;
+	
 	free(pq);
+	pq = NULL;
 }
 
 
 int PQEnqueue(pq_t* pq, const void* data)
 {
 	assert(NULL != pq);
-
-	if (SortedListIsIterEqual(SortedListInsert(pq->sl, data), SortedListEnd(pq->sl)))
-	{
-		return FAILURE;
-	}
 	
-	return SUCCESS;
+	return (SortedListIsIterEqual(SortedListInsert(pq->sl, data), SortedListEnd(pq->sl)));
 }
 
 
@@ -75,6 +73,7 @@ void* PQDequeue(pq_t* pq)
 void* PQPeek(const pq_t* pq)
 {
 	assert(NULL != pq);
+	assert(!PQIsEmpty(pq));
 	
 	return SortedListGetData(SortedListBegin(pq->sl));
 }
@@ -110,13 +109,16 @@ void PQClear(pq_t* pq)
 void* PQErase(pq_t* pq, int (*IsMatch)(const void* data, const void* param),const void* param)
 {
 	void* data = NULL;
-	sorted_list_iter_t iter = {0};
+	sorted_list_iter_t element_to_remove = {0};
 	
 	assert(NULL != pq);
 	
-	iter = SortedListFindIf(SortedListBegin(pq->sl), SortedListEnd(pq->sl), IsMatch, param);
-	data = SortedListGetData(iter);
-	SortedListRemove(iter);
+	element_to_remove = SortedListFindIf(SortedListBegin(pq->sl), SortedListEnd(pq->sl), IsMatch, param);
+	if (!SortedListIsIterEqual(element_to_remove, SortedListEnd(pq->sl)))
+	{
+		data = SortedListGetData(element_to_remove);
+		SortedListRemove(element_to_remove);
+	}
 	
 	return data;
 }
