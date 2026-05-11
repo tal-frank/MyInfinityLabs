@@ -43,6 +43,8 @@ task_t* TaskCreate(size_t interval,
 	task->uid = UIDCreate();
 	if (UIDIsEqual(task->uid, UIDBadUID))
 	{
+		free(task);
+		task = NULL;
 		return NULL;
 	}
 	

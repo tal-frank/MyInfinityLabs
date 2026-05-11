@@ -13,6 +13,7 @@ typedef struct run_n_times
 {
 	sched_t* sched;
 	ilrd_uid_t uid;
+	size_t count;
 	char* str;
 }run_n_times_t;
 
@@ -32,11 +33,10 @@ static int func(void* param)
 
 static int func_remove(void* param)
 {
-	static int count = 0;
 	run_n_times_t* rnt = (run_n_times_t*)param;
 	printf("%s\n", rnt->str);
-	++count;
-	if (3 == count)
+	++rnt->count;
+	if (3 == rnt->count)
 	{
 		SchedTaskRemove(rnt->sched, rnt->uid);
 	}
@@ -132,9 +132,8 @@ void TestRemove()
 	SchedTaskAdd(sched, 4, current_time + 2, func, NULL, "two sec");
 	SchedTaskAdd(sched, 2, current_time + 10, func, NULL, "ten sec");
 	uid = SchedTaskAdd(sched, 1, current_time + 15, func, NULL, "fifteen sec");
-
 	printf(CYAN "REMOVE" RESET_COLOR " TEST\n");
-	SchedTaskRemove(sched, uid);	
+	SchedTaskRemove(sched, uid);
 	if (3 != SchedCount(sched))
 	{
 		printf("did not remove task \n");
@@ -148,13 +147,31 @@ void TestRemove()
 	SchedDestroy(sched);
 }
 
-
 void TestRun(void)
+{
+	sched_t* sched = SchedCreate();
+	time_t current_time = 0;
+	printf(CYAN "RUNNING CHECK\n" RESET_COLOR);
+	time(&current_time);
+	SchedTaskAdd(sched, 10, current_time + 10, func, NULL, RED "ten sec" RESET_COLOR);
+	SchedTaskAdd(sched, 4, current_time + 4, func, NULL, GREEN "four sec" RESET_COLOR);
+	SchedTaskAdd(sched, 5, current_time + 5, func, NULL, CYAN "five sec" RESET_COLOR);
+	SchedTaskAdd(sched, 2, current_time + 2, func, NULL, "two sec");
+	SchedTaskAdd(sched, 6, current_time + 6, func, NULL, "six sec");
+	SchedTaskAdd(sched, 0, current_time + 11, Stop, NULL, sched);
+	
+	
+	SchedRun(sched);
+	SchedDestroy(sched);
+}
+
+void TestRunWithRemove(void)
 {
 	sched_t* sched = SchedCreate();
 	time_t current_time = 0;
 	ilrd_uid_t uid = {0};
 	run_n_times_t rnt = {0};
+	printf(CYAN "RUNNING WITH REMOVAL CHECK\n" RESET_COLOR);
 	time(&current_time);
 	SchedTaskAdd(sched, 10, current_time + 10, func, NULL, RED "ten sec" RESET_COLOR);
 	SchedTaskAdd(sched, 4, current_time + 4, func, NULL, GREEN "four sec" RESET_COLOR);
@@ -166,6 +183,7 @@ void TestRun(void)
 	rnt.sched = sched;
 	rnt.uid = uid;
 	rnt.str = "two sec";
+	rnt.count = 0;
 	
 	SchedRun(sched);
 	SchedDestroy(sched);
@@ -179,6 +197,8 @@ int main()
 	TestCountClear();
 	TestRemove();
 	TestRun();
+	printf("\n");
+	TestRunWithRemove();
 	
 	return 0;
 }

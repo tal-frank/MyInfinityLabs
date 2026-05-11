@@ -54,6 +54,12 @@ sched_t* SchedCreate(void)
 		return NULL;
 	}
 	sched->pq = PQCreate(SchedTaskCmp);
+	if (NULL == sched->pq)
+	{
+		free(sched);
+		sched = NULL;
+		return NULL;
+	}
 	sched->current_task = NULL;
 	sched->to_run = 0;
 	
@@ -113,8 +119,7 @@ void SchedClear(sched_t* sched)
 
 int SchedTaskRemove(sched_t* sched, ilrd_uid_t uid)
 {
-	int(*uid_equal)(const void* data, const void* param_uid) = IsEqual;
-	task_t* task = PQErase(sched->pq, uid_equal, &uid);
+	task_t* task = PQErase(sched->pq, IsEqual, &uid);
 	if (NULL != sched->current_task &&
 	    UIDIsEqual(uid, TaskGetUid(sched->current_task)))
 	{
@@ -135,11 +140,11 @@ int SchedTaskRemove(sched_t* sched, ilrd_uid_t uid)
 /*----------------------------------------------------------*/
 
 ilrd_uid_t SchedTaskAdd(sched_t* sched,
-                   size_t interval,
-                   time_t time_to_run,
-                   int (*op_func)(void* param),
-                   int (*clean_func)(void* param),
-                   void* param)
+                   	size_t interval,
+                   	time_t time_to_run,
+                   	int (*op_func)(void* param),
+                   	int (*clean_func)(void* param),
+                   	void* param)
 {
 	task_t* task = TaskCreate(interval, time_to_run, op_func, clean_func, param);
 	if (NULL == task)
@@ -182,6 +187,7 @@ int SchedRun(sched_t* sched)
 		    NULL == sched->current_task)
 		{
 			TaskDestroy(task);
+			task = NULL;
 			sched->current_task = NULL;
 			continue;
 		}
@@ -190,9 +196,10 @@ int SchedRun(sched_t* sched)
 		{
 			return FAILURE;
 		}
-		
+
 		sched->current_task = NULL;
 	}
+
 	return SUCCESS;
 }
 
@@ -207,9 +214,11 @@ void SchedStop(sched_t* sched)
 
 static void WaitForOperationTime(time_t ttr)
 {
-	time_t time_to_sleep = ttr - time(NULL);
-	sleep(time_to_sleep);
-	while(time(NULL) < ttr);
+	time_t time_to_run = ttr - time(NULL);
+	while(time_to_run)
+	{
+		time_to_run = sleep(time_to_run);
+	}
 }
 
 static status_t UpdateAndPush(sched_t* sched)
