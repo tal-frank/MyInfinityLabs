@@ -15,7 +15,7 @@ typedef struct Scheduler sched_t;
 *		        
 *   Arguments: None
 *		
-*      Return: A pointer to the new schedualer.
+*      Return: A pointer to the new schedualer. NULL if fails.
 *		
 *  Complexity: Time: O(1) Space: O(1)
 *		
@@ -46,9 +46,10 @@ void SchedDestroy(sched_t* sched);
 *              interval    - Itervals time between runs of a task.
 *              time_to_run - When to run the task.
 *	       op_func     - The task to-do.
-*	       clean_func  - 
+*	       clean_func  - Cleans all the allocated parameters in task if there are any.
+*	       params      - Arguments for the op_func.
 *
-*      Return: uid_t of the added task.
+*      Return: uid_t of the added task. UIDBadUID if fails.
 *		
 *  Complexity: Time: O(n) Space: O(1)
 *		
@@ -96,11 +97,11 @@ int SchedRun(sched_t* sched);
 
 /****************************************************************************
 * 		
-* Description: 
+* Description: Stops the running of SchedRun function.
 *		        
-*   Arguments:
+*   Arguments: sched - A valid pointer to a scheduler to stop.
 *            
-*      Return:
+*      Return: None.
 *		
 *  Complexity: Time: O(1) Space: O(1)
 *		

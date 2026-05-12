@@ -36,7 +36,7 @@ typedef enum
 /************************* STATIC FUNCTIONS DECLARATION *************************/
 /*------------------------------------------------------------------------------*/
 
-static int IsEqual(const void* sched1, const void* sched2);
+static int UidIsEqualWrapper(const void* sched1, const void* sched2);
 static int SchedTaskCmp(const void* sched1_param, const void* sched2_param);
 static status_t UpdateAndPush(sched_t* sched);
 static void WaitForOperationTime(time_t ttr);
@@ -69,6 +69,8 @@ sched_t* SchedCreate(void)
 
 void SchedDestroy(sched_t* sched)
 {
+	assert(NULL != sched);
+	
 	SchedClear(sched);
 	PQDestroy(sched->pq);
 	sched->pq = NULL;
@@ -83,6 +85,8 @@ void SchedDestroy(sched_t* sched)
 
 int SchedIsEmpty(const sched_t* sched)
 {
+	assert(NULL != sched);
+	
 	if (NULL != sched->current_task)
 	{
 		return NOT_EMPTY;
@@ -100,6 +104,8 @@ int SchedIsEmpty(const sched_t* sched)
 
 size_t SchedCount(const sched_t* sched)
 {
+	assert(NULL != sched);
+	
 	return PQSize(sched->pq);
 }
 
@@ -110,6 +116,8 @@ size_t SchedCount(const sched_t* sched)
 
 void SchedClear(sched_t* sched)
 {
+	assert(NULL != sched);
+	
 	while (!PQIsEmpty(sched->pq))
 	{
 		TaskDestroy((task_t*)PQDequeue(sched->pq));
@@ -119,18 +127,24 @@ void SchedClear(sched_t* sched)
 
 int SchedTaskRemove(sched_t* sched, ilrd_uid_t uid)
 {
-	task_t* task = PQErase(sched->pq, IsEqual, &uid);
+	task_t* task = NULL;
+	
+	assert(NULL != sched);
+	
 	if (NULL != sched->current_task &&
 	    UIDIsEqual(uid, TaskGetUid(sched->current_task)))
 	{
 		sched->current_task = NULL;
 		return SUCCESS;
 	}
+	
+	task = PQErase(sched->pq, UidIsEqualWrapper , &uid);
 	if (NULL == task)
 	{
 		return FAILURE;
 	}
 	TaskDestroy(task);
+
 	return SUCCESS;
 }
 
@@ -146,7 +160,12 @@ ilrd_uid_t SchedTaskAdd(sched_t* sched,
                    	int (*clean_func)(void* param),
                    	void* param)
 {
-	task_t* task = TaskCreate(interval, time_to_run, op_func, clean_func, param);
+	task_t* task = NULL;
+	
+	assert(NULL != sched);
+	assert(NULL != op_func);
+	
+	task = TaskCreate(interval, time_to_run, op_func, clean_func, param);
 	if (NULL == task)
 	{
 		return UIDBadUID;
@@ -167,13 +186,14 @@ ilrd_uid_t SchedTaskAdd(sched_t* sched,
 /************************* RUN & STOP *************************/
 /*------------------------------------------------------------*/
 
-
 int SchedRun(sched_t* sched)
 {
 	time_t current_time = 0;
 	task_t* task = NULL;
 	sched->to_run = 1;
 	time(&current_time);
+	
+	assert(NULL != sched);
 	
 	while (sched->to_run && !SchedIsEmpty(sched))
 	{
@@ -205,6 +225,8 @@ int SchedRun(sched_t* sched)
 
 void SchedStop(sched_t* sched)
 {
+	assert(NULL != sched);
+	
 	sched->to_run = 0;
 }
 
@@ -232,7 +254,7 @@ static status_t UpdateAndPush(sched_t* sched)
 	return SUCCESS;
 }
 
-static int IsEqual(const void* data, const void* param_uid)
+static int UidIsEqualWrapper(const void* data, const void* param_uid)
 {
 	task_t* task = (task_t*)data;
 	ilrd_uid_t* uid = (ilrd_uid_t*)param_uid;

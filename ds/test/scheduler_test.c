@@ -178,7 +178,7 @@ void TestRunWithRemove(void)
 	SchedTaskAdd(sched, 5, current_time + 5, func, NULL, CYAN "five sec" RESET_COLOR);
 	uid = SchedTaskAdd(sched, 2, current_time + 2, func_remove, NULL, &rnt);
 	SchedTaskAdd(sched, 6, current_time + 6, func, NULL, "six sec");
-	SchedTaskAdd(sched, 0, current_time + 11, Stop, NULL, sched);
+	SchedTaskAdd(sched, 0, current_time + 13, Stop, NULL, sched);
 	
 	rnt.sched = sched;
 	rnt.uid = uid;
