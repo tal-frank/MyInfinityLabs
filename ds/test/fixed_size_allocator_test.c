@@ -10,7 +10,7 @@
 #define CYAN    "\x1b[36m"
 #define RESET_COLOR   "\x1b[0m"
 
-typedef struct test_stract
+typedef struct test_struct
 {
 	double d;
 	int i;
@@ -49,7 +49,6 @@ void TestInitAlloc(void)
 	pool = (void*)malloc(suggest);
 
 	FSAInit(pool, suggest, 13);
-	
 	tryout1 = FSAAlloc(pool);
 	tryout2 = FSAAlloc(pool);
 	tryout3 = FSAAlloc(pool);
@@ -185,13 +184,14 @@ void TestAmount(void)
 
 	FSAInit(pool, suggest, 13);
 	
-	printf(CYAN "3 FREEs\n" RESET_COLOR);
+	printf(CYAN "AMOUNT\n" RESET_COLOR);
 	amount_free = FSACountFree(pool);
 	if (6 != amount_free)
 	{
 		printf(RED "---FAILED---\n" RESET_COLOR);
 		printf("amount is not right when initialized\n");
 		printf("expected: 6\nactual: %ld\n\n", amount_free);
+		free(pool);
 		return;
 	}
 	printf(GREEN "---PASSED---\n" RESET_COLOR);
@@ -207,6 +207,7 @@ void TestAmount(void)
 		printf(RED "---FAILED---\n" RESET_COLOR);
 		printf("amount is not right after 3 allocs\n");
 		printf("expected: 3\nactual: %ld\n\n", amount_free);
+		free(pool);
 		return;
 	}
 	printf(GREEN "---PASSED---\n" RESET_COLOR);
@@ -222,6 +223,7 @@ void TestAmount(void)
 		printf(RED "---FAILED---\n" RESET_COLOR);
 		printf("amount is not right after 6 allocs\n");
 		printf("expected: 0\nactual: %ld\n\n", amount_free);
+		free(pool);
 		return;
 	}
 	printf(GREEN "---PASSED---\n" RESET_COLOR);
@@ -237,6 +239,7 @@ void TestAmount(void)
 		printf(RED "---FAILED---\n" RESET_COLOR);
 		printf("amount is not right after 3 frees\n");
 		printf("expected: 3\nactual: %ld\n\n", amount_free);
+		free(pool);
 		return;
 	}
 	printf(GREEN "---PASSED---\n" RESET_COLOR);
@@ -252,19 +255,19 @@ void TestAmount(void)
 		printf(RED "---FAILED---\n" RESET_COLOR);
 		printf("amount is not right after free all\n");
 		printf("expected: 6\nactual: %ld\n\n", amount_free);
+		free(pool);
 		return;
 	}
 	printf(GREEN "---PASSED---\n" RESET_COLOR);
 	printf("amount is right after free all\n\n");
 	free(pool);
 }
-/*
+
 void TestInitWithoutSuggest(void)
 {
 	size_t amount_free = 0;
 	void* pool = NULL;
-	size_t suggest = FSASuggestSize(13, 6);
-	pool = (void*)malloc(80);
+	pool = (void*)malloc(70);
 	FSAInit(pool, 72, 13);
 	
 	printf(CYAN "INIT WITHOUT SUGGEST\n" RESET_COLOR);
@@ -280,7 +283,7 @@ void TestInitWithoutSuggest(void)
 	printf("amount is right when initialized\n\n");
 	
 }
-*/
+
 int main()
 {
 	printf("\n");
