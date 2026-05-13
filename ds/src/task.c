@@ -40,6 +40,8 @@ task_t* TaskCreate(size_t interval,
 		return NULL;
 	}
 	
+	assert(NULL != op_func);
+	
 	task->uid = UIDCreate();
 	if (UIDIsEqual(task->uid, UIDBadUID))
 	{
@@ -126,6 +128,8 @@ int TaskIsEqual(const task_t* task1, const task_t* task2)
 
 int TaskRun(task_t* task)
 {
+	assert(NULL != task);
+	
 	return task->op_func(task->params);
 }
 

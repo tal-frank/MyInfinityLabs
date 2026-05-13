@@ -17,6 +17,8 @@
 #include "uid.h"
 
 #define NOT_EMPTY (0)
+#define RUN (1)
+#define DONT_RUN (0)
 
 struct Scheduler
 {
@@ -61,7 +63,7 @@ sched_t* SchedCreate(void)
 		return NULL;
 	}
 	sched->current_task = NULL;
-	sched->to_run = 0;
+	sched->to_run = DONT_RUN;
 	
 	return sched;
 }
@@ -106,6 +108,11 @@ size_t SchedCount(const sched_t* sched)
 {
 	assert(NULL != sched);
 	
+	if (NULL != sched->current_task)
+	{
+		return 1 + PQSize(sched->pq);
+	}
+	
 	return PQSize(sched->pq);
 }
 
@@ -118,7 +125,7 @@ void SchedClear(sched_t* sched)
 {
 	assert(NULL != sched);
 	
-	while (!PQIsEmpty(sched->pq))
+	while (!SchedIsEmpty(sched))
 	{
 		TaskDestroy((task_t*)PQDequeue(sched->pq));
 	}
@@ -190,7 +197,7 @@ int SchedRun(sched_t* sched)
 {
 	time_t current_time = 0;
 	task_t* task = NULL;
-	sched->to_run = 1;
+	sched->to_run = RUN;
 	time(&current_time);
 	
 	assert(NULL != sched);
@@ -214,6 +221,7 @@ int SchedRun(sched_t* sched)
 
 		if (FAILURE == UpdateAndPush(sched))
 		{
+			sched->to_run = DONT_RUN;
 			return FAILURE;
 		}
 
@@ -227,7 +235,7 @@ void SchedStop(sched_t* sched)
 {
 	assert(NULL != sched);
 	
-	sched->to_run = 0;
+	sched->to_run = DONT_RUN;
 }
 
 /*------------------------------------------------------------------------------*/
