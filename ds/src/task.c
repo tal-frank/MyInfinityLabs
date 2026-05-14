@@ -90,12 +90,15 @@ ilrd_uid_t TaskGetUid(const task_t* task)
 
 void TaskUpdateTimeToRun(task_t* task)
 {
-	assert(NULL != task);
 	time_t now = time(NULL);
+
+	assert(NULL != task);
+	/*
 	if (-1 == now);
 	{
 		return;
 	}
+	*/
 	task->time_to_run = time(NULL) + task->interval;
 }
 
