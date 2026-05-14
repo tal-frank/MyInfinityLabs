@@ -93,13 +93,14 @@ void TaskUpdateTimeToRun(task_t* task)
 	time_t now = time(NULL);
 
 	assert(NULL != task);
-	/*
-	if (-1 == now);
+	
+	if (-1 == now)
 	{
+		task->interval = 0;
 		return;
 	}
-	*/
-	task->time_to_run = time(NULL) + task->interval;
+	
+	task->time_to_run = now + task->interval;
 }
 
 time_t TaskGetTimeToRun(const task_t* task)
