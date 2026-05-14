@@ -11,12 +11,12 @@
 #include "fixed_size_allocator.h"
 
 #define WORD_SIZE (sizeof(size_t)) 
-#define FIRST (sizeof(fsa_t) / WORD_SIZE)
+#define FIRST ((sizeof(fsa_t)) / WORD_SIZE)
 #define LAST (0)
 
 struct Fixed_memory_allocator_type
 {
-    size_t offset;
+    size_t offset_to_next_free;
 };
 
 /*------------------------------------------------------------------------------------------------*/
@@ -43,7 +43,7 @@ size_t FSASuggestSize(size_t block_size, size_t num_blocks)
 
 fsa_t* FSAInit(void* mp, size_t pool_size, size_t block_size)
 {
-	fsa_t* fsa = {0};
+	fsa_t* fsa = NULL;
 	size_t* mem_pool = (size_t*)mp;
 	size_t offset = sizeof(fsa_t) / WORD_SIZE;
 	size_t jump = 0;
@@ -51,7 +51,12 @@ fsa_t* FSAInit(void* mp, size_t pool_size, size_t block_size)
 	assert(NULL != mp);
 	
 	fsa = (fsa_t*)mem_pool;
-	fsa->offset = offset;
+	if (WORD_SIZE * offset > pool_size)
+	{
+		fsa->offset_to_next_free = LAST;
+		return fsa;
+	}
+	fsa->offset_to_next_free = offset;
 	
 	AlignBlockSize(&block_size);
 	jump = block_size / WORD_SIZE;
@@ -71,15 +76,15 @@ fsa_t* FSAInit(void* mp, size_t pool_size, size_t block_size)
 
 void* FSAAlloc(fsa_t* mp)
 {
-	size_t next_free = mp->offset;
+	size_t next_free = mp->offset_to_next_free;
 	
 	assert(NULL != mp);
 	
-	if (LAST == mp->offset)
+	if (LAST == mp->offset_to_next_free)
 	{
 		return NULL;
 	}
-	mp->offset = *((size_t*)(mp) + mp->offset);
+	mp->offset_to_next_free = *((size_t*)(mp) + mp->offset_to_next_free);
 	
 	return mp + next_free;
 }
@@ -88,17 +93,19 @@ void* FSAAlloc(fsa_t* mp)
 void FSAFree(fsa_t* mp, void* block)
 {
 	fsa_t* free_block = (fsa_t*)block;
-	size_t old_offset = mp->offset;
+	size_t old_offset = 0;
 	
 	assert(NULL != mp);
+	
+	old_offset = mp->offset_to_next_free;
 	
 	if (NULL == block)
 	{
 		return;
 	}
 	
-	mp->offset = (size_t)(free_block - mp);
-	free_block->offset = old_offset;
+	mp->offset_to_next_free = (size_t)(free_block - mp);
+	free_block->offset_to_next_free = old_offset;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -108,7 +115,7 @@ void FSAFree(fsa_t* mp, void* block)
 size_t FSACountFree(const fsa_t* mp)
 {
 	size_t count = 0;
-	size_t free_block_runner = mp->offset;
+	size_t free_block_runner = mp->offset_to_next_free;
 	
 	assert(NULL != mp);
 	
@@ -127,10 +134,7 @@ size_t FSACountFree(const fsa_t* mp)
 
 static void AlignBlockSize(size_t* block_size)
 {
-	while(0 != *block_size % WORD_SIZE)
-	{
-		++(*block_size);
-	}
+	*block_size = (0 == *block_size % WORD_SIZE) ? *block_size : WORD_SIZE * (1 + *block_size / WORD_SIZE);
 }
 
 

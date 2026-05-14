@@ -28,8 +28,9 @@ size_t FSASuggestSize(size_t block_size, size_t num_blocks);
 *	       best to use the FSASuggestSize function to get optimized
 *	       space for the data.
 *		        
-*   Arguments: mp        - A valid allocated container to handle the data in.
-*	       pool_size - The size of the container in bytes.
+*   Arguments: 	       mp - A valid allocated container to handle the data in.
+*	        pool_size - The size of the container in bytes.
+*	       block_size - The size of Block.
 *		
 *      Return: A pointer to the FSA initialized.
 *		
@@ -42,11 +43,11 @@ fsa_t* FSAInit(void* mp, size_t pool_size, size_t block_size);
 
 /*****************************************************************
 * 		
-* Description: Returns the next available block in the container.
+* Description: Returns a pointer to the the next available block in the container.
 *		        
-*   Arguments: mp - A valid allocated container to get the next free block in.
+*   Arguments: mp - A valid pointer to allocated container to get the next free block in.
 *		
-*      Return: The next available block in the container.
+*      Return: The address of the next available block in the container.
 *		
 *  Complexity: Time: O(1) Space: O(1)
 *		
@@ -59,8 +60,8 @@ void* FSAAlloc(fsa_t* mp);
 * 		
 * Description: Frees a block in the container. can get NULL as an argument.
 *		        
-*   Arguments: mp    - A valid allocated container to free a block in.
-*	       block - A block in the container to free.
+*   Arguments: 	  mp - A valid pointer to allocated container to free a block in.
+*	       block - A pointer to a block in the container to free.
 *		
 *      Return: None.
 *		
@@ -75,11 +76,11 @@ void FSAFree(fsa_t* mp, void* block);
 * 		
 * Description: Returns the number of free blocks in the container.
 *		        
-*   Arguments: mp - A valid allocated container to get number of free block in.
+*   Arguments: mp - A valid pointer to allocated container to get number of free block in.
 *		
 *      Return: The number of free blocks in the container.
 *		
-*  Complexity: Time: O(1) Space: O(1)
+*  Complexity: Time: O(n) Space: O(1)
 *		
 *		
 ******************************************************************************/
