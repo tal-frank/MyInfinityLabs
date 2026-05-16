@@ -9,7 +9,7 @@ void* VSAAlloc(vsa_t* vsa, size_t n_bytes);
 
 void VSAFree(void* block);
 
-size_t LargestChunkFree(vsa_t* vsa);
+size_t VSALargestChunkFree(vsa_t* vsa);
 
 
 #endif /* __VARIABLE_SIZE_ALLOCATOR_H__ */
