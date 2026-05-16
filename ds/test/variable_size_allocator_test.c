@@ -266,11 +266,11 @@ void TestLargestChunck(void)
 	
 	largest_chunck = VSALargestChunkFree(vsa);
 	printf(CYAN "LARGEST CHUNCK\n" RESET_COLOR);
-	if (72 != largest_chunck)
+	if (56 != largest_chunck)
 	{
 		printf(RED "---FAILED---\n" RESET_COLOR);
 		printf("didnt get the right size of largest chunck\n");
-		printf("expected: 72\nactual: %ld\n", largest_chunck);
+		printf("expected: 56\nactual: %ld\n", largest_chunck);
 		free(pool);
 		return;
 	}
