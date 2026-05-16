@@ -3,11 +3,11 @@
 
 typedef struct Variable_size_allocator_t vsa_t;
 
-/****************************************************************************
+/******************************** VSAInit *************************************
 * 		
 * Description: Initialize a VSA and return a pointer to its beginning.
 *		        
-*   Arguments:   pool - A valid previosly allocated container to use the vsa in.
+*   Arguments:   pool - A valid previosly allocated space to use the vsa in.
 *	       p_size - The size of the desired vsa. shouldn't be larger then
 *			pool size.
 *		
@@ -20,11 +20,11 @@ typedef struct Variable_size_allocator_t vsa_t;
 
 vsa_t* VSAInit(void* pool, size_t p_size);
 
-/****************************************************************************
+/******************************* VSAAlloc *************************************
 * 		
-* Description: Allocates a space in the  pool large enough to contain n_bytes bytes.
+* Description: Allocates a space in the pool large enough to contain n_bytes bytes.
 *		        
-*   Arguments:     vsa - A valid pointer to the vsa desired to allocate space in. 
+*   Arguments:     vsa - A valid pointer to the memory pool desired to allocate space in. 
 *	       n_bytes - Number of bytes needed to be allocated.
 *		
 *      Return: A pointer to the allocated space in the vsa.
@@ -36,12 +36,13 @@ vsa_t* VSAInit(void* pool, size_t p_size);
 
 void* VSAAlloc(vsa_t* vsa, size_t n_bytes);
 
-/****************************************************************************
+/******************************* VSAFree ************************************
 * 		
-* Description: Frees a chosen allocated space in the vsa. The space chosen must be allocated
-*	       , alligned and in the exaced place got from the VSAAlloc function.
+* Description: Frees a chosen allocated space in the vsa. The space chosen must be allocated,
+*	       alligned and in the exact place got from the VSAAlloc function.
 *		        
-*   Arguments: segment - A valid pointer to space to free.
+*   Arguments: segment - A valid pointer to a space to free. The space must be allocated,
+*	                 alligned and in the exact place got from the VSAAlloc function.
 *		
 *      Return: None.
 *		
@@ -52,11 +53,11 @@ void* VSAAlloc(vsa_t* vsa, size_t n_bytes);
 
 void VSAFree(void* segment);
 
-/****************************************************************************
+/*************************** VSALargestChunck **********************************
 * 		
 * Description: Finds the largest countinous segment availabe (not allocated) in the vsa.
 *		        
-*   Arguments: vsa - A valid pointer to the vsa desired to find free space in.
+*   Arguments: vsa - A valid pointer to the memory pool desired to find free space in.
 *		
 *      Return: Largest countinous segment availabe (not allocated) in the vsa.
 *		
