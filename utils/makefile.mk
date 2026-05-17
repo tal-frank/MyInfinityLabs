@@ -96,8 +96,8 @@ debug: $(TEST) $(ADDITIONAL_SRC)
 run: debug
 	@$(DEBUG_TARGET)
 
-release: $(TEST) $(SRC) $(ADDITIONAL_SRC)
-	@$(CC) $(GC) $(TEST) $(SRC) $(ADDITIONAL_SRC) -o $(RELEASE_TARGET)
+release: $(TEST) $(ADDITIONAL_SRC)
+	@$(CC) $(GC) $(TEST) $(ADDITIONAL_SRC) -o $(RELEASE_TARGET)
 	@echo "finished release compilation"
 
 run_r: release
