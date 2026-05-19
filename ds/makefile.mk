@@ -11,8 +11,8 @@ C_DIR       = $(HOME)/git/c
 DS_DIR      = $(HOME)/git/ds
 SRC_DIR     = $(DS_DIR)/src
 INC_DIR     = $(DS_DIR)/include
-TEST_DIR    = $(DS_DIR)/test
-BIN_DIR     = $(DS_DIR)/bin
+TEST_DIR    = $(SRC_DIR)/$(PROJECT)/test
+BIN_DIR     = $(SRC_DIR)/$(PROJECT)/bin
 DEBUG_DIR   = $(BIN_DIR)/debug
 RELEASE_DIR = $(BIN_DIR)/release
 ODIR        = $(SRC_DIR)/objects
@@ -37,7 +37,6 @@ VLG_FLAGS = --leak-check=yes --track-origins=yes
 #----------------------------------------------------------------------------#
 ########################### FILE NAMES & LOCATIONS ###########################
 #----------------------------------------------------------------------------#
-
 
 MAIN_SRC        = $(filter %/$(NAME).c, $(ALL_SRC))
 ALL_SRC_DIRS    = $(addprefix $(GIT_DIR)/, $(PROJECT)/ $(subset :, ,$(ADDITIONAL_SRC_DIRS)))
@@ -111,8 +110,14 @@ pic: $(SPECIFIC_SRC)
 run: debug
 	@$(DEBUG_TARGET)
 
+release_so: pic $(ADDITIONAL_LIBSO) $(TEST)
+	@$(CC) $(GC) $(TEST) -Wl,--start-group -L$(DEBUG_DIR) $(patsubst %.so,-l%,$(ADDITIONAL_SO)) -Wl,--end-group -o $(DEBUG_TARGET)
+	@rm -f $(CURDIR)/*.o
+	@echo "finished dynamic debug compilation"
+
 release: $(TEST) $(ADDITIONAL_SRC)
 	@$(CC) $(GC) $(TEST) $(ADDITIONAL_SRC) -o $(RELEASE_TARGET)
+	@rm -f $(CURDIR)/*.o
 	@echo "finished release compilation"
 
 run_r: release
@@ -120,8 +125,11 @@ run_r: release
 
 run_so: debug_so
 	@LD_LIBRARY_PATH=$(DEBUG_DIR) $(DEBUG_TARGET)
-	@echo "dll path"$(LD_LIBRARY_PATH)
 	@$(DEBUG_TARGET)
+	
+run_so_r: release_so
+	@LD_LIBRARY_PATH=$(DEBUG_DIR) $(DEBUG_TARGET)
+	@$(DEBUG_TARGET)	
 
 vlg: debug
 	@valgrind $(VLG_FLAGS) $(DEBUG_TARGET)
