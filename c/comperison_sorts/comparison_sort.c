@@ -1,3 +1,9 @@
+/**********************
+* Comparison Sort
+* Author: Tal Frank
+* Reviewer: Ori Joseph
+* Last update: 21/05/2026
+**********************/
 
 #include <stddef.h>
 #include <stdio.h>
@@ -76,7 +82,6 @@ void InsertionSort(int arr[], size_t size)
 {
 	size_t i = 0;
 	size_t j = 0;
-	size_t next_index_to_sort = 0;
 	for (i = 0; i < size; ++i)
 	{
 		while (j > 0 && (arr[j] < arr[j - 1]))
@@ -84,13 +89,12 @@ void InsertionSort(int arr[], size_t size)
 			SwapInts(&arr[j], &arr[j - 1]);
 			--j;
 		}
-		++next_index_to_sort;
-		j = next_index_to_sort;
+		j = i + 1;
 	}
 }
 
 /*----------------------------------------------------------------*/
-/************************* INSERTION SORT *************************/
+/************************* SELECTION SORT *************************/
 /*----------------------------------------------------------------*/
 
 void SelectionSort(int arr[], size_t size)
