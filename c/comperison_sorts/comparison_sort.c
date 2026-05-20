@@ -5,10 +5,10 @@
 * Last update: 21/05/2026
 **********************/
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <stddef.h> /* size_t */
+#include <stdio.h> /* printf */
+#include <stdlib.h> /* rand */
+#include <time.h> /* clock */
 
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"
