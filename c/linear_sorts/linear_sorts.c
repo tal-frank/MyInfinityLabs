@@ -1,9 +1,14 @@
+/**********************
+* Linear Sort
+* Author: Tal Frank
+* Reviewer: Yael Novick
+* Last update: 24/05/2026
+**********************/
 
 #include <stddef.h> /* size_t */
 #include <stdlib.h> /* malloc, rand */
 #include <stdio.h> /* printf */
 #include <time.h> /* clock */
-#include <string.h> /* memcpy */
 
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"
@@ -144,12 +149,9 @@ void CountingSort(int arr[], size_t size)
 	{
 		++sorted_arr[arr[i] - min_val];
 	}
+
 	AddAdjacent(sorted_arr, sorted_size);
-/*	for (i = 1; i < sorted_size; ++i)
-	{
-		sorted_arr[i] += sorted_arr[i - 1];
-	}
-*/	
+	
 	SetSortedArr(arr, sorted_arr, size, sorted_size, min_val);
 	free(sorted_arr);
 }
@@ -164,29 +166,21 @@ void CountingSortForRS(int arr[], size_t size, int base, int level)
 	int j = 0;
 	int* count_arr = (int*)malloc(sizeof(int) * base);
 	int* sorted_arr = (int*)malloc(sizeof(int) * size);
-	if (NULL == count_arr)
+	if (NULL == count_arr || NULL == sorted_arr)
 	{
+		free(count_arr);
 		free(sorted_arr);
 		return;
 	}	
-	if (NULL == sorted_arr)
-	{
-		free(count_arr);
-		return;
-	}
 
 	SetArrToZero(count_arr, base);
 	for (i = 0; i < size; ++i)
 	{
 		++count_arr[(arr[i] / level) % base];
 	}
+
 	AddAdjacent(count_arr, base);
-/*
-	for (j = 1; j < base; ++j)
-	{
-		count_arr[j] += count_arr[j - 1];
-	}
-*/
+
 	for (j = size - 1; j >= 0; --j)
 	{
 		sorted_arr[count_arr[(arr[j] / level) % base] - 1] = arr[j];
