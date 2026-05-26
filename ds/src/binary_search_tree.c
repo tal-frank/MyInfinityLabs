@@ -93,20 +93,20 @@ void BSTDestroy(bst_t* bst)
 	tree_node_t* node_to_destroy = NULL;
 	tree_node_t* node = BSTBegin(bst);
 	bst_iter_t end = BSTEnd(bst);
-	int is_bigger_child = 0;
+	int child_index = 0;
 	
 	while(!BSTIsIterEqual(NodeToIter(node), end))
 	{
 		while (!IsLeaf(node))
 		{
-			is_bigger_child = (NULL != GetSmallChild(node)) ? SMALL : BIG;
-			node = node->children[is_bigger_child];
+			child_index = (NULL != GetSmallChild(node)) ? SMALL : BIG;
+			node = node->children[child_index];
 		}
 		
 		node_to_destroy = node;
 		node = GetParent(node);
-		is_bigger_child = (NULL != node->children[SMALL]) ? SMALL : BIG;
-		node->children[is_bigger_child] = NULL;
+		child_index = (NULL != node->children[SMALL]) ? SMALL : BIG;
+		node->children[child_index] = NULL;
 		free(node_to_destroy);
 		node_to_destroy = NULL;
 	}
@@ -125,8 +125,8 @@ void BSTDestroy(bst_t* bst)
 bst_iter_t BSTInsert(bst_t* bst, void* data)
 {
 	int is_inserted = FALSE;
-	int is_bigger_child = 0;
-	tree_node_t* curr_tnode = BSTEnd(bst);
+	int child_index = 0;
+	tree_node_t* curr_tnode = IterToNode(BSTEnd(bst));
 	tree_node_t* new_tnode = (tree_node_t*)malloc(sizeof(tree_node_t));
 	
 	assert(NULL != bst);
@@ -148,23 +148,23 @@ bst_iter_t BSTInsert(bst_t* bst, void* data)
 	curr_tnode = GetSmallChild(curr_tnode);
 	while (!is_inserted)
 	{
-		assert(0 != bst->cmp_func(BSTGetData(new_tnode), BSTGetData(curr_tnode)));
+		assert(0 != bst->cmp_func(BSTGetData(NodeToIter(new_tnode)), NodeToIter(BSTGetData(curr_tnode))));
 		
-		is_bigger_child = 
-			(0 < bst->cmp_func(BSTGetData(new_tnode), BSTGetData(curr_tnode))) ? 
+		child_index = 
+			(0 < bst->cmp_func(BSTGetData(NodeToIter(new_tnode)), BSTGetData(NodeToIter(curr_tnode)))) ? 
 				BIG : SMALL;
-		if (NULL != curr_tnode->children[is_bigger_child])
+		if (NULL != curr_tnode->children[child_index])
 		{
-			curr_tnode = curr_tnode->children[is_bigger_child];
+			curr_tnode = curr_tnode->children[child_index];
 			continue;
 		}
-		curr_tnode->children[is_bigger_child] = new_tnode;
+		curr_tnode->children[child_index] = new_tnode;
 		SetParent(new_tnode, curr_tnode);
 		is_inserted = TRUE;
 		
 	}
 	
-	return new_tnode;
+	return NodeToIter(new_tnode);
 }
 
 void BSTRemove(bst_iter_t iter)
@@ -174,8 +174,8 @@ void BSTRemove(bst_iter_t iter)
 	
 	if (NULL != GetBigChild(tnode_to_remove) && NULL != GetSmallChild(tnode_to_remove))
 	{
-		next_tnode = BSTNext(tnode_to_remove);
-		SetData(tnode_to_remove, BSTGetData(next_tnode));
+		next_tnode = IterToNode(BSTNext(tnode_to_remove));
+		SetData(tnode_to_remove, BSTGetData(NodeToIter(next_tnode)));
 		tnode_to_remove = next_tnode;
 	}
 	
@@ -292,13 +292,13 @@ int BSTIsIterEqual(bst_iter_t iter1, bst_iter_t iter2)
 size_t BSTCount(const bst_t* bst)
 {
 	size_t cnt = 0;
-	tree_node_t* tnode = NodeToIter(BSTBegin(bst));
+	tree_node_t* tnode = IterToNode(BSTBegin(bst));
 	
 	assert(NULL != bst);
 	
-	while(NULL != BSTNext(tnode))
+	while(NULL != BSTNext(NodeToIter(tnode)))
 	{
-		tnode = BSTNext(tnode);
+		tnode = IterToNode(BSTNext(NodeToIter(tnode)));
 		++cnt;
 	}
 	
@@ -312,21 +312,21 @@ size_t BSTCount(const bst_t* bst)
 bst_iter_t BSTFind(const bst_t* bst, void* param)
 {
 	tree_node_t* tnode = GetSmallChild(BSTEnd(bst));
-	int node_cmp = bst->cmp_func(BSTGetData(tnode), param);
-	int is_bigger_child = 0;
+	int node_cmp = bst->cmp_func(BSTGetData(NodeToIter(tnode)), param);
+	int child_index = 0;
 	
 	assert(NULL != bst);
 	
 	while (0 != node_cmp && NULL != tnode)
 	{
-		is_bigger_child = (node_cmp > 0) ? SMALL : BIG;
-		if (NULL == tnode->children[is_bigger_child])
+		child_index = (node_cmp > 0) ? SMALL : BIG;
+		if (NULL == tnode->children[child_index])
 		{
 			return BSTEnd(bst);
 		}
-		tnode = tnode->children[is_bigger_child];
+		tnode = tnode->children[child_index];
 		
-		node_cmp = bst->cmp_func(BSTGetData(tnode), param);		
+		node_cmp = bst->cmp_func(BSTGetData(NodeToIter(tnode)), param);		
 	}
 	
 	if (NULL == tnode)
@@ -360,8 +360,8 @@ int BSTForEach(bst_iter_t from,
 static void RemoveLeaf(tree_node_t* tnode)
 {
 	tree_node_t* parent = GetParent(tnode);
-	int is_bigger_child = BSTIsIterEqual(parent->children[SMALL], tnode) ? SMALL : BIG;
-	parent->children[is_bigger_child] = NULL;
+	int child_index = BSTIsIterEqual(NodeToIter(parent->children[SMALL]), NodeToIter(tnode)) ? SMALL : BIG;
+	parent->children[child_index] = NULL;
 	free(tnode);
 	tnode = NULL;
 	return;
@@ -370,11 +370,11 @@ static void RemoveLeaf(tree_node_t* tnode)
 static void RemoveNodeWithOneChild(tree_node_t* tnode)
 {
 	tree_node_t* child = NULL;
-	int is_bigger_child = (NULL != GetSmallChild(tnode)) ? SMALL : BIG;
+	int child_index = (NULL != GetSmallChild(tnode)) ? SMALL : BIG;
 	
-	child = tnode->children[is_bigger_child];
+	child = tnode->children[child_index];
 
-	SetData(tnode, BSTGetData(child));
+	SetData(tnode, BSTGetData(NodeToIter(child)));
 	tnode->children[BIG] = GetBigChild(child);
 	tnode->children[SMALL] = GetSmallChild(child);
 	SetParent(child, GetParent(tnode));
