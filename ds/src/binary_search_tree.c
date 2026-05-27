@@ -147,7 +147,7 @@ bst_iter_t BSTInsert(bst_t* bst, void* data)
 	curr_tnode = GetSmallChild(curr_tnode);
 	while (!is_inserted)
 	{
-		assert(0 != bst->cmp_func(BSTGetData(NodeToIter(new_tnode)), NodeToIter(BSTGetData(curr_tnode))));
+		assert(0 != bst->cmp_func(BSTGetData(NodeToIter(new_tnode)), BSTGetData(NodeToIter(curr_tnode))));
 		
 		child_index = 
 			(0 < bst->cmp_func(BSTGetData(NodeToIter(new_tnode)), BSTGetData(NodeToIter(curr_tnode)))) ? 
@@ -227,7 +227,7 @@ bst_iter_t BSTNext(bst_iter_t iter)
 		{
 			tnode = GetParent(tnode);
 		}
-		return GetParent(tnode);
+		return NodeToIter(GetParent(tnode));
 	}
 	
 	tnode = GetBigChild(tnode);
@@ -249,7 +249,7 @@ bst_iter_t BSTPrev(bst_iter_t iter)
 		{
 			tnode = GetParent(tnode);
 		}
-		return GetParent(tnode);
+		return NodeToIter(GetParent(tnode));
 	}
 	
 	tnode = GetSmallChild(tnode);
@@ -385,7 +385,6 @@ static void RemoveNodeWithOneChild(tree_node_t* tnode)
 		SetParent(tnode->children[SMALL], tnode);
 	}
 	
-			
 	free(child);
 	child = NULL;
 }
