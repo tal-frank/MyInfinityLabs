@@ -91,11 +91,10 @@ bst_t* BSTCreate(int (*cmp_func)(void* data, void* param))
 void BSTDestroy(bst_t* bst)
 {
 	tree_node_t* node_to_destroy = NULL;
-	tree_node_t* node = BSTBegin(bst);
-	bst_iter_t end = BSTEnd(bst);
+	tree_node_t* node = IterToNode(BSTBegin(bst));
 	int child_index = 0;
 	
-	while(!BSTIsIterEqual(NodeToIter(node), end))
+	while(!BSTIsIterEqual(NodeToIter(node), bst->end))
 	{
 		while (!IsLeaf(node))
 		{
@@ -126,7 +125,7 @@ bst_iter_t BSTInsert(bst_t* bst, void* data)
 {
 	int is_inserted = FALSE;
 	int child_index = 0;
-	tree_node_t* curr_tnode = IterToNode(BSTEnd(bst));
+	tree_node_t* curr_tnode = bst->end;
 	tree_node_t* new_tnode = (tree_node_t*)malloc(sizeof(tree_node_t));
 	
 	assert(NULL != bst);
@@ -171,10 +170,10 @@ void BSTRemove(bst_iter_t iter)
 {
 	tree_node_t* tnode_to_remove = IterToNode(iter);
 	tree_node_t* next_tnode = NULL;
-	
+		
 	if (NULL != GetBigChild(tnode_to_remove) && NULL != GetSmallChild(tnode_to_remove))
 	{
-		next_tnode = IterToNode(BSTNext(tnode_to_remove));
+		next_tnode = IterToNode(BSTNext(iter));
 		SetData(tnode_to_remove, BSTGetData(NodeToIter(next_tnode)));
 		tnode_to_remove = next_tnode;
 	}
@@ -277,7 +276,7 @@ int BSTIsEmpty(const bst_t* bst)
 {
 	assert(NULL != bst);
 
-	return NULL == GetSmallChild(BSTEnd(bst));
+	return NULL == GetSmallChild(bst->end);
 }
 
 int BSTIsIterEqual(bst_iter_t iter1, bst_iter_t iter2)
@@ -292,13 +291,13 @@ int BSTIsIterEqual(bst_iter_t iter1, bst_iter_t iter2)
 size_t BSTCount(const bst_t* bst)
 {
 	size_t cnt = 0;
-	tree_node_t* tnode = IterToNode(BSTBegin(bst));
+	bst_iter_t iter = BSTBegin(bst);
 	
 	assert(NULL != bst);
 	
-	while(NULL != BSTNext(NodeToIter(tnode)))
+	while(NULL != BSTNext(iter))
 	{
-		tnode = IterToNode(BSTNext(NodeToIter(tnode)));
+		iter = BSTNext(iter);
 		++cnt;
 	}
 	
@@ -311,7 +310,7 @@ size_t BSTCount(const bst_t* bst)
 
 bst_iter_t BSTFind(const bst_t* bst, void* param)
 {
-	tree_node_t* tnode = GetSmallChild(BSTEnd(bst));
+	tree_node_t* tnode = GetSmallChild(bst->end);
 	int node_cmp = bst->cmp_func(BSTGetData(NodeToIter(tnode)), param);
 	int child_index = 0;
 	
@@ -432,6 +431,9 @@ static int IsLeaf(tree_node_t* tnode)
 {
 	return (NULL == GetSmallChild(tnode)) && (NULL == GetBigChild(tnode));
 }
+
+
+
 
 
 /********************************** SECTION ONLY FOR TESTS **********************************/
