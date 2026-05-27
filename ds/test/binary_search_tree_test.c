@@ -32,7 +32,7 @@ int AddNum(void* num1, void* num2)
 {	
 	*(int*)num1 += *(int*)num2;
 	
-	return 1;
+	return 0;
 }
 
 

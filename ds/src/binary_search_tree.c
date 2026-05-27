@@ -11,7 +11,7 @@
 
 #include "binary_search_tree.h"
 
-#define SUCCESS (1)
+#define SUCCESS (0)
 #define TRUE (1)
 #define FALSE (0)
 
@@ -94,7 +94,7 @@ void BSTDestroy(bst_t* bst)
 	tree_node_t* node = IterToNode(BSTBegin(bst));
 	int child_index = 0;
 	
-	while(!BSTIsIterEqual(NodeToIter(node), bst->end))
+	while(!BSTIsIterEqual(NodeToIter(node), NodeToIter(bst->end)))
 	{
 		while (!IsLeaf(node))
 		{
@@ -110,8 +110,8 @@ void BSTDestroy(bst_t* bst)
 		node_to_destroy = NULL;
 	}
 	
-	free(node);
-	node = NULL;
+	free(bst->end);
+	bst->end = NULL;
 	free(bst);
 	bst = NULL;
 }
@@ -376,8 +376,16 @@ static void RemoveNodeWithOneChild(tree_node_t* tnode)
 	SetData(tnode, BSTGetData(NodeToIter(child)));
 	tnode->children[BIG] = GetBigChild(child);
 	tnode->children[SMALL] = GetSmallChild(child);
-	SetParent(child, GetParent(tnode));
-		
+	if (NULL != tnode->children[BIG])
+	{
+		SetParent(tnode->children[BIG], tnode);
+	}
+	if (NULL != tnode->children[SMALL])
+	{
+		SetParent(tnode->children[SMALL], tnode);
+	}
+	
+			
 	free(child);
 	child = NULL;
 }
