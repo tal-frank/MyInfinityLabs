@@ -57,6 +57,7 @@ static void SetData(tree_node_t* tnode, void* data);
 static int IsLeaf(tree_node_t* tnode);
 static void RemoveNodeWithOneChild(tree_node_t* tnode);
 static void RemoveLeaf(tree_node_t* tnode);
+static tree_node_t* CreateNewNode(void* data);
 
 /*------------------------------------------------------------------------------------*/
 /********************************** CREATE & DESTROY **********************************/
@@ -72,7 +73,7 @@ bst_t* BSTCreate(int (*cmp_func)(void* data, void* param))
 	
 	assert (NULL != cmp_func);
 	
-	bst->end = (tree_node_t*)malloc(sizeof(tree_node_t));
+	bst->end = CreateNewNode(NULL);
 	if (NULL == bst->end)
 	{
 		free(bst);
@@ -80,10 +81,7 @@ bst_t* BSTCreate(int (*cmp_func)(void* data, void* param))
 		return NULL;
 	}
 	bst->cmp_func = cmp_func;
-	bst->end->data = NULL;
 	bst->end->parent = NULL;
-	bst->end->children[0] = NULL;
-	bst->end->children[1] = NULL;
 	
 	return bst;
 }
@@ -91,6 +89,7 @@ bst_t* BSTCreate(int (*cmp_func)(void* data, void* param))
 void BSTDestroy(bst_t* bst)
 {
 	tree_node_t* node_to_destroy = NULL;
+	tree_node_t* parent = NULL;
 	tree_node_t* node = IterToNode(BSTBegin(bst));
 	int child_index = 0;
 	
@@ -103,11 +102,14 @@ void BSTDestroy(bst_t* bst)
 		}
 		
 		node_to_destroy = node;
-		node = GetParent(node);
-		child_index = (NULL != node->children[SMALL]) ? SMALL : BIG;
-		node->children[child_index] = NULL;
+		parent = GetParent(node);
+		node = parent;
+		
+		child_index = (NULL != parent->children[SMALL]) ? SMALL : BIG;
+		parent->children[child_index] = NULL;
+		
 		free(node_to_destroy);
-		node_to_destroy = NULL;
+		node_to_destroy = NULL;		
 	}
 	
 	free(bst->end);
@@ -126,23 +128,20 @@ bst_iter_t BSTInsert(bst_t* bst, void* data)
 	int is_inserted = FALSE;
 	int child_index = 0;
 	tree_node_t* curr_tnode = bst->end;
-	tree_node_t* new_tnode = (tree_node_t*)malloc(sizeof(tree_node_t));
-	
-	assert(NULL != bst);
-	
+	tree_node_t* new_tnode = CreateNewNode(data);	
 	if (NULL == new_tnode)
 	{
 		return BSTEnd(bst);
 	}
-	new_tnode->data = data;
-	SetBigChild(new_tnode, NULL);
-	SetSmallChild(new_tnode, NULL);
+
+	assert(NULL != bst);
 		
 	if (BSTIsEmpty(bst))
 	{
 		SetSmallChild(curr_tnode, new_tnode);
 		SetParent(new_tnode, curr_tnode);
 		is_inserted = TRUE;
+		return NodeToIter(new_tnode);
 	}
 	curr_tnode = GetSmallChild(curr_tnode);
 	while (!is_inserted)
@@ -355,6 +354,21 @@ int BSTForEach(bst_iter_t from,
 /*------------------------------------------------------------------------------------*/
 /********************************** STATIC FUNCTIONS **********************************/
 /*------------------------------------------------------------------------------------*/
+
+static tree_node_t* CreateNewNode(void* data)
+{
+	tree_node_t* new_tnode = (tree_node_t*)malloc(sizeof(tree_node_t));	
+	if (NULL == new_tnode)
+	{
+		return NULL;
+	}
+
+	new_tnode->data = data;
+	SetBigChild(new_tnode, NULL);
+	SetSmallChild(new_tnode, NULL);
+	
+	return new_tnode;
+}
 
 static void RemoveLeaf(tree_node_t* tnode)
 {
