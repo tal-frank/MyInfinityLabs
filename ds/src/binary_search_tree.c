@@ -128,13 +128,16 @@ bst_iter_t BSTInsert(bst_t* bst, void* data)
 	int is_inserted = FALSE;
 	int child_index = 0;
 	tree_node_t* curr_tnode = bst->end;
-	tree_node_t* new_tnode = CreateNewNode(data);	
+	tree_node_t* new_tnode = NULL;
+
+	assert(NULL != bst);
+	
+	new_tnode = CreateNewNode(data);	
 	if (NULL == new_tnode)
 	{
 		return BSTEnd(bst);
 	}
 
-	assert(NULL != bst);
 		
 	if (BSTIsEmpty(bst))
 	{
