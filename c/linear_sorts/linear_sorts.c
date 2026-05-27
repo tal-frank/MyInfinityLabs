@@ -15,12 +15,98 @@
 #define CYAN    "\x1b[36m"
 #define RESET_COLOR   "\x1b[0m"
 
+static void SetRandoms(int dest[], int min, int max, size_t count);
+static void CopyArr(int arr[], int sorted_arr[], size_t size);
+static void PrintArr(int arr[], size_t size);
+static int FindMaxVal(int arr[], size_t size);
+static int FindMinVal(int arr[], size_t size);
+static void SetArrToZero(int* arr, size_t size);
+static void SetSortedArr(int dest_arr[], int sorted_arr[], size_t size, size_t sorted_size, int min_val);
+static void AddAdjacent(int count_arr[], size_t size);
+
+/*---------------------------------------------------------------*/
+/************************* COUNTING SORT *************************/
+/*---------------------------------------------------------------*/
+
+void CountingSort(int arr[], size_t size)
+{
+	size_t i = 0;
+	int max_val = FindMaxVal(arr, size);
+	int min_val = FindMinVal(arr, size);
+	size_t sorted_size = max_val - min_val + 1;
+	int* sorted_arr = (int*)malloc(sizeof(int) * sorted_size);
+	if (NULL == sorted_arr)
+	{
+		return;
+	}
+	
+	SetArrToZero(sorted_arr, sorted_size);
+	
+	for (i = 0; i < size; ++i)
+	{
+		++sorted_arr[arr[i] - min_val];
+	}
+
+	AddAdjacent(sorted_arr, sorted_size);
+	
+	SetSortedArr(arr, sorted_arr, size, sorted_size, min_val);
+	free(sorted_arr);
+}
+
+/*------------------------------------------------------------*/
+/************************* RADIX SORT *************************/
+/*------------------------------------------------------------*/
+
+void CountingSortForRS(int arr[], size_t size, int base, int level)
+{
+	size_t i = 0;
+	int j = 0;
+	int* count_arr = (int*)malloc(sizeof(int) * base);
+	int* sorted_arr = (int*)malloc(sizeof(int) * size);
+	if (NULL == count_arr || NULL == sorted_arr)
+	{
+		free(count_arr);
+		free(sorted_arr);
+		return;
+	}	
+
+	SetArrToZero(count_arr, base);
+	
+	for (i = 0; i < size; ++i)
+	{
+		++count_arr[(arr[i] / level) % base];
+	}
+
+	AddAdjacent(count_arr, base);
+
+	for (j = size - 1; j >= 0; --j)
+	{
+		sorted_arr[count_arr[(arr[j] / level) % base] - 1] = arr[j];
+		--count_arr[(arr[j] / level) % base];
+	}
+		
+	CopyArr(arr, sorted_arr, size);
+
+	free(count_arr);
+	free(sorted_arr);
+}
+
+void RadixSort(int arr[], size_t size, size_t base)
+{
+	size_t i = 0;
+	int max_val = FindMaxVal(arr, size);
+
+	for (i = 1; (max_val / i) > 0; i *= base)
+	{
+		CountingSortForRS(arr, size, base, i);
+	}
+}
 
 /*----------------------------------------------------------------*/
 /************************* HELP FUNCTIONS *************************/
 /*----------------------------------------------------------------*/
 
-void SetRandoms(int dest[], int min, int max, size_t count) 
+static void SetRandoms(int dest[], int min, int max, size_t count) 
 {
 	size_t i = 0;	
 	for (i = 0; i < count; ++i) 
@@ -29,7 +115,7 @@ void SetRandoms(int dest[], int min, int max, size_t count)
 	}
 }
 
-void CopyArr(int arr[], int sorted_arr[], size_t size)
+static void CopyArr(int arr[], int sorted_arr[], size_t size)
 {
 	size_t i = 0;
 	for (i = 0; i < size; ++i)
@@ -38,7 +124,7 @@ void CopyArr(int arr[], int sorted_arr[], size_t size)
 	}
 }
 
-void PrintArr(int arr[], size_t size)
+static void PrintArr(int arr[], size_t size)
 {
 	size_t i = 0;
 	for (i = 0; i < size; ++i)
@@ -48,7 +134,7 @@ void PrintArr(int arr[], size_t size)
 	printf("\n");
 }
 
-int FindMaxVal(int arr[], size_t size)
+static int FindMaxVal(int arr[], size_t size)
 {
 	size_t i = 0;
 	int max = arr[0];
@@ -64,7 +150,7 @@ int FindMaxVal(int arr[], size_t size)
 	return max;
 }
 
-int FindMinVal(int arr[], size_t size)
+static int FindMinVal(int arr[], size_t size)
 {
 	size_t i = 0;
 	int min = arr[0];
@@ -80,22 +166,11 @@ int FindMinVal(int arr[], size_t size)
 	return min;
 }
 
-size_t FindMaxMagnitude(int max_val, int base)
-{
-	int magnitude = 0;
-	while (0 < max_val)
-	{
-		max_val /= base;
-		++magnitude;
-	}
-	return magnitude;
-}
-
 /*-----------------------------------------------------------------------*/
 /************************* COUNTING SORT HELPERS *************************/
 /*-----------------------------------------------------------------------*/
 
-void SetArrToZero(int* arr, size_t size)
+static void SetArrToZero(int* arr, size_t size)
 {
 	size_t i = 0;
 	for (i = 0; i < size; ++i)
@@ -107,7 +182,7 @@ void SetArrToZero(int* arr, size_t size)
 
 
 
-void SetSortedArr(int dest_arr[], int sorted_arr[], size_t size, size_t sorted_size, int min_val)
+static void SetSortedArr(int dest_arr[], int sorted_arr[], size_t size, size_t sorted_size, int min_val)
 {
 	int cnt = 0;
 	size_t i = 0;
@@ -123,7 +198,7 @@ void SetSortedArr(int dest_arr[], int sorted_arr[], size_t size, size_t sorted_s
 	}	
 }
 
-void AddAdjacent(int count_arr[], size_t size)
+static void AddAdjacent(int count_arr[], size_t size)
 {
 	size_t i = 0;
 	for (i = 1; i < size; ++i)
@@ -135,7 +210,7 @@ void AddAdjacent(int count_arr[], size_t size)
 /*---------------------------------------------------------------*/
 /************************* COUNTING SORT *************************/
 /*---------------------------------------------------------------*/
-
+/*
 void CountingSort(int arr[], size_t size)
 {
 	size_t i = 0;
@@ -155,11 +230,11 @@ void CountingSort(int arr[], size_t size)
 	SetSortedArr(arr, sorted_arr, size, sorted_size, min_val);
 	free(sorted_arr);
 }
-
+*/
 /*------------------------------------------------------------*/
 /************************* RADIX SORT *************************/
 /*------------------------------------------------------------*/
-
+/*
 void CountingSortForRS(int arr[], size_t size, int base, int level)
 {
 	size_t i = 0;
@@ -203,7 +278,7 @@ void RadixSort(int arr[], size_t size, size_t base)
 		CountingSortForRS(arr, size, base, i);
 	}
 }
-
+*/
 /*---------------------------------------------------------------*/
 /************************* TEST FUNCTION *************************/
 /*---------------------------------------------------------------*/
