@@ -78,7 +78,6 @@ static void SpaceParser(char** input);
 static void InitializeSpaceLut(void);
 static void NoSpaceFound(char** input);
 
-
 /*--------------------------------------------------------------------------*/
 /***************************** STATIC VARIABLES *****************************/
 /*--------------------------------------------------------------------------*/
@@ -236,7 +235,6 @@ static void InitializeParserLut(void)
 	parser_lut[WAIT_FOR_OP][' '] = SpaceParser;
 	
 }
-
 
 static void DoNotInitialize(void)
 {
@@ -567,5 +565,4 @@ status_t Calculate(const char* expression, double* result)
 
 	return status;
 }
-
 

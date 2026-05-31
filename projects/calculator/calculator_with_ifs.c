@@ -149,7 +149,6 @@ static double CalcPow(double first_operand, double second_operand)
 	return pow(first_operand , second_operand);
 }
 
-
 double Calculate(const char* expression)
 {
 	state_t state = WAIT_FOR_NUM;
@@ -262,5 +261,4 @@ double Calculate(const char* expression)
 	}
 	return result;
 }
-
 

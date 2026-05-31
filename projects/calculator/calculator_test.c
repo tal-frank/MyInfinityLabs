@@ -231,12 +231,27 @@ int main()
 	       status == 2 ? RED "MATH ERROR\n" RESET_COLOR   : 
 	       RED "MEMORY ERROR" RESET_COLOR);	
 	
-	status = Calculate("5+6 = 11\n", &result);
-	printf("result : 5+6 = 11  = %f\n", result);
+	status = Calculate("5+6,\n", &result);
+	printf("result : 5+6, = 11  = %f\n", result);
 	printf(status == 0 ? GREEN "SUCCESS\n" RESET_COLOR    :
 	       status == 1 ? RED "SYNTAX ERROR\n" RESET_COLOR :
 	       status == 2 ? RED "MATH ERROR\n" RESET_COLOR   : 
 	       RED "MEMORY ERROR" RESET_COLOR);
+	       
+	status = Calculate("5+6 \n=\n", &result);
+	printf("result : 5+6 (enter)= %f\n", result);
+	printf(status == 0 ? GREEN "SUCCESS\n" RESET_COLOR    :
+	       status == 1 ? RED "SYNTAX ERROR\n" RESET_COLOR :
+	       status == 2 ? RED "MATH ERROR\n" RESET_COLOR   : 
+	       RED "MEMORY ERROR" RESET_COLOR);
+	
+	status = Calculate("5+6=    =\n", &result);
+	printf("result : 5+6=    = = %f\n", result);
+	printf(status == 0 ? GREEN "SUCCESS\n" RESET_COLOR    :
+	       status == 1 ? RED "SYNTAX ERROR\n" RESET_COLOR :
+	       status == 2 ? RED "MATH ERROR\n" RESET_COLOR   : 
+	       RED "MEMORY ERROR" RESET_COLOR);
+	
 	
 	return 0;
 }
