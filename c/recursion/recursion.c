@@ -43,7 +43,7 @@ void StackBubbleSort(stack_t* stack, int* is_fliped)
 
 void SortStack(stack_t* stack)
 {
-	static int is_fliped = 1;
+	int is_fliped = 1;
 	if (0 == is_fliped)
 	{
 		return;
@@ -51,7 +51,10 @@ void SortStack(stack_t* stack)
 	
 	is_fliped = 0;
 	StackBubbleSort(stack, &is_fliped);
-	SortStack(stack);
+	if (is_fliped)
+	{
+		SortStack(stack);
+	}
 }
 
 /*---------------------------------------------------------------*/
