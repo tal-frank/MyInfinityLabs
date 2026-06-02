@@ -111,7 +111,7 @@ static stack_t* parenthesis_stack = NULL;
 static char ascii_lut[ASCII_SIZE] = {0};
 static char priority_lut[ASCII_SIZE] = {0};
 static char space_lut[ASCII_SIZE] = {0};
-static int priority_behavior_lut[NUM_OF_PRIORITIES][NUM_OF_PRIORITIES] = 
+static const int priority_behavior_lut[NUM_OF_PRIORITIES][NUM_OF_PRIORITIES] = 
 							 {{TRUE, FALSE, FALSE, FALSE, FALSE},
 							  {TRUE, TRUE,  FALSE, FALSE, FALSE},
 							  {TRUE, TRUE,  TRUE,  FALSE, FALSE},
@@ -121,44 +121,40 @@ static int priority_behavior_lut[NUM_OF_PRIORITIES][NUM_OF_PRIORITIES] =
 static void (*handlers_lut[NUM_OF_STATES][ASCII_SIZE])(char** input) = {0};
 static void (*parser_lut[NUM_OF_STATES][ASCII_SIZE])(char** input) = {0};
 
-static void (*calculate_all_lut[])(char** input) = {KeepCalculate, FinishCalculate};
-static void (*get_prev_priority_lut[BINARY_OPTION])
+static void (*const calculate_all_lut[])(char** input) = {KeepCalculate, FinishCalculate};
+static void (*const get_prev_priority_lut[BINARY_OPTION])
 	    (char* prev_operator, priority_t* prev_op_priority) =
 							{GetPrevPriority, DoNotGetPriority};
 
-static void (*CheckSpaceAfterUnary[BINARY_OPTION])(char** input) = {NoSpaceFound, ErrorParser,};
-static void (*check_for_priority_operators_lut[BINARY_OPTION])(char** input) = 
+static void (*const CheckSpaceAfterUnary[BINARY_OPTION])(char** input) = {NoSpaceFound, ErrorParser,};
+static void (*const check_for_priority_operators_lut[BINARY_OPTION])(char** input) = 
 								{PushNewOperator,
 								 CalcHandler};
 
-static void (*pop_parenthesis_lut[BINARY_OPTION])(char** input) = {PopParenthesisStack,
+static void (*const pop_parenthesis_lut[BINARY_OPTION])(char** input) = {PopParenthesisStack,
 								   ErrorParser};
-static void (*is_balanced_parenthesis_lut[NUM_OF_STATES][BINARY_OPTION])(char**) = 
+static void (*const is_balanced_parenthesis_lut[NUM_OF_STATES][BINARY_OPTION])(char**) = 
 						   {{ErrorParser, ErrorParser},
 						    {ErrorParser, IsBalancedParenthesis},
 						    {ErrorParser, IsBalancedParenthesis},
 						    {ErrorParser, IsBalancedParenthesis}};
 
-static void (*initialized_parser_lut[BINARY_OPTION])(void) = {InitializeParserLut, 
+static void (* const initialized_parser_lut[BINARY_OPTION])(void) = {InitializeParserLut, 
 							      DoNotInitialize};
-static void (*initialized_handlers_lut[BINARY_OPTION])(void) = {InitializeHandlersLut,
+static void (*const initialized_handlers_lut[BINARY_OPTION])(void) = {InitializeHandlersLut,
 								DoNotInitialize};
-static void (*initialize_ascii_lut[BINARY_OPTION])(void) = {InitializeASCIILut, 
+static void (*const initialize_ascii_lut[BINARY_OPTION])(void) = {InitializeASCIILut, 
 							    DoNotInitialize};
-static void (*initialize_priority_lut[BINARY_OPTION])(void) = {InitializePriorityLut,
+static void (*const initialize_priority_lut[BINARY_OPTION])(void) = {InitializePriorityLut,
 							       DoNotInitialize};
-static void (*initialize_Space_lut[BINARY_OPTION])(void) = {InitializeSpaceLut, 
+static void (*const initialize_Space_lut[BINARY_OPTION])(void) = {InitializeSpaceLut, 
 							    DoNotInitialize};
 
-static void (*parenthsis_while_loop_lut[NUM_OF_OPERATORS])(char** input) = 
+static void (*const parenthsis_while_loop_lut[BINARY_OPTION])(char** input) = 
 						    {CalcParenthesisWithoutPromote,
-						     CalcParenthesisWithoutPromote,
-						     CalcParenthesisWithoutPromote,
-						     CalcParenthesisWithoutPromote,
-						     CalcParenthesisWithoutPromote,
 						     ParenthesisPromotion};
 						   
-static double (*CalcOperation[NUM_OF_CALCULATION_OPTIONS])
+static double (*const CalcOperation[NUM_OF_CALCULATION_OPTIONS])
 	      (double first_operand, double second_operand) = {CalcMinus, 
 							       CalcPlus, 
 							       CalcMul, 
@@ -524,7 +520,8 @@ static void OpenParenthesisHandler(char** input)
 static void CloseParenthesisHandler(char** input)
 {
 	char prev_op = *(char*)StackPeek(op_stack);
-	parenthsis_while_loop_lut[(int)ascii_lut[(int)prev_op]](input);
+	char op_check = !(prev_op ^ '(');
+	parenthsis_while_loop_lut[(int)op_check](input);
 }
 
 static void SpaceHandler(char** input)
@@ -564,19 +561,35 @@ status_t Calculate(const char* expression, double* result)
 	op_stack = StackCreate(capacity, sizeof(char));
 	parenthesis_stack = StackCreate(capacity, sizeof(char));
 	
-	if (NULL == num_stack || NULL == op_stack || NULL == parenthesis_stack)
+	if (NULL == num_stack)
+	{
+		state = ERROR;
+		status = MEMORY_ERROR;
+		
+		StackDestroy(num_stack);
+		num_stack = NULL;
+		
+		return 0;
+	}
+	
+	if (NULL == op_stack)
+	{
+		state = ERROR;
+		status = MEMORY_ERROR;
+
+		StackDestroy(op_stack);
+		op_stack = NULL;
+		
+		return 0;
+	}
+	
+	if (NULL == parenthesis_stack)
 	{
 		state = ERROR;
 		status = MEMORY_ERROR;
 		
 		StackDestroy(parenthesis_stack);
 		parenthesis_stack = NULL;
-		
-		StackDestroy(num_stack);
-		num_stack = NULL;
-		
-		StackDestroy(op_stack);
-		op_stack = NULL;
 		
 		return 0;
 	}
