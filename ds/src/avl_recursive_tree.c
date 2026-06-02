@@ -1,8 +1,8 @@
 /**********************
 * AVL recursive
 * Author: Tal Frank
-* Reviewer: Or Zelner
-* Last update: 11/06/2026
+* Reviewer: Or Zellner
+* Last update: 13/06/2026
 **********************/
 
 #include <stdlib.h> /* malloc , free */
@@ -10,6 +10,7 @@
 #include <assert.h> /* assert */
 
 #include "avl_recursive_tree.h"
+
 #define TRUE (1)
 #define FALSE (0)
 
@@ -41,6 +42,8 @@ struct Avl_node
 	avl_node_t* children[NUM_OF_CHILDREN];
 };
 
+
+
 /*-----------------------------------------------------------------------------------------*/
 /****************************** STATIC FUNCTIONS DECLARATIONS ******************************/
 /*-----------------------------------------------------------------------------------------*/
@@ -56,19 +59,30 @@ static void Remove(avl_node_t** node);
 static void FindRemove(avl_t* avl, avl_node_t* node, avl_node_t* parent, const void* data);
 static avl_node_t* FindSuccessor(avl_node_t* node, avl_node_t* parent);
 static int IsLeaf(avl_node_t* node);
+/*
 static avl_node_t* RotateLeft(avl_node_t** node);
 static avl_node_t* RotateRight(avl_node_t** node);
+*/
+static avl_node_t* Rotate(avl_node_t** node, int side);
 static avl_node_t* Balance(avl_node_t** node);
 static int BalanceFactor(avl_node_t* node);
-static int ActForEachAllNodesPostOrder(int (*act_func)(void* data, void* param), 
+static int ActForEachNodePostOrder(int (*act_func)(void* data, void* param), 
 				        avl_node_t* root, 
 				        void* param);
-static int ActForEachAllNodesPreOrder(int (*act_func)(void* data, void* param), 
+static int ActForEachNodePreOrder(int (*act_func)(void* data, void* param), 
 				       avl_node_t* root, 
 				       void* param);
-static int ActForEachAllNodesInOrder(int (*act_func)(void* data, void* param), 
+static int ActForEachNodeInOrder(int (*act_func)(void* data, void* param), 
 				      avl_node_t* root, 
 				      void* param);
+				      
+/*---------------------------------------------------------------------*/
+/****************************** ORDER_LUT ******************************/
+/*---------------------------------------------------------------------*/
+
+static int (*order_lut[])(int (*act_func)(void* data, void* param), 
+				       avl_node_t* root, 
+				       void* param) = {ActForEachNodePreOrder, ActForEachNodeInOrder, ActForEachNodePostOrder};
 
 /*----------------------------------------------------------------------------*/
 /****************************** CREATE & DESTROY ******************************/
@@ -76,7 +90,12 @@ static int ActForEachAllNodesInOrder(int (*act_func)(void* data, void* param),
 
 avl_t* AVLCreate(int (*cmp_func)(const void* data, const void* tree_data))
 {
-	avl_t* avl = (avl_t*)malloc(sizeof(avl_t));
+	avl_t* avl = NULL;
+	
+	assert(NULL != cmp_func);
+	
+	avl = (avl_t*)malloc(sizeof(avl_t));
+	
 	if (NULL == avl)
 	{
 		return NULL;
@@ -90,8 +109,12 @@ avl_t* AVLCreate(int (*cmp_func)(const void* data, const void* tree_data))
 
 void AVLDestroy(avl_t* avl)
 {
+	assert(NULL != avl);
+	
 	DestroyAllNodes(avl->root);
+	avl->root = NULL;
 	free(avl);
+	avl = NULL;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -101,8 +124,11 @@ void AVLDestroy(avl_t* avl)
 int AVLInsert(avl_t* avl, void* data)
 {
 	int status = SUCCESS;
+	avl_node_t* new_node = NULL;
 	
-	avl_node_t* new_node = CreateNode(data);
+	assert(NULL != avl);
+	
+	new_node = CreateNode(data);
 	if (NULL == new_node)
 	{
 		return FAILURE;
@@ -119,7 +145,6 @@ int AVLInsert(avl_t* avl, void* data)
 	
 	return status;
 }
-
 
 void AVLRemove(avl_t* avl, const void* data)
 {
@@ -160,6 +185,8 @@ void AVLRemove(avl_t* avl, const void* data)
 
 size_t AVLHeight(const avl_t* avl)
 {
+	assert(NULL != avl);
+
 	if (AVLIsEmpty(avl))
 	{
 		return 0;
@@ -169,11 +196,15 @@ size_t AVLHeight(const avl_t* avl)
 
 size_t AVLCount(const avl_t* avl)
 {
+	assert(NULL != avl);
+	
 	return CountAllNodes(avl->root);
 }
 
 int AVLIsEmpty(const avl_t* avl)
 {
+	assert(NULL != avl);
+
 	return NULL == avl->root;
 }
 
@@ -183,6 +214,8 @@ int AVLIsEmpty(const avl_t* avl)
 
 void* AVLFind(const avl_t* avl, const void* data)
 {
+	assert(NULL != avl);	
+	
 	if (NULL == avl->root)
 	{
 		return NULL;
@@ -195,18 +228,10 @@ int AVLForEach(avl_t* avl,
                void* param,
                traversal_t traversal_type)
 {
-	if (PREORDER == traversal_type)
-	{
-		return ActForEachAllNodesPreOrder(act_func, avl->root, param);
-	}
-	else if (INORDER == traversal_type)
-	{
-		return ActForEachAllNodesInOrder(act_func, avl->root, param);
-	}
-	else
-	{
-		return ActForEachAllNodesPostOrder(act_func, avl->root, param);
-	}
+	assert(NULL != avl);
+	assert(NULL != act_func);
+
+	return order_lut[traversal_type](act_func, avl->root, param);
 }
 
 /*---------------------------------------------------------------------------------------*/
@@ -298,7 +323,7 @@ static void UpdateHeight(avl_node_t* root)
 		       GetNodeHeight(root->children[LEFT]) + 1 : GetNodeHeight(root->children[RIGHT]) + 1;
 }
 
-static int ActForEachAllNodesPostOrder(int (*act_func)(void* data, void* param), 
+static int ActForEachNodePostOrder(int (*act_func)(void* data, void* param), 
 					avl_node_t* root, 
 					void* param)
 {
@@ -307,14 +332,14 @@ static int ActForEachAllNodesPostOrder(int (*act_func)(void* data, void* param),
 	{
 		return SUCCESS;
 	}
-	ActForEachAllNodesPostOrder(act_func, root->children[LEFT], param);
-	ActForEachAllNodesPostOrder(act_func, root->children[RIGHT], param);
+	ActForEachNodePostOrder(act_func, root->children[LEFT], param);
+	ActForEachNodePostOrder(act_func, root->children[RIGHT], param);
 	status = act_func(root->data, param);
 	
 	return status;
 }
 
-static int ActForEachAllNodesPreOrder(int (*act_func)(void* data, void* param), 
+static int ActForEachNodePreOrder(int (*act_func)(void* data, void* param), 
 				       avl_node_t* root, 
 				       void* param)
 {
@@ -324,13 +349,13 @@ static int ActForEachAllNodesPreOrder(int (*act_func)(void* data, void* param),
 		return SUCCESS;
 	}
 	status = act_func(root->data, param);
-	ActForEachAllNodesPreOrder(act_func, root->children[LEFT], param);
-	ActForEachAllNodesPreOrder(act_func, root->children[RIGHT], param);
+	ActForEachNodePreOrder(act_func, root->children[LEFT], param);
+	ActForEachNodePreOrder(act_func, root->children[RIGHT], param);
 	
 	return status;
 }
 
-static int ActForEachAllNodesInOrder(int (*act_func)(void* data, void* param), 
+static int ActForEachNodeInOrder(int (*act_func)(void* data, void* param), 
 				      avl_node_t* root, 
 				      void* param)
 {
@@ -339,9 +364,9 @@ static int ActForEachAllNodesInOrder(int (*act_func)(void* data, void* param),
 	{
 		return SUCCESS;
 	}
-	ActForEachAllNodesInOrder(act_func, root->children[LEFT], param);
+	ActForEachNodeInOrder(act_func, root->children[LEFT], param);
 	status = act_func(root->data, param);
-	ActForEachAllNodesInOrder(act_func, root->children[RIGHT], param);
+	ActForEachNodeInOrder(act_func, root->children[RIGHT], param);
 	
 	return status;
 }
@@ -400,7 +425,6 @@ static void FindRemove(avl_t* avl, avl_node_t* node, avl_node_t* parent, const v
 
 static void Remove(avl_node_t** node)
 {
-	int side = 0;
 	avl_node_t* successor = NULL;
 	
 	if (IsLeaf(*node))
@@ -465,27 +489,25 @@ static int BalanceFactor(avl_node_t* node)
 static avl_node_t* Balance(avl_node_t** node)
 {
 	int balance_factor = BalanceFactor(*node);
-	
 	if (NULL == node || NULL == *node)
 	{
 		return NULL;
 	}
-	
 	if (1 < balance_factor)
 	{
 		if (0 > BalanceFactor((*node)->children[LEFT]))
 		{
-			(*node)->children[LEFT] = RotateLeft(&((*node)->children[LEFT]));
+			(*node)->children[LEFT] = Rotate(&((*node)->children[LEFT]), LEFT);
 		}
-		*node = RotateRight(node);
+		*node = Rotate(node, RIGHT);
 	}
 	else if (-1 > balance_factor)
 	{
 		if (0 < BalanceFactor((*node)->children[RIGHT]))
 		{
-			(*node)->children[RIGHT] = RotateRight(&((*node)->children[RIGHT]));
+			(*node)->children[RIGHT] = Rotate(&((*node)->children[RIGHT]), RIGHT);
 		}
-		*node = RotateLeft(node);
+		*node = Rotate(node, LEFT);
 	}
 	else
 	{
@@ -495,32 +517,17 @@ static avl_node_t* Balance(avl_node_t** node)
 	return *node;
 }
 
-static avl_node_t* RotateRight(avl_node_t** node)
+static avl_node_t* Rotate(avl_node_t** node, int side)
 {
-	avl_node_t* new_root = (*node)->children[LEFT];
-	avl_node_t* right_child = new_root->children[RIGHT];
+	avl_node_t* new_root = (*node)->children[!side];
+	avl_node_t* child = new_root->children[side];
 	
-	new_root->children[RIGHT] = *node;
-	(*node)->children[LEFT] = right_child;
+	new_root->children[side] = *node;
+	(*node)->children[!side] = child;
 	
 	UpdateHeight(*node);
 	UpdateHeight(new_root);
 	
 	return new_root;
 }
-
-static avl_node_t* RotateLeft(avl_node_t** node)
-{
-	avl_node_t* new_root = (*node)->children[RIGHT];
-	avl_node_t* left_child = new_root->children[LEFT];
-	
-	new_root->children[LEFT] = *node;
-	(*node)->children[RIGHT] = left_child;
-	
-	UpdateHeight(*node);
-	UpdateHeight(new_root);
-	
-	return new_root;
-}
-
 

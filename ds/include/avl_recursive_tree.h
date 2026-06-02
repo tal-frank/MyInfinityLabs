@@ -13,7 +13,7 @@ typedef enum
 } traversal_t;
 
 /********************************* AVLCreate ********************************
-* 		
+	
 * Description: Creates a new empty AVL tree.
 *
 *   Arguments: cmp_func - A user defined copmpare function for the BST to insert 
@@ -25,7 +25,6 @@ typedef enum
 *		
 *		
 ******************************************************************************/
-
 avl_t* AVLCreate(int (*cmp_func)(const void* data, const void* tree_data));
 
 /********************************* AVLDestroy ********************************
@@ -40,7 +39,6 @@ avl_t* AVLCreate(int (*cmp_func)(const void* data, const void* tree_data));
 *		
 *		
 ******************************************************************************/
-
 void AVLDestroy(avl_t* avl);
 
 /********************************* AVLInsert ********************************
@@ -59,7 +57,6 @@ void AVLDestroy(avl_t* avl);
 *		
 *		
 ******************************************************************************/
-
 int AVLInsert(avl_t* avl, void* data);
 
 /********************************* AVLRemove ********************************
@@ -77,7 +74,6 @@ int AVLInsert(avl_t* avl, void* data);
 *		
 *		
 ******************************************************************************/
-
 void AVLRemove(avl_t* avl, const void* data);
 
 /********************************* AVLHeight ********************************
@@ -92,7 +88,6 @@ void AVLRemove(avl_t* avl, const void* data);
 *		
 *		
 ******************************************************************************/
-
 size_t AVLHeight(const avl_t* avl);
 
 /********************************* AVLCount ********************************
@@ -107,7 +102,6 @@ size_t AVLHeight(const avl_t* avl);
 *		
 *		
 ******************************************************************************/
-
 size_t AVLCount(const avl_t* avl);
 
 /********************************* AVLIsEmpty ********************************
@@ -122,7 +116,6 @@ size_t AVLCount(const avl_t* avl);
 *		
 *		
 ******************************************************************************/
-
 int AVLIsEmpty(const avl_t* avl); 
 
 /********************************* BSTFind ********************************
@@ -139,7 +132,6 @@ int AVLIsEmpty(const avl_t* avl);
 *		
 *		
 ******************************************************************************/
-
 void* AVLFind(const avl_t* avl, const void* data);
 
 /********************************* BSTForEach ********************************
@@ -160,7 +152,6 @@ void* AVLFind(const avl_t* avl, const void* data);
 *		
 *		
 ******************************************************************************/
-
 int AVLForEach(avl_t* avl, 
                int (*act_func)(void* data, void* param),
                void* param,
