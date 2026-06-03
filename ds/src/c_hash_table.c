@@ -61,7 +61,7 @@ static int act_func_wrapper(void* data, void* param);
 
 hash_t* HashCreate(size_t table_size, size_t (*hash_func)(const void* key), int (*cmp_func)(const void* key1, const void* key2))
 {
-	hash_t* hash = (hash_t*)malloc(sizeof(hash));
+	hash_t* hash = (hash_t*)malloc(sizeof(hash_t));
 	if (NULL == hash)
 	{
 		return NULL;
@@ -142,15 +142,10 @@ int HashInsert(hash_t* hash, void* data, const void* key)
 void HashRemove(hash_t* hash, const void* key)
 {
 	size_t index = hash->hash_func(key) % hash->table_size;
-	dll_iter_t element_to_find = 0;
+	dll_iter_t element_to_remove = 0;
+	pair_t* pair = {0};
 	compare_key_t* comp_key = (compare_key_t*)malloc(sizeof(compare_key_t));
-	if (NULL == comp_key)
-	{
-		return;
-	}
-	
-	
-	if (NULL == hash->buckets[index])
+	if (NULL == comp_key || NULL == hash->buckets[index])
 	{
 		return;
 	}
@@ -158,13 +153,16 @@ void HashRemove(hash_t* hash, const void* key)
 	comp_key->key = (void*)key;
 	comp_key->hash = hash;
 	
-	element_to_find = DllFind(DllBegin(hash->buckets[index]), 
+	element_to_remove = DllFind(DllBegin(hash->buckets[index]), 
 					  DllEnd(hash->buckets[index]), 
 					  cmp_func_wrapper, 
 					  comp_key);
-	if (!DllIsIterEqual(element_to_find, DllEnd(hash->buckets[index])))
+	if (!DllIsIterEqual(element_to_remove, DllEnd(hash->buckets[index])))
 	{
-		DllRemove(element_to_find);
+		pair = (pair_t*)DllGetData(element_to_remove);
+		free(pair);
+		pair = NULL;
+		DllRemove(element_to_remove);
 	}
 	free(comp_key);
 }
@@ -219,6 +217,9 @@ int HashForEach(hash_t* hash, int(*act_func)(void* data, void* param), void* par
 			DllForEach(begin, end, act_func_wrapper, act_key);
 		}
 	}
+
+	free(act_key);
+	act_key = NULL;
 	return SUCCESS;
 }
 

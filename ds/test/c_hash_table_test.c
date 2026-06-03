@@ -217,6 +217,19 @@ void RemoveTest(void)
 	printf(GREEN "---PASSED---\n" RESET_COLOR);
 	printf("remove is working\n\n");
 	
+	free(str1);
+	free(str2);
+	free(str3);
+	free(str4);
+	free(str5);
+	free(str6);
+	free(str7);
+	free(str8);
+	free(str9);
+	free(str10);
+	free(str11);
+
+	HashDestroy(hash);
 }
 
 void FindTest(void)
@@ -275,6 +288,20 @@ void FindTest(void)
 	printf(GREEN "---PASSED---\n" RESET_COLOR);
 	printf("remove is working\n\n");
 
+	free(str1);
+	free(str2);
+	free(str3);
+	free(str4);
+	free(str5);
+	free(str6);
+	free(str7);
+	free(str8);
+	free(str9);
+	free(str10);
+	free(str11);
+	free(str12);
+
+	HashDestroy(hash);
 }
 
 void ForEachTest(void)
@@ -321,8 +348,26 @@ void ForEachTest(void)
 	printf(CYAN "FOR EACH TEST\n" RESET_COLOR);
 	HashForEach(hash, act_func, NULL);
 
-}
+	free(str1);
+	free(str2);
+	free(str3);
+	free(str4);
+	free(str5);
+	free(str6);
+	free(str7);
+	free(str8);
+	free(str9);
+	free(str10);
+	free(str11);
 
+	HashDestroy(hash);
+}
+/*
+DictionaryTest()
+{
+
+}
+*/
 int main()
 {
 	printf("\n");
@@ -331,6 +376,9 @@ int main()
 	RemoveTest();
 	FindTest();
 	ForEachTest();
+/*	DictionaryTest();
+*/
+	printf("\n");
 	return 0;
 }
 
