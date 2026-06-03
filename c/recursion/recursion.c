@@ -84,31 +84,64 @@ unsigned long Fibonacci_iter(unsigned int n)
 	unsigned long i = 0;
 	unsigned long prev = 1;
 	unsigned long cur = 1;
-	unsigned long fib = 0;
+	unsigned long result = 0;
 	
-	if (1 >= n)
+	if (0 == n)
+	{
+		return 0;
+	}
+	if (1 == n)
 	{
 		return 1;
 	}
 	
-	for (i = 1; n > i; ++i)
+	for (i = 1; n - 1 > i; ++i)
 	{
-		fib = cur + prev;
+		result = cur + prev;
 		prev = cur;
-		cur = fib;
+		cur = result;
 	}
-	return fib;
+	if (2 == n)
+	{
+		result = 1;
+	}
+	return result;
 }
 
 
 unsigned long Fibonacci(int element_index)
 {
+	if (0 == element_index)
+	{
+		return 0;
+	}
 	if (1 == element_index || 0 == element_index)
 	{
 		return 1;
 	}
 	
 	return Fibonacci(element_index - 1) + Fibonacci(element_index - 2);
+}
+
+unsigned long FibonacciMemoisation(int element_index, long arr[])
+{	
+	if (0 == element_index)
+	{
+		return 0;
+	}
+	if (1 == element_index || 0 == element_index)
+	{
+		return 1;
+	}
+	if (-1 == arr[element_index - 1])
+	{
+		arr[element_index - 1] = FibonacciMemoisation(element_index - 1, arr);
+	}
+	if (-1 == arr[element_index - 2])
+	{
+		arr[element_index - 2] = FibonacciMemoisation(element_index - 2, arr);
+	}
+	return arr[element_index - 1] + arr[element_index - 2];
 }
 
 /*---------------------------------------------------------------------*/

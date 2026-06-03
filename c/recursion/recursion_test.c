@@ -146,6 +146,26 @@ void FibonacciTest(unsigned long num)
 	return;	
 }
 
+void FibonacciMemoisationTest(unsigned long num, long arr[])
+{
+	unsigned long fibo_recursive = FibonacciMemoisation(num, arr);
+	unsigned long fibo_iterative = Fibonacci_iter(num);
+	
+	printf(CYAN "FIBONACCI MEMOISATION TEST " RESET_COLOR "index %ld\n" , num);
+	if (fibo_recursive != fibo_iterative)
+	{
+		printf(RED "---ERROR---\n" RESET_COLOR);
+		printf("Expected = %ld\nActual = %ld\n", fibo_iterative, fibo_recursive);
+		printf("\n");
+		return;
+	}
+	
+	printf(GREEN "---PASSED---\n" RESET_COLOR);
+	printf("result = %ld\n", fibo_recursive);
+	printf("\n");
+	return;	
+}
+
 void PrintList(node_t* node)
 {
 	while (NULL != node)
@@ -191,6 +211,7 @@ void StackSortTest(stack_t* stack)
 
 int main()
 {	
+	int i = 0;
 	char* str1 = "hello";
 	char* str2 = "";
 	char* str3 = "1";
@@ -217,6 +238,8 @@ int main()
 	int num11 = 11;
 	int num12 = 12;
 	int num13 = 13;
+	
+	long arr[100] = {0};
 		
 	node_t* node1 = (node_t*)malloc(sizeof(node_t));
 	node_t* node2 = (node_t*)malloc(sizeof(node_t));
@@ -322,5 +345,12 @@ int main()
 	StrStrTest(str8, str12);
 	StrStrTest(str9, str11);
 	
+	for (i = 0; i < 100; ++i)
+	{
+		arr[i] = -1;
+	}
+	
+
+	FibonacciMemoisationTest(80, arr);
 	return 0;
 }
