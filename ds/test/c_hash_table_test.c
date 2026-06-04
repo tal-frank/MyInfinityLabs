@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
@@ -11,6 +13,21 @@
 #define GREEN   "\x1b[32m"
 #define CYAN    "\x1b[36m"
 #define RESET_COLOR   "\x1b[0m"
+
+static size_t StrHash(const void* key)
+{
+    const char* str = (const char*)key;
+    size_t hash = 0;
+
+    while (*str)
+    {
+        hash = (hash * 31) + (size_t)*str;
+        ++str;
+    }
+
+    return hash % 100;
+}
+
 
 int act_func(void* data, void* param)
 {
@@ -347,6 +364,10 @@ void ForEachTest(void)
 
 	printf(CYAN "FOR EACH TEST\n" RESET_COLOR);
 	HashForEach(hash, act_func, NULL);
+	HashFind(hash, str3);
+	printf("\n");
+	printf("after searching for the word 'system'\n");
+	HashForEach(hash, act_func, NULL);
 
 	free(str1);
 	free(str2);
@@ -362,21 +383,57 @@ void ForEachTest(void)
 
 	HashDestroy(hash);
 }
-/*
-DictionaryTest()
-{
 
+/*
+void DictionaryTest(void)
+{
+	hash_t* hash = HashCreate(26, StrHash, cmp_func);
+	FILE* file = fopen("/usr/share/dict/words", "r");
+	char* str = (char*)malloc(256);
+	char* str_dup = NULL;
+	char* str_end = NULL;
+	char str_to_find[50];
+	char* exit_str = "EXIT";
+
+	while(NULL != fgets(str, 256, file))
+	{
+		str_end = strchr(str, '\n');
+		*str_end = '\0';
+		str_dup = strdup(str);
+		HashInsert(hash, str_dup, str_dup);
+	}
+	HashForEach(hash, act_func, NULL);
+	while(strcmp(str_to_find, exit_str))
+	{
+		fgets(str_to_find, sizeof(str_to_find), stdin);
+		str_end = strchr(str_to_find, '\n');
+		*str_end = '\0';
+		if (NULL != HashFind(hash, str_to_find))
+		{
+			printf("found\n");
+		}
+		else
+		{
+			printf("not found\n");
+		}
+	}
+	free(str);
+	str = NULL;
+	HashDestroy(hash);
 }
 */
+
 int main()
 {
+	
 	printf("\n");
 
 	InsertTest();
 	RemoveTest();
 	FindTest();
 	ForEachTest();
-/*	DictionaryTest();
+/*
+	DictionaryTest();
 */
 	printf("\n");
 	return 0;
