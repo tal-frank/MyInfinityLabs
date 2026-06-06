@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <time.h> /* clock */
+#include <string.h>
+#include <stdlib.h>
 
-#include "binary_search.c"
+#include "binary_search.h"
 
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"
@@ -73,8 +75,10 @@ int main()
 
     srand(time(NULL));
     SetRandoms(merge_random_arr, 1, 500000, 50000);
+ /*
     SetRandoms(quick_random_arr, 1, 500000, 50000);
-
+*/
+    memcpy(quick_random_arr, merge_random_arr, 50000 * sizeof(int));
     printf(CYAN "ITERATIVE BINARY SEARCH TEST\n" RESET_COLOR);
     IterBinarySearchTest(arr, 20, 2);
     IterBinarySearchTest(arr, 20, 3);
@@ -143,8 +147,8 @@ int main()
 */  
     start = clock();
     MergeSort(merge_random_arr, 50000);
-/*
-    qsort(random_arr, 5000, 4, IntCompare);
+    /*
+    qsort(merge_random_arr, 50000, 4, IntCompare);
 */
     end = clock();
 /*
@@ -161,6 +165,9 @@ int main()
     printf("\n");
 */  
     start = clock();
+/*
+    qsort(quick_random_arr, 50000, 4, IntCompare);
+*/
     QuickSort(quick_random_arr, 50000, 4, IntCompare);
 
     end = clock();
