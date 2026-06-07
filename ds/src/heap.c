@@ -6,6 +6,7 @@
 
 #define WORD_SIZE (sizeof(size_t))
 #define ROOT (0)
+#define THREE_ELEMENTS (3)
 
 enum
 {
@@ -25,7 +26,7 @@ static void HeapifyUp(heap_t* heap, size_t index);
 
 heap_t* HeapCreate(int (*cmp_func)(const void* key1, const void* key2))
 {
-    size_t initial_capacity = 3;
+    size_t initial_capacity = THREE_ELEMENTS;
     heap_t* heap = NULL;
 
     assert(NULL != cmp_func);
@@ -63,7 +64,7 @@ int HeapPush(heap_t* heap, void* data)
 
     assert(NULL != heap);
     
-    if (FAILURE == DvectorPush(heap->dvector, data))
+    if (FAILURE == DvectorPush(heap->dvector, &data))
     {
         return FAILURE;
     }
@@ -91,7 +92,7 @@ void* HeapPeek(const heap_t* heap)
 {
     assert(NULL != heap);
 
-    return DvectorGetAccessToElement(heap->dvector, 0);
+    return *(void**)DvectorGetAccessToElement(heap->dvector, 0);
 }
 
 
@@ -123,7 +124,7 @@ void* HeapRemove(heap_t* heap,
         
         for (i = 0; !is_match && i < num_of_elements; ++i)
         {
-            is_match = IsMatch(DvectorGetAccessToElement(heap->dvector, i), param);
+            is_match = IsMatch(*(void**)DvectorGetAccessToElement(heap->dvector, i), param);
             to_remove_index = i;
         }
         if (!is_match)
@@ -138,11 +139,11 @@ void* HeapRemove(heap_t* heap,
 
 static void HeapifyUp(heap_t* heap, size_t index)
 {
-    size_t parent_index = (index - 1) / 2;
+    size_t parent_index = (index - 1) / 2 ;
     
     while (0 != index &&
-           0 > heap->cmp_func(DvectorGetAccessToElement(heap->dvector, index),
-                              DvectorGetAccessToElement(heap->dvector, parent_index)))
+           0 > heap->cmp_func(*(void**)DvectorGetAccessToElement(heap->dvector, index),
+                              *(void**)DvectorGetAccessToElement(heap->dvector, parent_index)))
     {
         SwapElements((size_t*)DvectorGetAccessToElement(heap->dvector, index),
                      (size_t*)DvectorGetAccessToElement(heap->dvector, parent_index));
@@ -160,24 +161,31 @@ static void HeapifyDown(heap_t* heap, size_t index)
     size_t size = 0;
     SwapElements((size_t*)DvectorGetAccessToElement(heap->dvector, index),
                  (size_t*)DvectorGetAccessToElement(heap->dvector, DvectorSize(heap->dvector) - 1));
-    DvectorPop(heap->dvector);
+    DvectorSafePop(heap->dvector);
     size = DvectorSize(heap->dvector);
 
     while(left_child < size)
     {
         if (right_child < size)
         {
-            child_to_swap = 0 > heap->cmp_func(DvectorGetAccessToElement(heap->dvector, 
+            child_to_swap = 0 > heap->cmp_func(*(void**)DvectorGetAccessToElement(heap->dvector, 
                                                                          left_child),
-                                               DvectorGetAccessToElement(heap->dvector, 
+                                               *(void**)DvectorGetAccessToElement(heap->dvector, 
                                                                          right_child))
                                 ? left_child : right_child;
+            
+            if (0 < heap->cmp_func(*(void**)DvectorGetAccessToElement(heap->dvector, index),
+                               *(void**)DvectorGetAccessToElement(heap->dvector, child_to_swap)))
+            {
+                SwapElements((size_t*)DvectorGetAccessToElement(heap->dvector, index),
+                             (size_t*)DvectorGetAccessToElement(heap->dvector, child_to_swap));
+            }                                    
         }
 
         else
         {
-            if (0 < heap->cmp_func(DvectorGetAccessToElement(heap->dvector, index),
-                                   DvectorGetAccessToElement(heap->dvector, left_child)))
+            if (0 < heap->cmp_func(*(void**)DvectorGetAccessToElement(heap->dvector, index),
+                                   *(void**)DvectorGetAccessToElement(heap->dvector, left_child)))
             {
 
                 child_to_swap = left_child;
@@ -187,8 +195,7 @@ static void HeapifyDown(heap_t* heap, size_t index)
             return;
         }
 
-        SwapElements((size_t*)DvectorGetAccessToElement(heap->dvector, index),
-                     (size_t*)DvectorGetAccessToElement(heap->dvector, child_to_swap));
+        
         
         index = child_to_swap;
         left_child = index * 2 + 1;
@@ -203,4 +210,12 @@ static void SwapElements(size_t* element1, size_t* element2)
     temp = *element1;
     *element1 = *element2;
     *element2 = temp;
+}
+
+void HeapClear(heap_t *heap)
+{
+    while (0 != DvectorSize(heap->dvector))
+    {
+        DvectorSafePop(heap->dvector);
+    }
 }

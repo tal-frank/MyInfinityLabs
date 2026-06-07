@@ -55,11 +55,11 @@ void PQDestroy(pq_t* pq)
 }
 
 
-int PQEnqueue(pq_t* pq, const void* data)
+int PQEnqueue(pq_t* pq, void* data)
 {
 	assert(NULL != pq);
 	
-	return (HeapPush(pq->heap, (void*)data));
+	return HeapPush(pq->heap, data);
 }
 
 
@@ -68,7 +68,7 @@ void* PQDequeue(pq_t* pq)
 	void* data = NULL;
 	assert(NULL != pq);
 
-	data = *(void**)HeapPeek(pq->heap);
+	data = HeapPeek(pq->heap);
 	HeapPop(pq->heap);
 	return data;
 }
@@ -102,10 +102,7 @@ void PQClear(pq_t* pq)
 {
 	assert(NULL != pq);
 	
-	while(!HeapIsEmpty(pq->heap))
-	{
-		HeapPop(pq->heap);
-	}
+	HeapClear(pq->heap);
 }
 
 

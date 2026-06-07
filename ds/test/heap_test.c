@@ -77,7 +77,7 @@ static void PrintHeap(heap_t* heap)
         }
 
         /* Get and print the current element */
-        p_data = *(int*)DvectorGetAccessToElement(heap->dvector, i);
+        p_data = **(int**)DvectorGetAccessToElement(heap->dvector, i);
         printf("%2d", p_data);
         
         ++printed_on_level;
@@ -255,7 +255,7 @@ void SizeRemoveTest(void)
 
     printf(CYAN "REMOVE TEST\n" RESET_COLOR);
     
-    removed_element = (int)HeapRemove(heap, IsMatch, &num6);
+    removed_element = *(int*)HeapRemove(heap, IsMatch, &num6);
     
     if (4 != HeapSize(heap))
     {
