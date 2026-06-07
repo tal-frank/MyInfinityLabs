@@ -112,7 +112,7 @@ size_t HeapSize(const heap_t* heap)
 
 
 void* HeapRemove(heap_t* heap,
-               int (*IsMatch)(void* data, void* param),
+               int (*IsMatch)(const void* data, const void* param),
                void* param)
     {
         size_t is_match = 0;
@@ -138,7 +138,7 @@ void* HeapRemove(heap_t* heap,
 
 static void HeapifyUp(heap_t* heap, size_t index)
 {
-    size_t parent_index = (index - 1);
+    size_t parent_index = (index - 1) / 2;
     
     while (0 != index &&
            0 > heap->cmp_func(DvectorGetAccessToElement(heap->dvector, index),

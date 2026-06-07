@@ -130,10 +130,10 @@ void Test(void)
 	PQEnqueue(pq, &num1);
 	
 	printf(CYAN "DEQUEUE" RESET_COLOR " TEST\n");
-	if (1 != *(int*)PQDequeue(pq) ||
-	    2 != *(int*)PQDequeue(pq) ||
-	    4 != *(int*)PQDequeue(pq) ||
-	    4 != *(int*)PQDequeue(pq))
+	if (1 != (int)PQDequeue(pq) ||
+	    2 != (int)PQDequeue(pq) ||
+	    4 != (int)PQDequeue(pq) ||
+	    4 != (int)PQDequeue(pq))
 	{
 		printf("wrong values at enqueue\n");
 		printf(RED "---FAILED---\n\n" RESET_COLOR);

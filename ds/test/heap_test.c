@@ -114,7 +114,7 @@ int CmpFunc(const void* num1, const void* num2)
     return number1 - number2;
 }
 
-int IsMatch(void* num1, void* num2)
+int IsMatch(const void* num1, const void* num2)
 {
     int number1 = *(int*)num1;
     int number2 = *(int*)num2;

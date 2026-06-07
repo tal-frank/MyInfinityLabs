@@ -9,12 +9,12 @@
 #include <stdio.h> /* NULL */
 #include <assert.h> /* assert */
 
-#include "sorted_list.h"
+#include "heap.h"
 #include "priority_queue.h"
 
 struct priority_queue
 {
-	sorted_list_t* sl;
+	heap_t* heap;
 };
 
 typedef enum
@@ -31,8 +31,8 @@ pq_t* PQCreate(int (*CmpFunc)(const void* data, const void* param))
 		return NULL;
 	}
 	
-	pq->sl = SortedListCreate(CmpFunc);
-	if (NULL == pq->sl)
+	pq->heap = HeapCreate(CmpFunc);
+	if (NULL == pq->heap)
 	{
 		free(pq);
 		pq = NULL;
@@ -47,8 +47,8 @@ void PQDestroy(pq_t* pq)
 {
 	assert(NULL != pq);	
 	
-	SortedListDestroy(pq->sl);
-	pq->sl = NULL;
+	HeapDestroy(pq->heap);
+	pq->heap = NULL;
 	
 	free(pq);
 	pq = NULL;
@@ -59,15 +59,18 @@ int PQEnqueue(pq_t* pq, const void* data)
 {
 	assert(NULL != pq);
 	
-	return (SortedListIsIterEqual(SortedListInsert(pq->sl, data), SortedListEnd(pq->sl)));
+	return (HeapPush(pq->heap, (void*)data));
 }
 
 
 void* PQDequeue(pq_t* pq)
 {
+	void* data = NULL;
 	assert(NULL != pq);
-	
-	return SortedListPopFront(pq->sl);
+
+	data = *(void**)HeapPeek(pq->heap);
+	HeapPop(pq->heap);
+	return data;
 }
 
 void* PQPeek(const pq_t* pq)
@@ -75,7 +78,7 @@ void* PQPeek(const pq_t* pq)
 	assert(NULL != pq);
 	assert(!PQIsEmpty(pq));
 	
-	return SortedListGetData(SortedListBegin(pq->sl));
+	return HeapPeek(pq->heap);
 }
 
 
@@ -83,7 +86,7 @@ int PQIsEmpty(const pq_t* pq)
 {
 	assert(NULL != pq);
 	
-	return SortedListIsEmpty(pq->sl);
+	return HeapIsEmpty(pq->heap);
 }
 
 
@@ -91,7 +94,7 @@ size_t PQSize(const pq_t* pq)
 {
 	assert(NULL != pq);
 	
-	return SortedListSize(pq->sl);
+	return HeapSize(pq->heap);
 }
 
 
@@ -99,28 +102,16 @@ void PQClear(pq_t* pq)
 {
 	assert(NULL != pq);
 	
-	while(!SortedListIsEmpty(pq->sl))
+	while(!HeapIsEmpty(pq->heap))
 	{
-		SortedListPopFront(pq->sl);
+		HeapPop(pq->heap);
 	}
 }
 
 
 void* PQErase(pq_t* pq, int (*IsMatch)(const void* data, const void* param),const void* param)
-{
-	void* data = NULL;
-	sorted_list_iter_t element_to_remove = {0};
-	
-	assert(NULL != pq);
-	
-	element_to_remove = SortedListFindIf(SortedListBegin(pq->sl), SortedListEnd(pq->sl), IsMatch, param);
-	if (!SortedListIsIterEqual(element_to_remove, SortedListEnd(pq->sl)))
-	{
-		data = SortedListGetData(element_to_remove);
-		SortedListRemove(element_to_remove);
-	}
-	
-	return data;
+{	
+	return HeapRemove(pq->heap, IsMatch, (void*)param);
 }
 
 

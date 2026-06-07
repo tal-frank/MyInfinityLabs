@@ -1,7 +1,7 @@
 #ifndef __PQ_H__
 #define __PQ_H__
 
-#include "sorted_list.h"
+#include "heap.h"
 
 typedef struct priority_queue pq_t;
  

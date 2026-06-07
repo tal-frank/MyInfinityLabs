@@ -5,6 +5,8 @@
 
 #include <stddef.h>
 
+#include "dynamic_vector.h"
+
 /******************************************************************* Typedefs */
 
 typedef struct Heap heap_t;
@@ -114,7 +116,7 @@ size_t HeapSize(const heap_t* heap);
  *		
  ******************************************************************************/
 void* HeapRemove(heap_t* heap,
-               int (*IsMatch)(void* data, void* param),
+               int (*IsMatch)(const void* data, const void* param),
                void* param);
 
 
