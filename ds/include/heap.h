@@ -123,7 +123,7 @@ size_t HeapSize(const heap_t* heap);
  ******************************************************************************/
 void* HeapRemove(heap_t* heap,
                int (*IsMatch)(const void* data, const void* param),
-               void* param);
+               const void* param);
 
 /**************************************************************** *
  * Description: removing all of the elemnts from a heap

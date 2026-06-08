@@ -1,3 +1,10 @@
+/**********************
+* heap
+* Author: Tal Frank
+* Reviewer: Or Zellner
+* Last update: 25/06/2026
+**********************/
+
 #include <stdlib.h> /* malloc , free */
 #include <assert.h>
 
@@ -20,9 +27,21 @@ struct Heap
     int (*cmp_func)(const void* key1, const void* key2);
 };
 
-static void SwapElements(size_t* element1, size_t* element2);
+/*-------------------------------------------------------------------------------*/
+/************************* STATIC FUNCTIONS DECLARATIONS *************************/
+/*-------------------------------------------------------------------------------*/
+
+static void SwapElements(void** element1, void** element2);
 static void HeapifyDown(heap_t* heap, size_t index);
 static void HeapifyUp(heap_t* heap, size_t index);
+static size_t GetLeftChild(size_t index);
+static size_t GetRightChild(size_t index);
+static size_t GetParent(size_t index);
+static int compare_nodes(heap_t* heap, size_t index1, size_t index2);
+
+/*------------------------------------------------------------------*/
+/************************* CREATE & DESTROY *************************/
+/*------------------------------------------------------------------*/
 
 heap_t* HeapCreate(int (*cmp_func)(const void* key1, const void* key2))
 {
@@ -51,12 +70,19 @@ heap_t* HeapCreate(int (*cmp_func)(const void* key1, const void* key2))
 
 void HeapDestroy(heap_t* heap)
 {
+    assert(NULL != heap);
+
     DvectorDestroy(heap->dvector);
     heap->dvector = NULL;
     
+    heap->cmp_func = NULL;
     free(heap);
     heap = NULL;
 }
+
+/*-------------------------------------------------------------------*/
+/************************* PUSH & POP & PEEK *************************/
+/*-------------------------------------------------------------------*/
 
 int HeapPush(heap_t* heap, void* data)
 {
@@ -95,12 +121,15 @@ void* HeapPeek(const heap_t* heap)
     return *(void**)DvectorGetAccessToElement(heap->dvector, 0);
 }
 
+/*-----------------------------------------------------------------*/
+/************************* IS EMPTY & SIZE *************************/
+/*-----------------------------------------------------------------*/
 
 int HeapIsEmpty(const heap_t* heap)
 {
     assert(NULL != heap);
 
-    return 0 == DvectorSize(heap->dvector);
+    return (0 == DvectorSize(heap->dvector));
 }
 
 
@@ -111,56 +140,80 @@ size_t HeapSize(const heap_t* heap)
     return DvectorSize(heap->dvector);
 }
 
+/*----------------------------------------------------------------*/
+/************************* REMOVE & CLEAR *************************/
+/*----------------------------------------------------------------*/
 
 void* HeapRemove(heap_t* heap,
                int (*IsMatch)(const void* data, const void* param),
-               void* param)
-    {
-        size_t is_match = 0;
-        size_t i = 0;
-        size_t to_remove_index = 0;
-        size_t num_of_elements = DvectorSize(heap->dvector);
-        void* data = NULL;
-        
-        for (i = 0; !is_match && i < num_of_elements; ++i)
-        {
-            is_match = IsMatch(*(void**)DvectorGetAccessToElement(heap->dvector, i), param);
-            to_remove_index = i;
-        }
-        if (!is_match)
-        {
-            return NULL;
-        }
-        data = *(void**)DvectorGetAccessToElement(heap->dvector, to_remove_index);
-        HeapifyDown(heap, to_remove_index);
+               const void* param)
+{
+    size_t is_match = 0;
+    size_t i = 0;
+    size_t to_remove_index = 0;
+    size_t num_of_elements = 0;
+    void* data = NULL;
+    
+    assert(NULL != heap);
+    assert(NULL != IsMatch);
 
-        return data;
+    num_of_elements = DvectorSize(heap->dvector);
+    for (i = 0; !is_match && i < num_of_elements; ++i)
+    {
+        is_match = IsMatch(*(void**)DvectorGetAccessToElement(heap->dvector, i), param);
+        to_remove_index = i;
     }
+    if (!is_match)
+    {
+        return NULL;
+    }
+    data = *(void**)DvectorGetAccessToElement(heap->dvector, to_remove_index);
+    HeapifyDown(heap, to_remove_index);
+
+    return data;
+}
+
+void HeapClear(heap_t *heap)
+{
+    assert(NULL != heap);
+
+    while (0 != DvectorSize(heap->dvector))
+    {
+        DvectorSafePop(heap->dvector);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+/************************* HEAPIFY UP & HEAPIFY DOWN *************************/
+/*---------------------------------------------------------------------------*/
 
 static void HeapifyUp(heap_t* heap, size_t index)
 {
-    size_t parent_index = (index - 1) / 2 ;
+    size_t parent_index = GetParent(index);
     
-    while (0 != index &&
-           0 > heap->cmp_func(*(void**)DvectorGetAccessToElement(heap->dvector, index),
-                              *(void**)DvectorGetAccessToElement(heap->dvector, parent_index)))
+    assert(NULL != heap);
+
+    while ((0 != index) && (0 > compare_nodes(heap, index, parent_index)))
     {
-        SwapElements((size_t*)DvectorGetAccessToElement(heap->dvector, index),
-                     (size_t*)DvectorGetAccessToElement(heap->dvector, parent_index));
+        SwapElements(DvectorGetAccessToElement(heap->dvector, index),
+                     DvectorGetAccessToElement(heap->dvector, parent_index));
         
         index = parent_index;
-        parent_index = (index - 1) / 2;
+        parent_index = GetParent(index);
     }
 }
 
 static void HeapifyDown(heap_t* heap, size_t index)
 {
-    size_t left_child = index * 2 + 1;
-    size_t right_child = index * 2 + 2;
+    size_t left_child = GetLeftChild(index);
+    size_t right_child = GetRightChild(index);
     size_t child_to_swap = 0;
     size_t size = 0;
-    SwapElements((size_t*)DvectorGetAccessToElement(heap->dvector, index),
-                 (size_t*)DvectorGetAccessToElement(heap->dvector, DvectorSize(heap->dvector) - 1));
+
+    assert(NULL != heap);
+
+    SwapElements(DvectorGetAccessToElement(heap->dvector, index),
+                 DvectorGetAccessToElement(heap->dvector, DvectorSize(heap->dvector) - 1));
     DvectorSafePop(heap->dvector);
     size = DvectorSize(heap->dvector);
 
@@ -168,54 +221,64 @@ static void HeapifyDown(heap_t* heap, size_t index)
     {
         if (right_child < size)
         {
-            child_to_swap = 0 > heap->cmp_func(*(void**)DvectorGetAccessToElement(heap->dvector, 
-                                                                         left_child),
-                                               *(void**)DvectorGetAccessToElement(heap->dvector, 
-                                                                         right_child))
+
+            child_to_swap = 0 > compare_nodes(heap, left_child, right_child)
                                 ? left_child : right_child;
             
-            if (0 < heap->cmp_func(*(void**)DvectorGetAccessToElement(heap->dvector, index),
-                               *(void**)DvectorGetAccessToElement(heap->dvector, child_to_swap)))
+            if (0 < compare_nodes(heap, index, child_to_swap))
             {
-                SwapElements((size_t*)DvectorGetAccessToElement(heap->dvector, index),
-                             (size_t*)DvectorGetAccessToElement(heap->dvector, child_to_swap));
+                SwapElements(DvectorGetAccessToElement(heap->dvector, index),
+                             DvectorGetAccessToElement(heap->dvector, child_to_swap));
             }                                    
         }
 
         else
         {
-            if (0 < heap->cmp_func(*(void**)DvectorGetAccessToElement(heap->dvector, index),
-                                   *(void**)DvectorGetAccessToElement(heap->dvector, left_child)))
+            if (0 < compare_nodes(heap, index, left_child))
             {
-
                 child_to_swap = left_child;
-                SwapElements((size_t*)DvectorGetAccessToElement(heap->dvector, index),
-                             (size_t*)DvectorGetAccessToElement(heap->dvector, child_to_swap));
+                SwapElements(DvectorGetAccessToElement(heap->dvector, index),
+                             DvectorGetAccessToElement(heap->dvector, child_to_swap));
             }
             return;
         }
-
-        
-        
+     
         index = child_to_swap;
-        left_child = index * 2 + 1;
-        right_child = index * 2 + 2;
+        left_child = GetLeftChild(index);
+        right_child = GetRightChild(index);
     }
 }
 
-static void SwapElements(size_t* element1, size_t* element2)
+/*------------------------------------------------------------------*/
+/************************* STATIC FUNCTIONS *************************/
+/*------------------------------------------------------------------*/
+
+static void SwapElements(void** element1, void** element2)
 {
-    size_t temp = 0;
+    void* temp = 0;
     
     temp = *element1;
     *element1 = *element2;
     *element2 = temp;
 }
 
-void HeapClear(heap_t *heap)
+static size_t GetLeftChild(size_t index)
 {
-    while (0 != DvectorSize(heap->dvector))
-    {
-        DvectorSafePop(heap->dvector);
-    }
+    return (index * 2 + 1);
+}
+
+static size_t GetRightChild(size_t index)
+{
+    return (index * 2 + 2);
+}
+
+static size_t GetParent(size_t index)
+{
+    return ((index - 1) / 2);
+}
+
+static int compare_nodes(heap_t* heap, size_t index1, size_t index2)
+{
+    return heap->cmp_func(*(void**)DvectorGetAccessToElement(heap->dvector, index1),
+                          *(void**)DvectorGetAccessToElement(heap->dvector, index2));
 }
