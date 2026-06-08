@@ -221,9 +221,8 @@ static void HeapifyDown(heap_t* heap, size_t index)
     {
         if (right_child < size)
         {
-
             child_to_swap = 0 > compare_nodes(heap, left_child, right_child)
-                                ? left_child : right_child;
+                              ? left_child : right_child;
             
             if (0 < compare_nodes(heap, index, child_to_swap))
             {
