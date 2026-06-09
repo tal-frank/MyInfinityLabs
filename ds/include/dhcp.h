@@ -9,8 +9,8 @@ typedef enum DHCPStatus
 {
     SUCCESS,
     MEMORY_ERROR,
-    IP_NOT_FOUND_ERROR,
-    INVALID_IP_ERROR
+    IP_NOT_ALLOCATED_ERROR,
+    IP_NOT_AVAILABLE_ERROR
 } dhcp_status_t;
 
 typedef struct Dhcp dhcp_t;
