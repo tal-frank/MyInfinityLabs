@@ -1,3 +1,6 @@
+#include <time.h> /* time */
+#include <stddef.h> /* NULL */
+#include <assert.h> /* assert */
 
 #include "knights_tour.h"
 #include "bit_array.h"
@@ -8,8 +11,13 @@
 typedef enum status
 {
     FAILURE = -1,
-    SUCCESS
+    SUCCESS,
+    TIMEOUT
 }status_t;
+
+/*-------------------------------------------------------------------------------*/
+/************************* STATIC FUNCTIONS DECLARATIONS *************************/
+/*-------------------------------------------------------------------------------*/
 
 static const int row_lut[] = {2, 1, -1, -2, -2, -1, 1, 2};
 static const int col_lut[] = {1, 2, 2, 1, -1, -2, -2, -1};
@@ -19,32 +27,60 @@ static pos_xy_t FindBestMove(pos_xy_t pos, bitarray_t bitarray);
 static status_t RecKnightsTour(pos_xy_t curr_pos, 
                                path_t dest_path, 
                                bitarray_t bitarray, 
-                               int places_left);
+                               int places_left,
+                               time_t timeout);
+
 static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, 
                                       path_t dest_path, 
                                       bitarray_t bitarray, 
-                                      int step);
+                                      int step,
+                                      time_t timeout);
+
+/*--------------------------------------------------------------*/
+/************************* KNIGHTS TOUR *************************/
+/*--------------------------------------------------------------*/
 
 int KnightsTour(pos_xy_t start_pos, path_t dest_path, unsigned int timeout, int use_heuristic)
 {
     status_t status = SUCCESS;
     bitarray_t bitarray = 0;
     int step = 0;
+    time_t curr_time = time(NULL);
+
+    assert(IsValidPosition(start_pos));
+    assert(NULL != dest_path);
+
     if (use_heuristic)
     {
-        status = WarndorffsKnightsTour(start_pos, dest_path, bitarray, step);
+        status = WarndorffsKnightsTour(start_pos, 
+                                       dest_path, 
+                                       bitarray, 
+                                       step, 
+                                       curr_time + timeout);
     }
     else
     {
-        status = RecKnightsTour(start_pos, dest_path, bitarray, step);
+        status = RecKnightsTour(start_pos, 
+                                dest_path, 
+                                bitarray, 
+                                step, 
+                                curr_time + timeout);
     }
     return status;
 }
+
+/*----------------------------------------------------------*/
+/************************* IS VALID *************************/
+/*----------------------------------------------------------*/
 
 int IsValidPosition(pos_xy_t pos)
 {
     return (pos < BOARD_SIZE);
 }
+
+/*------------------------------------------------------------------------*/
+/************************* BUILD & PARSE POSITION *************************/
+/*------------------------------------------------------------------------*/
 
 pos_xy_t BuildPosition(unsigned char x, unsigned char y)
 {
@@ -60,6 +96,9 @@ pos_xy_t BuildPosition(unsigned char x, unsigned char y)
 
 void ParsePosition(pos_xy_t pos, unsigned char *x, unsigned char *y)
 {
+    assert(NULL != x);
+    assert(NULL != y);
+
     if (!IsValidPosition(pos))
     {
         return;
@@ -69,12 +108,22 @@ void ParsePosition(pos_xy_t pos, unsigned char *x, unsigned char *y)
     *y = pos % NUMBER_OF_COLS;
 }
 
+/*----------------------------------------------------------------*/
+/************************* NAIVE SOLUTION *************************/
+/*----------------------------------------------------------------*/
 
-static status_t RecKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t bitarray, int step)
+static status_t RecKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t bitarray, int step, time_t timeout)
 {
     int i = 0;
     status_t status = FAILURE;
     pos_xy_t next_pos = 0;
+
+    assert(dest_path);
+
+    if(timeout <= time(NULL))
+    {
+        return TIMEOUT;
+    }
 
     if (BOARD_SIZE - 1 == step)
     {
@@ -84,12 +133,14 @@ static status_t RecKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t b
 
     bitarray = BitarraySetBitOn(bitarray, curr_pos);
 
-    for (i = 0; i < NUMBER_OF_JUMP_OPTIONS && SUCCESS != status; ++i)
+    for (i = 0; i < NUMBER_OF_JUMP_OPTIONS && 
+                SUCCESS != status && 
+                TIMEOUT != status; ++i)
     {
         next_pos = UpdateNextPos(curr_pos, i);
         if (IsValidPosition(next_pos) && 0 == BitarrayGetBit(bitarray, next_pos))
         {
-            status = RecKnightsTour(next_pos, dest_path, bitarray, step + 1);
+            status = RecKnightsTour(next_pos, dest_path, bitarray, step + 1, timeout);
         }
     }
 
@@ -99,13 +150,24 @@ static status_t RecKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t b
     }
     
     dest_path[step] = curr_pos;
-    return SUCCESS;
+    return status;
 }
 
-static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t bitarray, int step)
+/*----------------------------------------------------------------------*/
+/************************* WARNDORFFS ALGORITHM *************************/
+/*----------------------------------------------------------------------*/
+
+static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t bitarray, int step, time_t timeout)
 {
     status_t status = FAILURE;
     pos_xy_t next_pos = 0;
+
+    assert(dest_path);
+
+    if(timeout <= time(NULL))
+    {
+        return TIMEOUT;
+    }
 
     if (BOARD_SIZE == step)
     {
@@ -116,7 +178,7 @@ static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitar
     bitarray = BitarraySetBitOn(bitarray, curr_pos);
 
     next_pos = FindBestMove(curr_pos, bitarray);
-    status = WarndorffsKnightsTour(next_pos, dest_path, bitarray, step + 1);
+    status = WarndorffsKnightsTour(next_pos, dest_path, bitarray, step + 1, timeout);
 
     if (FAILURE == status)
     {
@@ -124,8 +186,12 @@ static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitar
     }
     
     dest_path[step] = curr_pos;
-    return SUCCESS;
+    return status;
 }
+
+/*------------------------------------------------------------------*/
+/************************* STATIC FUNCTIONS *************************/
+/*------------------------------------------------------------------*/
 
 static pos_xy_t FindBestMove(pos_xy_t pos, bitarray_t bitarray)
 {
@@ -164,69 +230,6 @@ static pos_xy_t FindBestMove(pos_xy_t pos, bitarray_t bitarray)
     return next_pos;
 }
 
-/*
-static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t bitarray, int step)
-{
-    int i = 0;
-    int j = 0;
-    int k = 0;
-    int min = NUMBER_OF_JUMP_OPTIONS;
-    int count = 0;
-    status_t status = FAILURE;
-    pos_xy_t next_pos = {0};
-    pos_xy_t next_pos_runner = {0};
-    pos_xy_t next_next = {0};
-
-    if (BOARD_SIZE - 1== step)
-    {
-        return SUCCESS;
-    }
-
-    bitarray = BitarraySetBitOn(bitarray, curr_pos);
-
-    do 
-    {
-        next_pos_runner = UpdateNextPos(curr_pos, i);
-        if (!IsValidPosition(next_pos_runner))
-        {
-            ++i;
-            continue;
-        }
-        for (j = 0; j < NUMBER_OF_JUMP_OPTIONS; ++j)
-        {
-            count = 0;
-            for (k = 0; k < NUMBER_OF_JUMP_OPTIONS; ++k)
-            {    
-                next_next = UpdateNextPos(next_pos_runner, k);
-                if (IsValidPosition(next_next) && 0 == BitarrayGetBit(bitarray, next_next))
-                {
-                     ++count;
-                }
-            }
-            if (min > count)
-            {
-                next_pos = next_pos_runner;
-                min = count;
-            }
-        }
-        if (NUMBER_OF_JUMP_OPTIONS == i)
-        {
-            return FAILURE;
-        }
-        status = WarndorffsKnightsTour(next_pos, dest_path, bitarray, step + 1);
-        ++i;
-    } while(status != SUCCESS && i < NUMBER_OF_JUMP_OPTIONS);
-    
-    if (SUCCESS != status)
-    {
-        return FAILURE;
-    }
-
-    dest_path[step] = curr_pos;
-
-    return SUCCESS;
-}
-*/
 static pos_xy_t UpdateNextPos(pos_xy_t pos, int next)
 {
     unsigned char x = 0;
