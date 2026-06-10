@@ -31,18 +31,43 @@ int main()
     }
 
     status = KnightsTour(start_pos, rec_result, timeout, 0);
-    ParsePosition(rec_result[2], &x, &y);
+    ParsePosition(rec_result[10], &x, &y);
+    printf("x = %d , y = %d\n", x, y);
+    printf ("status = %d\n" , status);
+    
+    PrintArr(rec_result, BOARD_SIZE);
+    start_pos = BuildPosition(x, y);
+    status = KnightsTour(start_pos, rec_result, timeout, 0);
+    ParsePosition(rec_result[10], &x, &y);
     printf("x = %d , y = %d\n", x, y);
     printf ("status = %d\n" , status);
     
     PrintArr(rec_result, BOARD_SIZE);
     
+    /*
+    start_pos = BuildPosition(x, y);
+    status = KnightsTour(start_pos, rec_result, timeout, 0);
+    ParsePosition(rec_result[10], &x, &y);
+    printf("x = %d , y = %d\n", x, y);
+    printf ("status = %d\n" , status);
+    
+    PrintArr(rec_result, BOARD_SIZE);
+    */  
+    
+    status = KnightsTour(start_pos, warndorffs_result, timeout, 1);
+    ParsePosition(warndorffs_result[10], &x, &y);
+    printf("x = %d , y = %d\n", x, y);
+    printf ("status = %d\n" , status);
+
+    PrintArr(warndorffs_result, BOARD_SIZE);
+
     status = KnightsTour(start_pos, warndorffs_result, timeout, 1);
     ParsePosition(warndorffs_result[2], &x, &y);
     printf("x = %d , y = %d\n", x, y);
     printf ("status = %d\n" , status);
 
     PrintArr(warndorffs_result, BOARD_SIZE);
+
 
     printf("\n");
 
