@@ -1,9 +1,16 @@
+/**********************
+* knights tour
+* Author: Tal Frank
+* Reviewer: Moshe Moiseev
+* Last update: 01/07/2026
+**********************/
+
 #include <time.h> /* time */
 #include <stddef.h> /* NULL */
 #include <assert.h> /* assert */
 
-#include "knights_tour.h"
-#include "bit_array.h"
+#include "knights_tour.h" /* API */
+#include "bit_array.h" /* BitarraySetBitOn */
 
 #define NUMBER_OF_COLS (8)
 #define NUMBER_OF_JUMP_OPTIONS (8)
@@ -23,16 +30,16 @@ static const int row_lut[] = {2, 1, -1, -2, -2, -1, 1, 2};
 static const int col_lut[] = {1, 2, 2, 1, -1, -2, -2, -1};
 
 static pos_xy_t UpdateNextPos(pos_xy_t pos, int next);
-static pos_xy_t FindBestMove(pos_xy_t pos, bitarray_t bitarray);
+static pos_xy_t FindBestMove(pos_xy_t pos, bitarray_t board);
 static status_t RecKnightsTour(pos_xy_t curr_pos, 
                                path_t dest_path, 
-                               bitarray_t bitarray, 
+                               bitarray_t board, 
                                int places_left,
                                time_t timeout);
 
 static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, 
                                       path_t dest_path, 
-                                      bitarray_t bitarray, 
+                                      bitarray_t board, 
                                       int step,
                                       time_t timeout);
 
@@ -43,7 +50,7 @@ static status_t WarndorffsKnightsTour(pos_xy_t curr_pos,
 int KnightsTour(pos_xy_t start_pos, path_t dest_path, unsigned int timeout, int use_heuristic)
 {
     status_t status = SUCCESS;
-    bitarray_t bitarray = 0;
+    bitarray_t board = 0;
     int step = 0;
     time_t curr_time = time(NULL);
 
@@ -54,7 +61,7 @@ int KnightsTour(pos_xy_t start_pos, path_t dest_path, unsigned int timeout, int 
     {
         status = WarndorffsKnightsTour(start_pos, 
                                        dest_path, 
-                                       bitarray, 
+                                       board, 
                                        step, 
                                        curr_time + timeout);
     }
@@ -62,7 +69,7 @@ int KnightsTour(pos_xy_t start_pos, path_t dest_path, unsigned int timeout, int 
     {
         status = RecKnightsTour(start_pos, 
                                 dest_path, 
-                                bitarray, 
+                                board, 
                                 step, 
                                 curr_time + timeout);
     }
@@ -112,7 +119,7 @@ void ParsePosition(pos_xy_t pos, unsigned char *x, unsigned char *y)
 /************************* NAIVE SOLUTION *************************/
 /*----------------------------------------------------------------*/
 
-static status_t RecKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t bitarray, int step, time_t timeout)
+static status_t RecKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t board, int step, time_t timeout)
 {
     int i = 0;
     status_t status = FAILURE;
@@ -131,16 +138,16 @@ static status_t RecKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t b
         return SUCCESS;
     }
 
-    bitarray = BitarraySetBitOn(bitarray, curr_pos);
+    board = BitarraySetBitOn(board, curr_pos);
 
     for (i = 0; i < NUMBER_OF_JUMP_OPTIONS && 
                 SUCCESS != status && 
                 TIMEOUT != status; ++i)
     {
         next_pos = UpdateNextPos(curr_pos, i);
-        if (IsValidPosition(next_pos) && 0 == BitarrayGetBit(bitarray, next_pos))
+        if (IsValidPosition(next_pos) && 0 == BitarrayGetBit(board, next_pos))
         {
-            status = RecKnightsTour(next_pos, dest_path, bitarray, step + 1, timeout);
+            status = RecKnightsTour(next_pos, dest_path, board, step + 1, timeout);
         }
     }
 
@@ -157,7 +164,7 @@ static status_t RecKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t b
 /************************* WARNDORFFS ALGORITHM *************************/
 /*----------------------------------------------------------------------*/
 
-static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t bitarray, int step, time_t timeout)
+static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitarray_t board, int step, time_t timeout)
 {
     status_t status = FAILURE;
     pos_xy_t next_pos = 0;
@@ -169,16 +176,16 @@ static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitar
         return TIMEOUT;
     }
 
-    if (BOARD_SIZE == step)
+    if (BOARD_SIZE - 1 == step)
     {
         dest_path[step] = curr_pos;
         return SUCCESS;
     }
 
-    bitarray = BitarraySetBitOn(bitarray, curr_pos);
+    board = BitarraySetBitOn(board, curr_pos);
 
-    next_pos = FindBestMove(curr_pos, bitarray);
-    status = WarndorffsKnightsTour(next_pos, dest_path, bitarray, step + 1, timeout);
+    next_pos = FindBestMove(curr_pos, board);
+    status = WarndorffsKnightsTour(next_pos, dest_path, board, step + 1, timeout);
 
     if (FAILURE == status)
     {
@@ -193,7 +200,7 @@ static status_t WarndorffsKnightsTour(pos_xy_t curr_pos, path_t dest_path, bitar
 /************************* STATIC FUNCTIONS *************************/
 /*------------------------------------------------------------------*/
 
-static pos_xy_t FindBestMove(pos_xy_t pos, bitarray_t bitarray)
+static pos_xy_t FindBestMove(pos_xy_t pos, bitarray_t board)
 {
     int i = 0;
     int j = 0;
@@ -206,7 +213,7 @@ static pos_xy_t FindBestMove(pos_xy_t pos, bitarray_t bitarray)
     for (i = 0; i < NUMBER_OF_JUMP_OPTIONS; ++i)
     {
         next_pos_runner = UpdateNextPos(pos, i);
-        if (!IsValidPosition(next_pos_runner) || 1 == BitarrayGetBit(bitarray, next_pos_runner))
+        if (!IsValidPosition(next_pos_runner) || 1 == BitarrayGetBit(board, next_pos_runner))
         {
             continue;
         }
@@ -216,7 +223,7 @@ static pos_xy_t FindBestMove(pos_xy_t pos, bitarray_t bitarray)
             next_next = UpdateNextPos(next_pos_runner, j);
             
             if (IsValidPosition(next_next) && 
-                0 == BitarrayGetBit(bitarray, next_next))
+                0 == BitarrayGetBit(board, next_next))
             {
                 ++count;
             }
