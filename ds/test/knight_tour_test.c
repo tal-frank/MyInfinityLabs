@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "knights_tour.h"
+#include "knight_tour.h"
 
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"

@@ -9,7 +9,7 @@
 #include <stddef.h> /* NULL */
 #include <assert.h> /* assert */
 
-#include "knights_tour.h" /* API */
+#include "knight_tour.h" /* API */
 #include "bit_array.h" /* BitarraySetBitOn */
 
 #define NUMBER_OF_COLS (8)
