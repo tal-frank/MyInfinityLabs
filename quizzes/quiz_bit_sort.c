@@ -28,7 +28,7 @@ void BitSort(int arr[], size_t size)
     {
         if (1 == arr[start] && 0 == arr[end])
         {
-            SwapElements(arr, arr[start], arr[end]);
+            SwapElements(arr, start, end);
             ++start;
             --end;
         }
@@ -43,10 +43,21 @@ void BitSort(int arr[], size_t size)
 int main()
 {
     int arr[20] = {0, 1, 0, 0, 1, 1 ,0 ,1 ,0 ,1 ,0 ,0 ,1 , 0, 1 ,0 ,0 ,1 ,0 ,1};
-    
+    int one_arr[20] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    int zero_arr[20] = {0};
+
     BitSort(arr, 20);
     PrintArr(arr, 20);
     printf("\n");
     
+    BitSort(zero_arr, 20);
+    PrintArr(zero_arr, 20);
+    printf("\n");
+
+    BitSort(one_arr, 20);
+    PrintArr(one_arr, 20);
+    printf("\n");
+
+
     return 0;
 }
