@@ -3,9 +3,9 @@
 
 #include <stddef.h>
 
-int IterBinarySearch(int arr[], size_t size, int target);
+int IterBinarySearch(const int* arr, size_t size, int target);
 
-int BinarySearch(int arr[], int size, int target);
+int BinarySearch(const int* arr, int size, int target);
 
 int MergeSort (int arr[], int num_of_elements);
 

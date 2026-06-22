@@ -1,7 +1,17 @@
-#include <stddef.h>
-#include <stdlib.h>
+/**********************
+* binary search
+* Author: Tal Frank
+* Reviewer: Or Zellner
+* Last update: 21/06/2026
+**********************/
+
+#include <stddef.h> /* size_t */
+#include <stdlib.h> /* malloc , free */
+#include <assert.h> /* assert */
 
 #include "binary_search.h"
+
+#define MIN(num1, num2) (((num1) < (num2)) ? (num1) : (num2))
 
 enum Status
 {
@@ -13,13 +23,12 @@ enum Status
 /****************************** STATIC FUNCTIONS DECLARATIONS ******************************/
 /*-----------------------------------------------------------------------------------------*/
 
-static int RecBinarySearch(int arr[], int start, int size, int target);
-static int min(int num1, int num2);
+static int RecBinarySearch(int* arr, int start, int size, int target);
 static void SortPartitions(int arr[], int buffer[], int num_of_elements);
 static void CopyArray(int arr[], int buffer[], int num_of_elements);
 static size_t GetPivot(size_t number_of_elements);
 static void SwapElements(char* element1, char* element2, size_t size_of_element);
-static int MergeSortHelper (int arr[], int num_of_elements, int* buffer);
+static void MergeSortHelper (int arr[], int num_of_elements, int* buffer);
 
 static void SortAroundPivot(void* arr, 
                             size_t* pivot,
@@ -37,14 +46,18 @@ static void PivotMovingSort(char* arr_runner,
 /****************************** BINARY SEARCH ITERATIVE ******************************/
 /*-----------------------------------------------------------------------------------*/
 
-int IterBinarySearch(int arr[], size_t size, int target)
+int IterBinarySearch(const int* arr, size_t size, int target)
 {
-    int start = 0;
-    int end = size - 1;
-    int search_index = (start + end) / 2;
+    size_t start = 0;
+    size_t end = size - 1;
+    size_t search_index = 0;
 
-    while (start <= end)
+    assert (NULL != arr);
+
+    while (start <= end && ((size_t) - 1) != end)
     {
+        search_index = (start + end) / 2;
+        
         if (target == arr[search_index])
         {
             return search_index;
@@ -58,8 +71,6 @@ int IterBinarySearch(int arr[], size_t size, int target)
         {
             end = search_index - 1;
         }
-
-        search_index = (start + end) / 2;
     }
     return FAILURE;
 }
@@ -68,23 +79,30 @@ int IterBinarySearch(int arr[], size_t size, int target)
 /****************************** BINARY SEARCH RECURSIVE ******************************/
 /*-----------------------------------------------------------------------------------*/
 
-int BinarySearch(int arr[], int size, int target)
+int BinarySearch(const int* arr, int size, int target)
 {
-    return RecBinarySearch(arr, 0, size - 1, target);
+    assert (NULL != arr);
+    
+    return RecBinarySearch((int*)arr, 0, size - 1, target);
 }
 
-static int RecBinarySearch(int arr[], int start, int size, int target)
+static int RecBinarySearch(int* arr, int start, int size, int target)
 {
-    int search_index = (start + (size)) / 2;
+    int search_index = 0;
+
+    assert (NULL != arr);
+
+    search_index = (start + size) / 2;
+
     if (target == arr[search_index])
     {
         return search_index;
     }
-    else if (start > size)
+    else if (start >= size)
     {
         return FAILURE;
     }
-    if (target > arr[search_index])
+    else if (target > arr[search_index])
     {
         return RecBinarySearch(arr, search_index + 1, size, target);
     }
@@ -100,24 +118,30 @@ static int RecBinarySearch(int arr[], int start, int size, int target)
 
 int MergeSort (int arr[], int num_of_elements)
 {
-    int result = 0;
-    int* buffer = (int*)malloc(num_of_elements * sizeof(int));
+    int* buffer = 0;
+
+    assert(NULL != arr);
+
+    buffer = (int*)malloc(num_of_elements * sizeof(int));
     if (NULL == buffer)
     {
         return FAILURE;
     }
-    result = MergeSortHelper (arr, num_of_elements, buffer);
+
+    MergeSortHelper (arr, num_of_elements, buffer);
     free(buffer);
-    return result;
+    return SUCCESS;
 }
 
-static int MergeSortHelper (int arr[], int num_of_elements, int* buffer)
+static void MergeSortHelper (int arr[], int num_of_elements, int* buffer)
 {
     int half_elements = num_of_elements / 2;
 
+    assert(NULL != arr);
+
     if (1 == num_of_elements)
     {
-        return SUCCESS;
+        return;
     }
     
     MergeSortHelper(arr, half_elements, buffer);
@@ -125,8 +149,6 @@ static int MergeSortHelper (int arr[], int num_of_elements, int* buffer)
 
     SortPartitions(arr, buffer, num_of_elements);
     CopyArray(arr, buffer, num_of_elements);
-
-    return SUCCESS;
 }
 
 /*----------------------------------------------------------------------*/
@@ -139,6 +161,10 @@ void QuickSort(void* arr,
                int (*cmp_func)(const void* num1, const void* num2))
 {
     size_t pivot = 0;
+
+    assert(NULL != arr);
+    assert(NULL != cmp_func);
+
     if (1 >= number_of_elements)
     {
         return;
@@ -148,7 +174,7 @@ void QuickSort(void* arr,
 
     SortAroundPivot(arr, &pivot, number_of_elements, size_of_element, cmp_func);
 
-    QuickSort((void*)((char*)arr), 
+    QuickSort(arr, 
               pivot, 
               size_of_element, 
               cmp_func);
@@ -167,12 +193,12 @@ static void SortPartitions(int arr[], int buffer[], int num_of_elements)
 {
     int i = 0;
     int j = 0;
-    int k = num_of_elements / 2;
     int half_elements = num_of_elements / 2;
+    int k = half_elements;
     
     while (half_elements > j && num_of_elements > (k))
     {
-        buffer[i++] = min(arr[j], arr[k]);
+        buffer[i++] = MIN(arr[j], arr[k]);
         (arr[j] > arr[k]) ? ++k : ++j;      
     }
 
@@ -196,11 +222,6 @@ static void CopyArray(int arr[], int buffer[], int num_of_elements)
     }
 }
 
-static int min(int num1, int num2)
-{
-    return (num1 < num2) ? num1 : num2;
-}
-
 static size_t GetPivot(size_t number_of_elements)
 {
     return rand() % (number_of_elements);
@@ -215,25 +236,32 @@ static void SortAroundPivot(void* arr,
     size_t start = 0;
     size_t end = number_of_elements - 1;
     char* arr_runner = (char*)arr;
+    size_t start_index = 0;
+    size_t pivot_index = 0;
+    size_t end_index = 0;
+
     while (*pivot != start && *pivot != end)
     {
-        if (0 > cmp_func(&arr_runner[*pivot * size_of_element], 
-                          &arr_runner[start * size_of_element]) 
-         && 0 <= cmp_func(&arr_runner[*pivot * size_of_element], 
-                         &arr_runner[end * size_of_element]))
+        start_index = start * size_of_element;
+        pivot_index = *pivot * size_of_element;
+        end_index = end * size_of_element;
+        if (0 > cmp_func(&arr_runner[pivot_index], 
+                         &arr_runner[start_index]) 
+         && 0 <= cmp_func(&arr_runner[pivot_index], 
+                          &arr_runner[end_index]))
         {
-            SwapElements(&arr_runner[start * size_of_element], 
-                         &arr_runner[end * size_of_element], 
+            SwapElements(&arr_runner[start_index], 
+                         &arr_runner[end_index], 
                          size_of_element);
         }
         else
         {
-            start = (0 < cmp_func(&arr_runner[start * size_of_element], 
-                                  &arr_runner[*pivot * size_of_element])) ? 
+            start = (0 < cmp_func(&arr_runner[start_index], 
+                                  &arr_runner[pivot_index])) ? 
                                   start : start + 1;
-            end = (0 >= cmp_func(&arr_runner[end * size_of_element], 
-                                &arr_runner[*pivot * size_of_element])) ? 
-                                end : end - 1;
+            end = (0 >= cmp_func(&arr_runner[end_index], 
+                                 &arr_runner[pivot_index])) ? 
+                                 end : end - 1;
         }
     }
     
@@ -265,14 +293,14 @@ static void PivotMovingSort(char* arr_runner,
     while (*pivot >= start + i)
     {
         if (0 > cmp_func(&arr_runner[*pivot * size_of_element], 
-                        &arr_runner[(*pivot - i) * size_of_element]))
+                         &arr_runner[(*pivot - i) * size_of_element]))
         {
             SwapElements(&arr_runner[(*pivot - 1) * size_of_element], 
-                        &arr_runner[(*pivot - i) * size_of_element], 
-                        size_of_element);
+                         &arr_runner[(*pivot - i) * size_of_element], 
+                         size_of_element);
             SwapElements(&arr_runner[*pivot * size_of_element], 
-                        &arr_runner[(*pivot - 1) * size_of_element], 
-                        size_of_element);
+                         &arr_runner[(*pivot - 1) * size_of_element], 
+                         size_of_element);
             *pivot -= 1;
             i -= 1;
         }
@@ -285,11 +313,11 @@ static void PivotMovingSort(char* arr_runner,
                         &arr_runner[(*pivot + i) * size_of_element]))
         {
             SwapElements(&arr_runner[(*pivot + 1) * size_of_element], 
-                        &arr_runner[(*pivot + i) * size_of_element], 
-                        size_of_element);
+                         &arr_runner[(*pivot + i) * size_of_element], 
+                         size_of_element);
             SwapElements(&arr_runner[*pivot * size_of_element], 
-                        &arr_runner[(*pivot + 1) * size_of_element], 
-                        size_of_element);
+                         &arr_runner[(*pivot + 1) * size_of_element], 
+                         size_of_element);
             *pivot += 1;
             i -= 1;
         }
