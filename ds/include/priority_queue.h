@@ -1,7 +1,7 @@
 #ifndef __PQ_H__
 #define __PQ_H__
 
-#include "sorted_list.h"
+#include "heap.h"
 
 typedef struct priority_queue pq_t;
  
@@ -51,7 +51,7 @@ void PQDestroy(pq_t* pq);
 *		
 ******************************************************************************/
 
-int PQEnqueue(pq_t* pq, const void* data); 
+int PQEnqueue(pq_t* pq, void* data); 
 
 /*****************************************************************
 * 		
