@@ -8,7 +8,7 @@
 #include <stdlib.h> /* malloc */
 #include <assert.h> /* assert */
 
-#include "../include/doubly_linked_list.h"
+#include "doubly_linked_list.h"
 
 typedef struct Dll_Node dnode_t;
 
@@ -59,6 +59,7 @@ dll_t* DllCreate(void)
 	if (NULL == head_dummy)
 	{
 		free(dll);
+		dll = NULL;
 		return NULL;
 	}
 	
@@ -66,7 +67,9 @@ dll_t* DllCreate(void)
 	if (NULL == tail_dummy)
 	{
 		free(dll);
+		dll = NULL;
 		free(head_dummy);
+		head_dummy = NULL;
 		return NULL;
 	}
 	
@@ -87,10 +90,13 @@ dll_t* DllCreate(void)
 
 void DllDestroy(dll_t* dll)
 {
-	dnode_t* freed = dll->head;
-	dnode_t* iter = dll->head;
+	dnode_t* freed = NULL;
+	dnode_t* iter = NULL;
 	
 	assert(NULL != dll);
+	
+	freed = dll->head;
+	iter = dll->head;
 	
 	while (!DllIsIterEqual(DllEnd(dll), iter))
 	{
@@ -188,7 +194,7 @@ int DllIsEmpty(const dll_t* dll)
 void* DllGetData(dll_iter_t iter)
 {
 	dnode_t* dnode = IterToNode(iter);
-	return NodeToIter(dnode->data);
+	return dnode->data;
 }
 
 
@@ -226,7 +232,7 @@ dll_iter_t DllRemove(dll_iter_t iter)
 	LinkNodes(prev_node, next_node);
 	
 	free(IterToNode(iter));
-	return IterToNode(next_node);
+	return NodeToIter(next_node);
 }
 
 
@@ -239,11 +245,11 @@ dll_iter_t DllFind(dll_iter_t from, dll_iter_t to,
 {	
 	int compare = comp_func(DllGetData(from), param);
 
-	assert(from != to);
+	assert(1 != DllIsIterEqual(from, to));
 
 	while (!DllIsIterEqual(to , from) && 0 != compare)
 	{
-		from = from->next;
+		from = DllGetNext(from);
 		compare = comp_func(DllGetData(from), param);
 	}
 	return from;
