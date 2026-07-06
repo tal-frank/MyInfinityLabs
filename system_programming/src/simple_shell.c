@@ -1,7 +1,7 @@
 /**********************
 * simple shell
 * Author: Tal Frank
-* Reviewer: Moshe Moiseev
+* Reviewer: Or Zellner
 * Last update: 05/07/2026
 **********************/
 
@@ -77,7 +77,7 @@ static void SystemShell(void)
         }
         else
         {
-            if (FAILURE == system(command))
+            if (SUCCESS != system(command))
             {
                 fprintf(stderr, "error detected: %s\n", strerror(errno));
             }
@@ -102,14 +102,13 @@ static void ForkShell(void)
     {
         fgets(command, BUFSIZ, stdin);
         command[strcspn(command, "\n")] = '\0';
+        pid = fork();
         if (0 == strcmp(command, "exit"))
         {
             keep_running = 0;
-            continue;
         }
         
-        pid = fork();
-        if (0 == pid)
+        else if (0 == pid)
         {
             RunCommand(command);
         }
@@ -129,7 +128,7 @@ static void RunCommand(char command[])
 {
     int i = 0;
     const char delimiters[1] = " ";
-    char* args[100] = {0};
+    char* args[127] = {0};
     char* token = strtok(command, delimiters);
 
     while (NULL != token)
