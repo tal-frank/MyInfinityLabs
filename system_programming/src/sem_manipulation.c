@@ -39,6 +39,7 @@ int main()
         }
     }
     
+    semctl(semaphore, 0, IPC_RMID);
     fclose(file);
     return 0;
 }
