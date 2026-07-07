@@ -1,5 +1,6 @@
 #include <stdlib.h> /* malloc , free */
 #include <string.h> /* memcpy , memset*/
+#include <stdio.h>
 
 #include "dhcp.h" /* dhcp API */
 
@@ -93,9 +94,29 @@ dhcp_t* DHCPCreate(const unsigned char subnet[BYTES_IN_IP], size_t num_of_bits_i
     bytes = InitByteIndex(dhcp);
     bits = InitBitIndex(dhcp);
 
-    TrieInsert(dhcp->trie->root, network_address, bytes, bits, network_address);
-    TrieInsert(dhcp->trie->root, server_address, bytes, bits, server_address);
-    TrieInsert(dhcp->trie->root, broadcast_address, bytes, bits, broadcast_address);
+    TrieInsert(dhcp->trie->root, 
+               network_address, 
+               bytes, 
+               bits, 
+               network_address);
+
+               printf("\n\n\n");
+               
+    TrieInsert(dhcp->trie->root, 
+               server_address, 
+               bytes, 
+               bits, 
+               server_address);
+
+               printf("\n\n\n");
+               
+    TrieInsert(dhcp->trie->root, 
+               broadcast_address, 
+               bytes, 
+               bits, 
+               broadcast_address);
+
+               printf("\n\n\n");
     
     return dhcp;
 }
@@ -123,11 +144,20 @@ dhcp_status_t DHCPAllocIP(dhcp_t* dhcp,
     
     memcpy(result_ip, dhcp->subnet, BYTES_IN_IP);
 
-    status = TrieInsert(dhcp->trie->root, (unsigned char*)request_ip, bytes, bits, result_ip);
+    status = TrieInsert(dhcp->trie->root, 
+                        (unsigned char*)request_ip, 
+                        bytes, 
+                        bits, 
+                        result_ip);
     if (IP_NOT_AVAILABLE_ERROR == status)
     {
         memcpy(result_ip, dhcp->subnet, BYTES_IN_IP);
-        status = TrieInsert(dhcp->trie->root, initial_ip, bytes, bits, result_ip);
+        printf("check if entered\n\n\n");
+        status = TrieInsert(dhcp->trie->root, 
+                            initial_ip, 
+                            bytes, 
+                            bits, 
+                            result_ip);
     }
 
     return status;
@@ -148,7 +178,7 @@ dhcp_status_t DHCPFreeIP(dhcp_t* dhcp, const unsigned char ip_to_free[BYTES_IN_I
 size_t DHCPCountFree(const dhcp_t* dhcp)
 {
     size_t host_bits = BITS_IN_NET - dhcp->num_of_bits_in_subnet;
-    size_t num_allocated = TrieCountAllocated(dhcp->trie->root, host_bits);
+    size_t num_allocated = TrieCountAllocated(dhcp->trie->root, host_bits + 1);
     return IntPow(2, host_bits) - num_allocated - 1; 
 }
 
@@ -191,6 +221,20 @@ static dhcp_status_t TrieInsert(trie_node_t* node,
     unsigned char init_ip[BYTES_IN_IP] = {0};
     trie_node_t* next_node = NULL;
 
+    if ((0 > bits) && (BYTES_IN_IP - 1 == bytes))
+    {
+        if (ALLOCATED == node->is_allocated)
+        {
+            return IP_NOT_AVAILABLE_ERROR;
+        }
+        /*
+        (0 == path) ? (result_ip[bytes] &= ~mask) : 
+                      (result_ip[bytes] |= mask);
+        */
+        node->is_allocated = ALLOCATED;
+        return SUCCESS;
+    }
+
     if (NULL == node->children[path])
     {
         node->children[path] = CreateNode();
@@ -199,30 +243,33 @@ static dhcp_status_t TrieInsert(trie_node_t* node,
             return MEMORY_ERROR;
         }
     }
-
-    next_node = node->children[path];
-    if (ALLOCATED == next_node->is_allocated)
-    {
-        return IP_NOT_AVAILABLE_ERROR;
-    }
-
-    if ((BYTES_IN_IP - 1 == bytes) && (0 > bits))
-    {
-        node->is_allocated = ALLOCATED;
-        return SUCCESS;
-    }
-
-    (0 > bits) ? (bits = CHAR_BIT_SIZE - 1 , ++bytes) : (--bits);
-    (0 == path) ? (result_ip[bytes] &= ~mask) : (result_ip[bytes] |= mask);
     
-    status = TrieInsert(next_node, ip_arr, bytes, bits , result_ip);
+    next_node = node->children[path];
+    (0 > bits) ? (bits = CHAR_BIT_SIZE - 1 , ++bytes) : (--bits);
+    status = TrieInsert(next_node, ip_arr, bytes, bits, result_ip);
+    /*
+    if (0 > bits)
+    {
+        status = TrieInsert(next_node, ip_arr, bytes + 1, CHAR_BIT_SIZE - 1, result_ip);
+    }
+    else
+    {
+        status = TrieInsert(next_node, ip_arr, bytes, bits - 1, result_ip);
+    }
+    */
+
+/*
+    printf("status1 = %d , bit = %d, byte = %d, path = %d\n", status, bits, bytes, path);
+*/
     
     if (SUCCESS == status)
     {    
+        (0 == path) ? (result_ip[bytes] &= ~mask) : 
+                      (result_ip[bytes] |= mask);   
         UpdateAllocation(node);
     }
 
-    else
+    else if (IP_NOT_AVAILABLE_ERROR == status)
     {
         if (NULL == node->children[ONE])
         {
@@ -232,21 +279,35 @@ static dhcp_status_t TrieInsert(trie_node_t* node,
                 return MEMORY_ERROR;
             }
         }
-        if ((0 == path) && (NOT_ALLOCATED == node->children[ONE]->is_allocated))
+        if ((0 == path) && 
+            (NOT_ALLOCATED == node->children[ONE]->is_allocated))
         {
             result_ip[bytes] |= mask;
-            status = TrieInsert(node->children[ONE], init_ip, bytes, bits , result_ip);
+            path = 1;
+            status = TrieInsert(node->children[ONE], 
+                                result_ip, 
+                                bytes, 
+                                bits, 
+                                result_ip);
+            /*
+            printf("status2 = %d , bit = %d, byte = %d path = %d\n", status, bits, bytes, path);
+            */
         }
         else
         {
             return IP_NOT_AVAILABLE_ERROR;
         }
     }
-
+/*
+    printf("status3 = %d , bit = %d, byte = %d, path = %d\n", status, bits, bytes, path);
+*/
     return status;
 }
 
-static dhcp_status_t TrieFree(trie_node_t* node, unsigned char ip_arr[], int bytes, int bits)
+static dhcp_status_t TrieFree(trie_node_t* node, 
+                              unsigned char ip_arr[], 
+                              int bytes, 
+                              int bits)
 {
     dhcp_status_t status = SUCCESS;
     char mask = 1 << bits;
@@ -264,7 +325,7 @@ static dhcp_status_t TrieFree(trie_node_t* node, unsigned char ip_arr[], int byt
         return IP_NOT_ALLOCATED_ERROR;
     }
 
-    (0 > bits) ? (bits = CHAR_BIT_SIZE - 1 , ++bytes) : (--bits);
+    (0 > bits) ? (bits = (CHAR_BIT_SIZE - 1) , ++bytes) : (--bits);
 
     status = TrieFree(next_node, ip_arr, bytes, bits);
     node->is_allocated = NOT_ALLOCATED;
@@ -335,12 +396,14 @@ static trie_node_t* CreateNode(void)
 
 static size_t InitBitIndex(dhcp_t* dhcp)
 {
-    return (BITS_IN_NET - dhcp->num_of_bits_in_subnet - 1) % CHAR_BIT_SIZE;
+    return (BITS_IN_NET - (dhcp->num_of_bits_in_subnet + 1)) % 
+            CHAR_BIT_SIZE;
 }
 
 static size_t InitByteIndex(dhcp_t* dhcp)
 {
-    return BYTES_IN_IP - (BITS_IN_NET - dhcp->num_of_bits_in_subnet) / CHAR_BIT_SIZE;
+    return BYTES_IN_IP - 
+           (BITS_IN_NET - (dhcp->num_of_bits_in_subnet + 1)) / CHAR_BIT_SIZE - 1;
 }
 
 static void UpdateAllocation(trie_node_t* node_to_allocate)
