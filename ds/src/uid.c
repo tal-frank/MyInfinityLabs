@@ -10,6 +10,7 @@
 #include <time.h> /* time , ctime */
 #include <string.h> /* memcpy , memcmp */
 #include <arpa/inet.h>	/* struct sockaddr_in */
+#include <pthread.h> /* mutex */
 
 #include "uid.h"
 
@@ -39,7 +40,13 @@ typedef enum
 ilrd_uid_t UIDCreate(void)
 {
 	ilrd_uid_t uid = {0};
-	
+	pthread_mutex_t mutex = {0};
+
+	if (0 != pthread_mutex_init(&mutex, NULL)) 
+    {
+        return UIDBadUID;
+    }
+
 	uid.pid = getpid();
 	uid.time = time(NULL);
 	if (ERROR == uid.time)
@@ -47,7 +54,10 @@ ilrd_uid_t UIDCreate(void)
 		return UIDBadUID;
 	}
 
+	pthread_mutex_lock(&mutex);
 	uid.counter = SetCounter();
+	pthread_mutex_unlock(&mutex);
+
 	SetIP(&uid);
 	
 	return uid;
