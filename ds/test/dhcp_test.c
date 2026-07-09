@@ -48,7 +48,7 @@ void AllocTest(void)
     status = DHCPAllocIP(dhcp, request_ip1, result_ip);
     printf("status = %d\n", status);
     PrintIP(result_ip);
-    /*
+    
     status = DHCPAllocIP(dhcp, request_ip2, result_ip);
     printf("status = %d\n", status);
     PrintIP(result_ip);
@@ -84,7 +84,7 @@ void AllocTest(void)
     status = DHCPAllocIP(dhcp, request_ip6, result_ip);
     printf("status = %d\n", status);
     PrintIP(result_ip);
-    */
+    
     status = DHCPAllocIP(dhcp, request_ip10, result_ip);
     printf("status = %d\n", status);
     PrintIP(result_ip);
@@ -92,7 +92,7 @@ void AllocTest(void)
     printf("status = %d\n", status);
     PrintIP(result_ip);
 
-    /*
+    
     status = DHCPAllocIP(dhcp, request_ip12, result_ip);
     printf("status = %d\n", status);
     PrintIP(result_ip);
@@ -109,7 +109,7 @@ void AllocTest(void)
     status = DHCPAllocIP(dhcp, request_ip6, result_ip);
     printf("status = %d\n", status);
     PrintIP(result_ip);
-*/    
+   
     
    
     size = DHCPCountFree(dhcp);
@@ -125,11 +125,11 @@ void AllocTest(void)
 
     size = DHCPCountFree(dhcp);
     printf("size = %ld\n", size);
-    /*
+    
     status = DHCPAllocIP(dhcp, request_ip1, result_ip);
     printf("status = %d\n", status);
     PrintIP(result_ip);
-*/
+
     size = DHCPCountFree(dhcp);
     printf("size = %ld\n", size);
     DHCPDestroy(dhcp);
