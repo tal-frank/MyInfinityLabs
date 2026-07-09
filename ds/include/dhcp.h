@@ -13,7 +13,7 @@ typedef enum DHCPStatus
     IP_NOT_AVAILABLE_ERROR
 } dhcp_status_t;
 
-typedef struct Dhcp dhcp_t;
+typedef struct DHCP dhcp_t;
 
 
 dhcp_t* DHCPCreate(const unsigned char subnet[BYTES_IN_IP], size_t num_of_bits_in_subnet);

@@ -1,6 +1,12 @@
+/**********************
+* DHCP
+* Author: Tal Frank
+* Reviewer: Almog Nimni
+* Last update: 19/07/2026
+**********************/
+
 #include <stdlib.h> /* malloc , free */
 #include <string.h> /* memcpy , memset*/
-#include <stdio.h>
 
 #include "dhcp.h" /* dhcp API */
 
@@ -21,7 +27,7 @@ enum node_direction
 {
     ZERO = 0,
     ONE = 1, 
-    IS_BIT_ON
+    NUM_DIRECTIONS
 };
 
 typedef struct trie_node trie_node_t;
@@ -29,7 +35,7 @@ typedef struct trie_node trie_node_t;
 struct trie_node
 {
     int is_allocated;
-    trie_node_t* children[IS_BIT_ON];
+    trie_node_t* children[NUM_DIRECTIONS];
 };
 
 typedef struct trie
@@ -37,7 +43,7 @@ typedef struct trie
     trie_node_t* root;
 }trie_t;
 
-struct Dhcp
+struct DHCP
 {
     size_t num_of_bits_in_subnet;
     const unsigned char subnet[BYTES_IN_IP];
@@ -73,7 +79,8 @@ static dhcp_status_t TrieInsert(trie_node_t* node,
 /************************* CREATE & DESTROY *************************/
 /*------------------------------------------------------------------*/
 
-dhcp_t* DHCPCreate(const unsigned char subnet[BYTES_IN_IP], size_t num_of_bits_in_subnet)
+dhcp_t* DHCPCreate(const unsigned char subnet[BYTES_IN_IP], 
+                   size_t num_of_bits_in_subnet)
 {
     unsigned char network_address[BYTES_IN_IP] = {0};
     unsigned char server_address[BYTES_IN_IP] = {255, 255, 255, 254};
@@ -158,12 +165,16 @@ dhcp_status_t DHCPAllocIP(dhcp_t* dhcp,
     return status;
 }
 
-dhcp_status_t DHCPFreeIP(dhcp_t* dhcp, const unsigned char ip_to_free[BYTES_IN_IP])
+dhcp_status_t DHCPFreeIP(dhcp_t* dhcp, 
+                         const unsigned char ip_to_free[BYTES_IN_IP])
 {
     size_t bytes = InitByteIndex(dhcp);
     size_t bits = InitBitIndex(dhcp);
     
-    return TrieFree(dhcp->trie->root, (unsigned char*)ip_to_free, bytes, bits);
+    return TrieFree(dhcp->trie->root, 
+                    (unsigned char*)ip_to_free, 
+                    bytes, 
+                    bits);
 }
 
 /*------------------------------------------------------------*/
@@ -400,7 +411,8 @@ static size_t InitBitIndex(dhcp_t* dhcp)
 static size_t InitByteIndex(dhcp_t* dhcp)
 {
     return BYTES_IN_IP - 
-           (BITS_IN_NET - (dhcp->num_of_bits_in_subnet + 1)) / CHAR_BIT_SIZE - 1;
+           (BITS_IN_NET - (dhcp->num_of_bits_in_subnet + 1)) / 
+           CHAR_BIT_SIZE - 1;
 }
 
 static void UpdateAllocation(trie_node_t* node_to_allocate)

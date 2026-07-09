@@ -21,7 +21,7 @@ enum node_direction
 {
     ZERO = 0,
     ONE = 1, 
-    IS_BIT_ON
+    NUM_DIRECTIONS
 };
 
 typedef struct trie_node trie_node_t;
@@ -29,7 +29,7 @@ typedef struct trie_node trie_node_t;
 struct trie_node
 {
     int is_allocated;
-    trie_node_t* children[IS_BIT_ON];
+    trie_node_t* children[NUM_DIRECTIONS];
 };
 
 typedef struct trie
