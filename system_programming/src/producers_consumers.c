@@ -31,18 +31,22 @@ typedef struct dll_lock
     int message;
 }dll_lock_t;
 
+pthread_cond_t ready = {0};
+int wait = 1;
+int message_number = 0;
 sem_t write_sem = {0};
 sem_t read_sem = {0};
-volatile int lock = 1;
+sem_t number_thread_sem = {0};
+volatile int lock = 0;
 
 void SpinLockInsetr()
 {
-    while (0 == lock);
+    while (1 == lock);
 }
 
 void SpinLockPop()
 {
-    while (1 == lock);
+    while (0 == lock);
 }
 
 void* InsertDll(void* data)
@@ -118,13 +122,11 @@ void* PopCBuffTwoSem(void* data)
     pthread_mutex_t* mutex = ((cbuff_lock_t*)data)->mutex;
 
     sem_wait(&read_sem);
-    
     pthread_mutex_lock(mutex); 
 
     CBuffRead(cbuff, (void*)&message, 1);
 
     pthread_mutex_unlock(mutex);
-    
     sem_post(&write_sem);
 
     printf("message recieved : %d\n", message);
@@ -138,7 +140,6 @@ void* InsertDllOneSem(void* data)
     int message = 0;
     pthread_mutex_t* mutex = ((dll_lock_t*)data)->mutex;
 
-    
     pthread_mutex_lock(mutex);
     
     message = ((dll_lock_t*)data)->message;
@@ -180,8 +181,8 @@ void* InsertCBuff(void* data)
     for (i = 0; i < 5; ++i)
     {
         CBuffWrite(cbuff, (void*)&arr[i], 1);
-        printf("sent a message.\n");
-        lock = 0;
+        printf("sent a message.\n"); 
+        __sync_lock_test_and_set(&lock, 1);
         SpinLockInsetr();
     }
     return NULL;
@@ -197,10 +198,64 @@ void* PopCBuff(void* data)
         SpinLockPop();
         CBuffRead(cbuff, arr, 1);
         printf("recieved message : %d\n", arr[0]);
-        lock = 1;
+        __sync_lock_release(&lock);
     }
 
     CBuffDestroy(cbuff);
+    return NULL;
+}
+
+void* InsertDllBarrier(void* data)
+{
+    size_t i = 0;
+    size_t j = 0;
+    dll_t* dll = ((dll_lock_t*)data)->dll;
+    int message[TWENTY - 1] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
+    pthread_mutex_t* mutex = ((dll_lock_t*)data)->mutex;
+    
+    while (i < TWENTY - 1)
+    {
+        for (j = 0; j < TWENTY - 1; ++j)
+        {
+            sem_wait(&number_thread_sem);
+        }        
+        pthread_mutex_lock(mutex);
+        
+        DllPushFront(dll, &message[i]);
+        message_number += 1;
+        pthread_cond_broadcast(&ready);
+        pthread_mutex_unlock(mutex);
+        
+        ++i;
+    }
+    return NULL;
+}
+
+void* PopDllBarrier(void* data)
+{
+    size_t i = 0;
+    dll_t* dll = ((dll_lock_t*)data)->dll;
+    int message = 0;
+    int thread_message_number = 0;
+    pthread_mutex_t* mutex = ((dll_lock_t*)data)->mutex;
+    
+    while (i < TWENTY - 1)
+    {     
+        thread_message_number = message_number;
+        sem_post(&number_thread_sem);
+        
+        pthread_mutex_lock(mutex);
+        while (thread_message_number == message_number)
+        {
+            pthread_cond_wait(&ready, mutex);
+        }  
+        message = *(int*)DllGetData(DllBegin(dll));
+        pthread_mutex_unlock(mutex);
+        
+        ++i;
+        printf("message number %ld is : %d\n", i, message);
+    }
+
     return NULL;
 }
 
@@ -363,6 +418,51 @@ void Exercise4(void)
     CBuffDestroy(cbuff);
 }
 
+void Exercise6(void)
+{
+    size_t i = 0;
+    pthread_t thread[TWENTY] = {0};
+    dll_t* dll = DllCreate();
+    pthread_mutex_t mutex = {0};
+    dll_lock_t dll_lock[TWENTY] = {0};
+
+    sem_init(&number_thread_sem, 0, 0);
+    pthread_cond_init(&ready, NULL);
+
+    if (0 != pthread_mutex_init(&mutex, NULL)) 
+    {
+        return;
+    }
+    
+    dll_lock[0].dll = dll;
+    dll_lock[0].mutex = &mutex;
+
+    if (SUCCESS != pthread_create(&thread[0], NULL, InsertDllBarrier, (void*)&dll_lock[0]))
+    {
+        perror("could not create a thread");
+    }
+
+    for (i = 1; i < TWENTY; ++i)
+    {
+        dll_lock[i].dll = dll;
+        dll_lock[i].mutex = &mutex;
+        if (SUCCESS != pthread_create(&thread[i], NULL, PopDllBarrier, (void*)&dll_lock[i]))
+        {
+            perror("could not create a thread");
+        }
+    }
+
+    for(i = 0; i < TWENTY; ++i)
+    {
+        if (SUCCESS != pthread_join(thread[i], NULL))
+        {
+            perror("could not destroy a thread");
+        }
+    }
+    pthread_cond_destroy(&ready);
+    DllDestroy(dll);
+}
+
 int main()
 {
     printf("exercise 1:\n");
@@ -373,6 +473,9 @@ int main()
     Exercise3();
     printf("\nexercise 4:\n");
     Exercise4();
+    printf("\nexercise 6:\n");
+    Exercise6();
 
     return 0;
 }
+
