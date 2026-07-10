@@ -25,6 +25,7 @@ const ilrd_uid_t UIDBadUID = {0};
 
 static size_t SetCounter(void);
 static void SetIP(ilrd_uid_t* uid);
+static pthread_mutex_t uid_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef enum
 {
@@ -40,12 +41,6 @@ typedef enum
 ilrd_uid_t UIDCreate(void)
 {
 	ilrd_uid_t uid = {0};
-	pthread_mutex_t mutex = {0};
-
-	if (0 != pthread_mutex_init(&mutex, NULL)) 
-    {
-        return UIDBadUID;
-    }
 
 	uid.pid = getpid();
 	uid.time = time(NULL);
@@ -54,9 +49,7 @@ ilrd_uid_t UIDCreate(void)
 		return UIDBadUID;
 	}
 
-	pthread_mutex_lock(&mutex);
 	uid.counter = SetCounter();
-	pthread_mutex_unlock(&mutex);
 
 	SetIP(&uid);
 	
@@ -71,9 +64,9 @@ ilrd_uid_t UIDCreate(void)
 int UIDIsEqual(ilrd_uid_t uid1, ilrd_uid_t uid2)
 {
 	return (uid1.pid     == uid2.pid     &&
-		uid1.time    == uid2.time    &&
-		uid1.counter == uid2.counter &&
-		COMP_SAME    == memcmp(uid1.ip, uid2.ip, IPSIZE));
+			uid1.time    == uid2.time    &&
+			uid1.counter == uid2.counter &&
+			COMP_SAME    == memcmp(uid1.ip, uid2.ip, IPSIZE));
 }
 
 
@@ -84,7 +77,11 @@ int UIDIsEqual(ilrd_uid_t uid1, ilrd_uid_t uid2)
 static size_t SetCounter(void)
 {
 	static size_t counter = 0;
+
+	pthread_mutex_lock(&uid_mutex);
 	++counter;
+	pthread_mutex_unlock(&uid_mutex);
+
 	return counter;
 }
 
