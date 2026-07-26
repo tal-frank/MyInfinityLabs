@@ -18,9 +18,9 @@
 
 #include <stdio.h> /*tests*/
 
-#include "watchdog.h"
-#include "scheduler.h"
-#include "uid.h"
+#include "watchdog.h" /* watchdog API */
+#include "scheduler.h" /* scheduler API */
+#include "uid.h" /* uid API */
 
 #define UNUSED(x) ((void)x)
 
