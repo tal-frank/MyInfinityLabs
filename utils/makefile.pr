@@ -1,0 +1,196 @@
+# **************************************************************** User Setup */
+NAME        ?= default# File name
+PROJECT     ?= projects/watchdog# Project name
+GIT_DIR     ?= git# GIT directory name
+
+# Additional directories containing headers and source files
+ADDITIONAL_SRC_DIRS ?= c ds projects utils system_programming
+
+HOME        ?= $(shell echo $$HOME)
+CURRENT_DIR ?= $(shell echo $$CURDIR)
+
+null   :=
+space  := $(null) $(null)
+
+# ************************************************ All directories & sources */
+PROJECT_DIR := $(HOME)/$(GIT_DIR)/$(PROJECT)
+
+ALL_SRC_DIRS    := $(addprefix $(HOME)/$(GIT_DIR)/, $(PROJECT) $(ADDITIONAL_SRC_DIRS))
+
+# Recursively find ALL directories and subdirectories containing headers/sources (ignoring .git to prevent loops)
+ALL_SRC_SUBDIRS := $(sort $(shell find $(ALL_SRC_DIRS) -type d ! -path "*/.git*" 2>/dev/null))
+
+VPATH           := $(subst $(space),:,$(strip $(ALL_SRC_SUBDIRS)))
+
+# Find ALL .c files across all depths (ignoring .git)
+ALL_SRC         := $(sort $(shell find $(ALL_SRC_SUBDIRS) -type f -name "*.c" ! -path "*/.git*" 2>/dev/null))
+ALL_SRC         := $(filter-out %/try.c %/structs.c, $(ALL_SRC))
+
+# Match main and test targets precisely
+MAIN_SRC        := $(firstword $(filter $(PROJECT_DIR)/%/$(NAME).c, $(ALL_SRC)) $(filter %/$(NAME).c, $(ALL_SRC)))
+TEST_SRC        := $(firstword $(filter $(PROJECT_DIR)/%/$(NAME)_test.c $(PROJECT_DIR)/%/test_$(NAME).c, $(ALL_SRC)) $(filter %/$(NAME)_test.c %/test_$(NAME).c, $(ALL_SRC)))
+
+# Active target source file (prefer test if present, otherwise main)
+ACTIVE_SRC      := $(if $(TEST_SRC),$(TEST_SRC),$(MAIN_SRC))
+
+# ********************************************** Deep Include Resolution */
+# Find all headers to support deep traversal (ignoring .git)
+ALL_HEADERS := $(sort $(shell find $(ALL_SRC_SUBDIRS) -type f -name "*.h" ! -path "*/.git*" 2>/dev/null))
+
+# AWK Transitive Dependency Resolver
+# Traces local #include "x.h" paths across both .c and .h files to build a complete dependency tree.
+TARGET_MODULE_SRCS := $(shell \
+    awk -v srcs="$(ACTIVE_SRC) $(if $(filter-out $(ACTIVE_SRC),$(MAIN_SRC)),$(MAIN_SRC),)" \
+        -v c_files="$(ALL_SRC)" -v h_files="$(ALL_HEADERS)" ' \
+    BEGIN { \
+        split(c_files, ca, " "); \
+        for (i in ca) { \
+            n = split(ca[i], pa, "/"); stem = pa[n]; sub(/\.c$$/, "", stem); \
+            c_map[stem] = ca[i]; \
+        } \
+        split(h_files, ha, " "); \
+        for (i in ha) { \
+            n = split(ha[i], pa, "/"); stem = pa[n]; sub(/\.h$$/, "", stem); \
+            h_map[stem] = ha[i]; \
+        } \
+        split(srcs, q, " "); \
+        has_items = 0; \
+        for (i in q) { \
+            if (q[i] != "") { queue[q[i]] = 1; c_visited[q[i]] = 1; has_items = 1; } \
+        } \
+        while (has_items) { \
+            has_items = 0; \
+            split("", next_q); \
+            for (f in queue) { \
+                while ((getline line < f) > 0) { \
+                    if (match(line, /#[ \t]*include[ \t]*"[^"]+\.h"/)) { \
+                        s = substr(line, RSTART, RLENGTH); \
+                        q1 = index(s, "\""); \
+                        stem = substr(s, q1 + 1, length(s) - q1 - 3); \
+                        if (stem in c_map && !c_visited[c_map[stem]]) { \
+                            c_visited[c_map[stem]] = 1; next_q[c_map[stem]] = 1; has_items = 1; \
+                        } \
+                        if (stem in h_map && !h_visited[h_map[stem]]) { \
+                            h_visited[h_map[stem]] = 1; next_q[h_map[stem]] = 1; has_items = 1; \
+                        } \
+                    } \
+                } \
+                close(f); \
+            } \
+            split("", queue); \
+            for (k in next_q) queue[k] = 1; \
+        } \
+        for (f in c_visited) print f; \
+    }' 2>/dev/null \
+)
+
+# Remove the active/test files from shared module list to get pure dependency modules
+DEP_MODULE_SRCS := $(filter-out $(ACTIVE_SRC) $(MAIN_SRC) %_test.c %/test_%.c, $(TARGET_MODULE_SRCS))
+
+# Fallback just in case parsing failed entirely
+ifeq ($(strip $(DEP_MODULE_SRCS)),)
+    ifeq ($(strip $(TARGET_MODULE_SRCS)),)
+        DEP_MODULE_SRCS := $(filter-out $(ACTIVE_SRC) $(MAIN_SRC) %_test.c %/test_%.c, $(ALL_SRC))
+    endif
+endif
+
+# ********************************************************* Compilation flags */
+CC            ?= gcc
+
+INCLUDE_FLAGS := $(addprefix -I,$(ALL_SRC_SUBDIRS))
+CFLAGS        ?= -ansi -pedantic-errors -Wall -Wextra -MMD -MP
+VLGFLAGS      ?= --leak-check=yes --track-origins=yes -s
+
+# ***************************************************** Target specific flags */
+DEBUG_FLAGS   := -g
+RELEASE_FLAGS := -DNDEBUG -O3
+TRGTFLAGS     ?= $(CFLAGS) $(INCLUDE_FLAGS)
+
+# *************************************** Target specific Variables and Paths */
+DEBUG_PATH    ?= $(PROJECT_DIR)/bin/debug/
+RELEASE_PATH  ?= $(PROJECT_DIR)/bin/release/
+ARCHIVE_PATH  ?= $(CURRENT_DIR)/
+
+# Shared library dependencies
+DEP_NAMES     := $(notdir $(DEP_MODULE_SRCS:.c=))
+DYLIBS_DB     := $(patsubst %,lib%_db.so,$(DEP_NAMES))
+DYLIBS_RL     := $(patsubst %,lib%.so,$(DEP_NAMES))
+
+# Include auto-generated dependency files for precise rebuilds
+-include $(wildcard $(DEBUG_PATH)*.d $(RELEASE_PATH)*.d *.d)
+
+# ********************************************************* Logic Rules */
+%.o : %.c
+	@echo "Compiling static object: $<..."
+	@$(CC) $(TRGTFLAGS) -c $< -o $@ -lm
+
+$(DEBUG_PATH)lib%_db.so : %.c
+	@mkdir -p $(DEBUG_PATH)
+	@echo " -> Updating debug shared object: $@"
+	@$(CC) -fPIC -shared $(CFLAGS) $(DEBUG_FLAGS) $(INCLUDE_FLAGS) -MT $@ -MF $(DEBUG_PATH)$*_db.d $< -o $@ -lm
+
+$(RELEASE_PATH)lib%.so : %.c
+	@mkdir -p $(RELEASE_PATH)
+	@echo " -> Updating release shared object: $@"
+	@$(CC) -fPIC -shared $(CFLAGS) $(RELEASE_FLAGS) $(INCLUDE_FLAGS) -MT $@ -MF $(RELEASE_PATH)$*.d $< -o $@ -lm
+
+# ************************************************************** Main targets */
+.PHONY: test debug dbso run release rlso runrlso objects clean help runso
+
+test:
+	@echo "NAME:            $(NAME)"
+	@echo "ACTIVE_SRC:      $(ACTIVE_SRC)"
+	@echo "DEP_MODULE_SRCS: $(DEP_MODULE_SRCS)"
+	@echo "DYLIBS_DB count: $(words $(DYLIBS_DB))"
+	@echo "DYLIBS_RL count: $(words $(DYLIBS_RL))"
+	@echo ""
+
+debug: TRGTFLAGS = $(CFLAGS) $(DEBUG_FLAGS) $(INCLUDE_FLAGS)
+debug: TRGTPATH = $(DEBUG_PATH)
+debug: $(notdir $(DEP_MODULE_SRCS:.c=.o)) $(notdir $(MAIN_SRC:.c=.o)) $(notdir $(ACTIVE_SRC:.c=.o))
+	@mkdir -p $(TRGTPATH)
+	@$(CC) $(TRGTFLAGS) $^ -o $(TRGTPATH)$(NAME).out -lm
+	@rm -f *.o *.d
+	@echo "Debug build done."
+
+dbso: TRGTFLAGS = $(CFLAGS) $(DEBUG_FLAGS) $(INCLUDE_FLAGS)
+dbso: TRGTPATH = $(DEBUG_PATH)
+dbso: $(addprefix $(DEBUG_PATH),$(DYLIBS_DB))
+	@echo "Linking test binary against relevant debug shared libraries..."
+	@$(CC) $(TRGTFLAGS) $(ACTIVE_SRC) $(MAIN_SRC) \
+		-L$(TRGTPATH) \
+		-Wl,-rpath,$(TRGTPATH) \
+		-Wl,--start-group $(patsubst lib%_db.so,-l%_db,$(DYLIBS_DB)) \
+		-Wl,--end-group -o $(TRGTPATH)$(NAME).out -lm
+	@echo "Finished dynamic debug compilation for $(NAME)."
+
+rlso: TRGTFLAGS = $(CFLAGS) $(RELEASE_FLAGS) $(INCLUDE_FLAGS)
+rlso: TRGTPATH = $(RELEASE_PATH)
+rlso: $(addprefix $(RELEASE_PATH),$(DYLIBS_RL))
+	@echo "Linking test binary against relevant release shared libraries..."
+	@$(CC) $(TRGTFLAGS) $(ACTIVE_SRC) $(MAIN_SRC) \
+		-L$(TRGTPATH) \
+		-Wl,-rpath,$(TRGTPATH) \
+		-Wl,--start-group $(patsubst lib%.so,-l%,$(DYLIBS_RL)) \
+		-Wl,--end-group -o $(TRGTPATH)$(NAME).out -lm
+	@echo "Finished dynamic release compilation for $(NAME)."
+
+runso: dbso
+	@echo "$(NAME) (debug shared) is running..."
+	@$(DEBUG_PATH)$(NAME).out
+
+runrlso: rlso
+	@echo "$(NAME) (release shared) is running..."
+	@$(RELEASE_PATH)$(NAME).out
+
+run: debug
+	@echo "$(NAME) is running..."
+	@$(DEBUG_PATH)$(NAME).out
+
+clean:
+	@rm -f *.o *.d
+	@rm -f $(DEBUG_PATH)*.out $(RELEASE_PATH)*.out
+	@rm -f $(DEBUG_PATH)*.so $(RELEASE_PATH)*.so
+	@rm -f $(DEBUG_PATH)*.d $(RELEASE_PATH)*.d
+	@echo "Cleaned up build files."
+
