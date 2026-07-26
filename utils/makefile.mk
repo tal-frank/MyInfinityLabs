@@ -1,257 +1,196 @@
-# **************************************************************** User Setup */
-NAME    ?= default# File name
-PROJECT ?= ds# Project name
-GIT_DIR ?= git# GIT directory name
+# **************************************************************** user setup */
+name        ?= default# file name
+project     ?= ds# project name
+git_dir     ?= git# git directory name
 
+# additional directories containing headers and source files
+additional_src_dirs ?= c ds projects utils system_programming
 
-# ********** additional directories for possibly needed source files ********* #
-ADDITIONAL_SRC_DIRS ?= c ds projects utils system_programming
+home        ?= $(shell echo $$home)
+current_dir ?= $(shell echo $$curdir)
 
-HOME        ?= $(shell echo $$HOME)
-CURRENT_DIR ?= $(shell echo $$CURDIR)
+null   :=
+space  := $(null) $(null)
 
-null  :=
-space := $(null) $(null)
+# ************************************************ all directories & sources */
+project_dir := $(home)/$(git_dir)/$(project)
 
+all_src_dirs    := $(addprefix $(home)/$(git_dir)/, $(project) $(additional_src_dirs))
 
-# ************************************************ All dependencies SRC files */
-PROJECT_DIR := $(HOME)/$(GIT_DIR)/$(PROJECT)
+# recursively find all directories and subdirectories containing headers/sources
+all_src_subdirs := $(sort $(shell find $(all_src_dirs) -type d 2>/dev/null))
 
-ALL_SRC_DIRS    := $(addprefix $(HOME)/$(GIT_DIR)/, \
-                   $(PROJECT) $(ADDITIONAL_SRC_DIRS))
-ALL_SRC_SUBDIRS := $(sort $(shell find $(ALL_SRC_DIRS) -type d 2>/dev/null))
+vpath           := $(subst $(space),:,$(strip $(all_src_subdirs)))
 
-VPATH       := $(subst $(space),:,$(strip $(ALL_SRC_SUBDIRS)))
+# find all .c files across all depths
+all_src         := $(sort $(shell find $(all_src_subdirs) -type f -name "*.c" 2>/dev/null))
+all_src         := $(filter-out %/try.c %/structs.c, $(all_src))
 
-ALL_SRC     := $(sort $(shell find $(ALL_SRC_SUBDIRS) -name "*.c" \
-               2>/dev/null))
-ALL_SRC     := $(filter-out %/try.c %/structs.c, $(ALL_SRC))
+# match main and test targets precisely
+main_src        := $(firstword $(filter $(project_dir)/%/$(name).c, $(all_src)) $(filter %/$(name).c, $(all_src)))
+test_src        := $(firstword $(filter $(project_dir)/%/$(name)_test.c $(project_dir)/%/test_$(name).c, $(all_src)) $(filter %/$(name)_test.c %/test_$(name).c, $(all_src)))
 
-MAIN_SRC    := $(filter %/$(NAME).c, $(ALL_SRC))
-TEST_SRC    := $(filter %/$(NAME)_test.c %/test_$(NAME).c, $(ALL_SRC))
+# active target source file (prefer test if present, otherwise main)
+active_src      := $(if $(test_src),$(test_src),$(main_src))
 
+# ********************************************** deep include resolution */
+# find all headers to support deep traversal
+all_headers := $(sort $(shell find $(all_src_subdirs) -type f -name "*.h" 2>/dev/null))
 
-# ********************************************************* Compilation flags */
-CC            ?= gcc
-INCLUDE_FLAGS ?= -I$(PROJECT_DIR)/inc $(addprefix -I,$(ALL_SRC_SUBDIRS))
-CFLAGS        ?= -ansi -pedantic-errors -Wall -Wextra
-VLGFLAGS      ?= --leak-check=yes --track-origins=yes -s
-CALGFLAGS     ?= --tool=callgrind --dump-instr=yes --collect-jumps=yes \
-                 --dump-line=yes --separate-recs=1 \
-                 --callgrind-out-file=$(TRGTPATH)$(NAME).callgrind.out
-CACGFLAGS     ?= --tool=cachegrind --branch-sim=yes \
-                 --cachegrind-out-file=$(TRGTPATH)$(NAME).cachegrind.out
-MSIFFLAGS     ?= --tool=massif --massif-out-file=$(TRGTPATH)$(NAME).massif.out
+# awk transitive dependency resolver
+# traces local #include "x.h" paths across both .c and .h files to build a complete dependency tree.
+target_module_srcs := $(shell \
+    awk -v srcs="$(active_src) $(if $(filter-out $(active_src),$(main_src)),$(main_src),)" \
+        -v c_files="$(all_src)" -v h_files="$(all_headers)" ' \
+    begin { \
+        split(c_files, ca, " "); \
+        for (i in ca) { \
+            n = split(ca[i], pa, "/"); stem = pa[n]; sub(/\.c$$/, "", stem); \
+            c_map[stem] = ca[i]; \
+        } \
+        split(h_files, ha, " "); \
+        for (i in ha) { \
+            n = split(ha[i], pa, "/"); stem = pa[n]; sub(/\.h$$/, "", stem); \
+            h_map[stem] = ha[i]; \
+        } \
+        split(srcs, q, " "); \
+        has_items = 0; \
+        for (i in q) { \
+            if (q[i] != "") { queue[q[i]] = 1; c_visited[q[i]] = 1; has_items = 1; } \
+        } \
+        while (has_items) { \
+            has_items = 0; \
+            for (k in next_q) delete next_q[k]; \
+            for (f in queue) { \
+                while ((getline line < f) > 0) { \
+                    if (match(line, /#[ \t]*include[ \t]*"[^"]+\.h"/)) { \
+                        s = substr(line, rstart, rlength); \
+                        q1 = index(s, "\""); \
+                        stem = substr(s, q1 + 1, length(s) - q1 - 3); \
+                        if (stem in c_map && !c_visited[c_map[stem]]) { \
+                            c_visited[c_map[stem]] = 1; next_q[c_map[stem]] = 1; has_items = 1; \
+                        } \
+                        if (stem in h_map && !h_visited[h_map[stem]]) { \
+                            h_visited[h_map[stem]] = 1; next_q[h_map[stem]] = 1; has_items = 1; \
+                        } \
+                    } \
+                } \
+                close(f); \
+            } \
+            for (k in queue) delete queue[k]; \
+            for (k in next_q) queue[k] = 1; \
+        } \
+        for (f in c_visited) print f; \
+    }' 2>/dev/null \
+)
 
+# remove the active/test files from shared module list to get pure dependency modules
+dep_module_srcs := $(filter-out $(active_src) $(main_src) %_test.c %/test_%.c, $(target_module_srcs))
 
-# ***************************************************** target specific flags */
-DEBUG_FLAGS   := -g
-RELEASE_FLAGS := -DNDEBUG -O3
-TRGTFLAGS     ?= $(CFLAGS) $(INCLUDE_FLAGS)
-
-
-# *************************************** Target specific Variables and Paths */
-DEBUG_PATH   ?= $(PROJECT_DIR)/bin/debug/
-RELEASE_PATH ?= $(PROJECT_DIR)/bin/release/
-ARCHIVE_PATH ?= $(CURRENT_DIR)/
-
-define GET_DEPENDENCIES
-$(shell $(CC) $(INCLUDE_FLAGS) -MM $(1) 2>/dev/null | \
-	tr ' ' '\n' | \
-	grep '\.h' | \
-	xargs -n 1 basename | \
-	sed 's/\.h/\.c/' | \
-	sort | uniq)
-endef
-
-INITIAL_DEPS    := $(call GET_DEPENDENCIES, $(MAIN_SRC) $(TEST_SRC))
-INITIAL_SRC     := $(sort $(filter $(addprefix %, $(INITIAL_DEPS)), $(ALL_SRC)))
-ALL_DEPEN_FILES := $(call GET_DEPENDENCIES, $(MAIN_SRC) $(TEST_SRC) \
-                   $(INITIAL_SRC) $(sort $(filter $(addprefix %, \
-                   $(call GET_DEPENDENCIES, $(INITIAL_SRC))), $(ALL_SRC))))
-SPECIFIC_SRC    := $(sort $(filter $(addprefix %, $(ALL_DEPEN_FILES)), \
-                   $(ALL_SRC)) $(MAIN_SRC) $(TEST_SRC))
-
-PU_NAME := personal_utils
-PU_FILE := lib$(PU_NAME).so
-
-DEP_NAMES := $(filter-out $(NAME)_test test_$(NAME), \
-             $(notdir $(SPECIFIC_SRC:.c=)))
-DYLIBS    := $(patsubst %,lib%.so,$(DEP_NAMES))
-TEST      := $(notdir $(TEST_SRC))
-
-
-# ************************************************************* Objects modes */
-OBJECTS_MODE ?= 0
-
-ifeq ($(OBJECTS_MODE), 1)
-    OBJS := $(NAME).o
-else ifeq ($(OBJECTS_MODE), 2)
-    OBJS := $(NAME)_test.o
-else ifeq ($(OBJECTS_MODE), 3)
-    OBJS := $(NAME).o $(NAME)_test.o
-else
-    OBJS := $(sort $(notdir $(SPECIFIC_SRC:.c=.o)))
+# fallback just in case parsing failed entirely
+ifeq ($(strip $(dep_module_srcs)),)
+    ifeq ($(strip $(target_module_srcs)),)
+        dep_module_srcs := $(filter-out $(active_src) $(main_src) %_test.c %/test_%.c, $(all_src))
+    endif
 endif
 
+# ********************************************************* compilation flags */
+cc            ?= gcc
 
-# ********************************************************* Logic Rules */
+include_flags := $(addprefix -i,$(all_src_subdirs))
+cflags        ?= -ansi -pedantic-errors -wall -wextra -mmd -mp
+vlgflags      ?= --leak-check=yes --track-origins=yes -s
+
+# ***************************************************** target specific flags */
+debug_flags   := -g
+release_flags := -dndebug -o3
+trgtflags     ?= $(cflags) $(include_flags)
+
+# *************************************** target specific variables and paths */
+debug_path    ?= $(project_dir)/bin/debug/
+release_path  ?= $(project_dir)/bin/release/
+archive_path  ?= $(current_dir)/
+
+# shared library dependencies
+dep_names     := $(notdir $(dep_module_srcs:.c=))
+dylibs_db     := $(patsubst %,lib%_db.so,$(dep_names))
+dylibs_rl     := $(patsubst %,lib%.so,$(dep_names))
+
+# include auto-generated dependency files for precise rebuilds
+-include $(wildcard $(debug_path)*.d $(release_path)*.d *.d)
+
+# ********************************************************* logic rules */
 %.o : %.c
-	@echo "Compiling static object: $<..."
-	@$(CC) $(TRGTFLAGS) -c $< -o $@ -lm
+	@echo "compiling static object: $<..."
+	@$(cc) $(trgtflags) -c $< -o $@ -lm
 
-$(DEBUG_PATH)lib%.so : %.c
-	@mkdir -p $(DEBUG_PATH)
-	@echo " -> Updating debug shared object: $@"
-	@$(CC) -fPIC -shared $(CFLAGS) $(DEBUG_FLAGS) $(INCLUDE_FLAGS) $< -o $@ -lm
+$(debug_path)lib%_db.so : %.c
+	@mkdir -p $(debug_path)
+	@echo " -> updating debug shared object: $@"
+	@$(cc) -fpic -shared $(cflags) $(debug_flags) $(include_flags) -mt $@ -mf $(debug_path)$*_db.d $< -o $@ -lm
 
-$(RELEASE_PATH)lib%.so : %.c
-	@mkdir -p $(RELEASE_PATH)
-	@echo " -> Updating release shared object: $@"
-	@$(CC) -fPIC -shared $(CFLAGS) $(RELEASE_FLAGS) $(INCLUDE_FLAGS) \
-	$< -o $@ -lm
+$(release_path)lib%.so : %.c
+	@mkdir -p $(release_path)
+	@echo " -> updating release shared object: $@"
+	@$(cc) -fpic -shared $(cflags) $(release_flags) $(include_flags) -mt $@ -mf $(release_path)$*.d $< -o $@ -lm
 
-%lib%.so : %.h
-	@echo '#include "$<"' | $(CC) $(TRGTFLAGS) -fPIC -x c - -shared -o \
-	$(TRGTPATH)$(notdir $@)
-	@echo "Header-only Dynamic library named $@ created."
+# ************************************************************** main targets */
+.phony: test debug dbso run release rlso runrlso objects clean help runso
 
-%.a : %.o
-	@ar rcs $(TRGTPATH)$(NAME).a $^
-
-
-# ************************************************************** Main targets */
-.PHONY: test debug dbso pic valgrind run release rlso objects archive \
-	analysis clean help runso
-
-test: OBJS := $(sort $(notdir $(TEST_SRC:.c=.o)))
 test:
-	@echo "DYLIBS: $(DYLIBS)"
-	@echo "INITIAL_SRC: $(INITIAL_SRC)"
-	@echo "INITIAL_DEPS: $(INITIAL_DEPS)"
-	@echo "ALL_DEPEN_FILES: $(ALL_DEPEN_FILES)"
-	@echo "OBJS: $(OBJS)"
-	@echo "VPATH: $(VPATH)"
+	@echo "name:            $(name)"
+	@echo "active_src:      $(active_src)"
+	@echo "dep_module_srcs: $(dep_module_srcs)"
+	@echo "dylibs_db count: $(words $(dylibs_db))"
+	@echo "dylibs_rl count: $(words $(dylibs_rl))"
 	@echo ""
 
-debug: TRGTFLAGS = $(CFLAGS) $(DEBUG_FLAGS) $(INCLUDE_FLAGS)
-debug: TRGTPATH = $(DEBUG_PATH)
-debug: $(OBJS)
-	@echo "OBJS: $(OBJS)"
-	@mkdir -p $(TRGTPATH)
-	@$(CC) $(TRGTFLAGS) $(OBJS) -o $(TRGTPATH)$(NAME).out -lm
-	@rm -f $(CURRENT_DIR)/*.o
-	@echo "Debug build done."
+debug: trgtflags = $(cflags) $(debug_flags) $(include_flags)
+debug: trgtpath = $(debug_path)
+debug: $(notdir $(dep_module_srcs:.c=.o)) $(notdir $(main_src:.c=.o)) $(notdir $(active_src:.c=.o))
+	@mkdir -p $(trgtpath)
+	@$(cc) $(trgtflags) $^ -o $(trgtpath)$(name).out -lm
+	@rm -f *.o *.d
+	@echo "debug build done."
 
-dbso: TRGTFLAGS = $(CFLAGS) $(DEBUG_FLAGS) $(INCLUDE_FLAGS)
-dbso: TRGTPATH = $(DEBUG_PATH)
-dbso: $(addprefix $(DEBUG_PATH),$(DYLIBS))
-	@echo "Linking test binary..."
-	@$(CC) $(TRGTFLAGS) $(TEST_SRC) \
-		-L$(TRGTPATH) \
-		-Wl,-rpath,$(TRGTPATH) \
-		-Wl,--start-group $(patsubst lib%.so,-l%,$(DYLIBS)) \
-		-Wl,--end-group -o $(TRGTPATH)$(NAME).out -lm
-	@rm -f $(CURRENT_DIR)/*.o
-	@echo "finished dynamic debug compilation for $(NAME)."
+dbso: trgtflags = $(cflags) $(debug_flags) $(include_flags)
+dbso: trgtpath = $(debug_path)
+dbso: $(addprefix $(debug_path),$(dylibs_db))
+	@echo "linking test binary against relevant debug shared libraries..."
+	@$(cc) $(trgtflags) $(active_src) $(main_src) \
+		-l$(trgtpath) \
+		-wl,-rpath,$(trgtpath) \
+		-wl,--start-group $(patsubst lib%_db.so,-l%_db,$(dylibs_db)) \
+		-wl,--end-group -o $(trgtpath)$(name).out -lm
+	@echo "finished dynamic debug compilation for $(name)."
+
+rlso: trgtflags = $(cflags) $(release_flags) $(include_flags)
+rlso: trgtpath = $(release_path)
+rlso: $(addprefix $(release_path),$(dylibs_rl))
+	@echo "linking test binary against relevant release shared libraries..."
+	@$(cc) $(trgtflags) $(active_src) $(main_src) \
+		-l$(trgtpath) \
+		-wl,-rpath,$(trgtpath) \
+		-wl,--start-group $(patsubst lib%.so,-l%,$(dylibs_rl)) \
+		-wl,--end-group -o $(trgtpath)$(name).out -lm
+	@echo "finished dynamic release compilation for $(name)."
 
 runso: dbso
-	@echo "$(NAME) is -----------------------------> running..."
-	@echo ""
-	@$(DEBUG_PATH)$(NAME).out
-	@echo "$(NAME) -----------------------------> done running."
+	@echo "$(name) (debug shared) is running..."
+	@$(debug_path)$(name).out
 
-pic: $(SPECIFIC_SRC)
-	@$(CC) $(GD_PIC) $(SPECIFIC_SRC)
-
-valgrind: debug
-	@echo "Valgrind start..."
-	@valgrind $(VLGFLAGS) $(DEBUG_PATH)$(NAME).out
-	@echo "Valgrind done."
+runrlso: rlso
+	@echo "$(name) (release shared) is running..."
+	@$(release_path)$(name).out
 
 run: debug
-	@echo "$(NAME) is -----------------------------> running..."
-	@echo ""
-	@$(DEBUG_PATH)$(NAME).out
-	@echo "$(NAME) -----------------------------> done running."
-
-release: TRGTFLAGS = $(CFLAGS) $(RELEASE_FLAGS)    
-release: $(OBJS)
-	@mkdir -p $(RELEASE_PATH)
-	@$(CC) $(TRGTFLAGS) $(OBJS) -o $(RELEASE_PATH)$(NAME).out
-	@echo "Production build done."
-
-rlso: TRGTFLAGS = $(CFLAGS) $(RELEASE_FLAGS) $(INCLUDE_FLAGS)
-rlso: TRGTPATH = $(RELEASE_PATH)
-rlso: $(addprefix $(RELEASE_PATH),$(DYLIBS))
-	@echo "Linking test binary..."
-	@$(CC) $(TRGTFLAGS) $(TEST_SRC) \
-		-L$(TRGTPATH) \
-		-Wl,-rpath,$(TRGTPATH) \
-		-Wl,--start-group $(patsubst lib%.so,-l%,$(DYLIBS)) \
-		-Wl,--end-group -o $(TRGTPATH)$(NAME).out -lm
-	@rm -f $(CURRENT_DIR)/*.o
-	@echo "finished dynamic release compilation for $(NAME)."
-
-objects: $(OBJS)
-	@echo "object created at $(OBJS)."
-
-archive: $(NAME).o
-	@ar rcs $(ARCHIVE_PATH)$(NAME).a $<
-	@echo "Static library named $(NAME).a created at $(ARCHIVE_PATH)."
-
-analysis: TRGTPATH = $(DEBUG_PATH)
-analysis: dbso
-	@echo "Valgrind deep analysis (cachegrind, callgrind, massif) start..."
-	@mkdir -p $(TRGTPATH)
-	@echo " -> Running Callgrind..."
-	@valgrind $(CALGFLAGS) $(TRGTPATH)$(NAME).out > /dev/null 2>&1
-	
-	@echo " -> Running Cachegrind..."
-	@valgrind $(CACGFLAGS) $(TRGTPATH)$(NAME).out > /dev/null 2>&1
-	
-	@echo " -> Text logs generated at $(TRGTPATH)."
-	@callgrind_annotate --auto=yes $(TRGTPATH)$(NAME).callgrind.out > $(TRGTPATH)callgrind_report.txt
-	@cg_annotate --auto=yes $(TRGTPATH)$(NAME).cachegrind.out > $(TRGTPATH)cachegrind_report.txt
-	
-	@echo " -> Running Massif (Heap Profiling)..."
-	@valgrind $(MSIFFLAGS) $(TRGTPATH)$(NAME).out > /dev/null 2>&1
-	@ms_print $(TRGTPATH)$(NAME).massif.out > $(TRGTPATH)massif_report.txt
-
-	@echo " -> Launching KCachegrind in background..."
-	@if command -v kcachegrind >/dev/null 2>&1; \
-	then kcachegrind $(TRGTPATH)$(NAME).callgrind.out $(TRGTPATH)$(NAME).cachegrind.out >/dev/null 2>&1 & \
-	else \
-		echo " [!] KCachegrind GUI not found. View text reports in $(TRGTPATH)*_report.txt"; \
-	fi
-	@echo "Valgrind deep analysis (cachegrind, callgrind, massif) completed."
+	@echo "$(name) is running..."
+	@$(debug_path)$(name).out
 
 clean:
-	@rm -f $(PROJECT_DIR)/src/*.o $(PROJECT_DIR)/test/*.o $(CURRENT_DIR)/*.o
-	@rm -f $(DEBUG_PATH)*.out $(RELEASE_PATH)*.out
-	@rm -f $(ARCHIVE_PATH)*.a $(DEBUG_PATH)*.so $(RELEASE_PATH)*.so
-	@rm -f $(DEBUG_PATH)*.callgrind.out $(DEBUG_PATH)*.cachegrind.out $(DEBUG_PATH)*.massif.out
-	@rm -f $(DEBUG_PATH)*_report.txt
-	@echo "all cleaned up."
-
-help:
-	@echo "=========================================================="
-	@echo "  Project Makefile Help"
-	@echo "=========================================================="
-	@echo "  Usage: make NAME=[module_name] [target] [OBJECTS_MODE=n]"
-	@echo ""
-	@echo "  Targets:"
-	@echo "    debug    : Build with debug symbols (-g)"
-	@echo "    valgrind : Build and run with memory leak tracking"
-	@echo "    run      : Build and execute the debug binary"
-	@echo "    release  : Build with high optimization (-O3) without debug"
-	@echo "    analysis : Run comprehensive profiling (Callgrind, Cachegrind, Massif)"
-	@echo "    objects  : Built via different modes (OBJECTS_MODE):"
-	@echo "          (default)->0 - Builds module, test, and dependencies"
-	@echo "                    1 - Builds [NAME].o only"
-	@echo "                    2 - Builds [NAME]_test.o only"
-	@echo "                    3 - Builds [NAME].o and [NAME]_test.o"
-	@echo "    archive  : Create static library (.a) from source"
-	@echo "    clean    : Remove all binaries and object files"
-	@echo "=========================================================="
+	@rm -f *.o *.d
+	@rm -f $(debug_path)*.out $(release_path)*.out
+	@rm -f $(debug_path)*.so $(release_path)*.so
+	@rm -f $(debug_path)*.d $(release_path)*.d
+	@echo "cleaned up build files."
 
