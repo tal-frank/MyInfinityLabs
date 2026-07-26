@@ -1,7 +1,7 @@
 /**********************
 * watchdog
 * Author: Tal Frank
-* Reviewer: Ori Yoseph
+* Reviewer: Ori Joseph
 * Last update: 26/07/2026
 **********************/
 
@@ -29,6 +29,8 @@
 #define ONE_SEC (1)
 #define FIVE_SEC (5)
 #define WD_PATH ("wd.out")
+#define NAMED_SEM ("sync_sem")
+#define SEM_INIT (0666)
 
 enum
 {
@@ -39,9 +41,7 @@ enum
 /*------------------------------------------------------------------*/
 /************************* GLOBAL VARIABLES *************************/
 /*------------------------------------------------------------------*/
-/*
-sem_t* sync_sem = 0;
-*/
+
 static sched_t* sched = NULL;
 static volatile int counter = 0;
 volatile int is_watch_dog = FALSE;
@@ -56,11 +56,11 @@ static pthread_t sched_thread = {0};
 static void* ProcessSchedHandler(void* data);
 static void CounterIncrement(int data);
 static void closeWD(int data);
-static int SendSignal(void* data);
+static int SendLivingSignal(void* data);
 static int CheckCounter(void* data);
 static int CheckFinish(void* data);
-static wd_status_t ProcessErrorHandler(void* data);
-static wd_status_t WatchdogErrorHandler(void* data);
+static wd_status_t ProcessCrushHandler(void* data);
+static wd_status_t WatchdogCrushHandler(void* data);
 static wd_status_t InitSched(char* argv[]);
 static void InitSignals(void);
 static wd_status_t InitProcess(char* argv[]);
@@ -74,7 +74,7 @@ wd_status_t WDStart(char* argv[])
     wd_status_t status = SUCCESS;
     char* wd_pid_env = getenv(argv[0]);
 
-    sem_t* sync_sem = sem_open("sync_sem", O_CREAT, 0666);
+    sem_t* sync_sem = sem_open(NAMED_SEM, O_CREAT, SEM_INIT);
 
     InitSignals();
     if (TRUE == is_watch_dog)
@@ -119,14 +119,19 @@ wd_status_t WDStop(time_t timeout)
 {
     wd_status_t status = SUCCESS;
     time_t time_left = timeout;
+    
     kill((0 == pid) ? getppid() : pid , SIGUSR2);
     while (0 == finish && 0 != time_left)
     {
         time_left = sleep(time_left);
     }
-    finish = 1;
-    sem_unlink("sync_sem");
-    
+    if (0 == finish)
+    {
+        finish = 1;
+        status = STOP_TIMEOUT;
+    }
+
+    sem_unlink(NAMED_SEM);
     pthread_join(sched_thread, NULL);
     
     return status;
@@ -160,7 +165,7 @@ static void closeWD(int data)
 /************************* TASKS FUNCTIONS *************************/
 /*-----------------------------------------------------------------*/
 
-static int SendSignal(void* data)
+static int SendLivingSignal(void* data)
 {
     UNUSED(data);
     kill((0 == pid) ? getppid() : pid, SIGUSR1);
@@ -171,18 +176,21 @@ static int CheckCounter(void* data)
 {
     wd_status_t status = SUCCESS;
     char** argv = (char**)data;
-
+    FILE* wd_log = fopen("watchdog_log.txt","a");
     if (0 == counter)
     {
         if (is_watch_dog)
         {
-            status = WatchdogErrorHandler(argv);
+            status = WatchdogCrushHandler(argv);
         }
         else
         {
-            status = ProcessErrorHandler(argv);
+            status = ProcessCrushHandler(argv);
         }
     }
+
+    fprintf(wd_log, "counter = %d -- process pid = %d\n", counter, getpid());
+    fclose(wd_log);
     __sync_lock_test_and_set(&counter, ATOMIC_SET_ZERO);
 
     return status;
@@ -215,7 +223,7 @@ static wd_status_t InitSched(char* argv[])
     if (UIDIsEqual(UIDBadUID, SchedTaskAdd(sched,
                                            ONE_SEC, 
                                            0, 
-                                           SendSignal, 
+                                           SendLivingSignal, 
                                            NULL, 
                                            NULL)))
     {
@@ -258,7 +266,7 @@ static wd_status_t InitProcess(char* argv[])
 {
     sem_t* sync_sem = {0};
     
-    sync_sem = sem_open("sync_sem", O_CREAT, 0666);
+    sync_sem = sem_open(NAMED_SEM, O_CREAT, SEM_INIT);
     sem_wait(sync_sem);
    
     if (SUCCESS != InitSched(argv))
@@ -279,7 +287,7 @@ static wd_status_t InitProcess(char* argv[])
 /************************* ERROR HANDLERS *************************/
 /*----------------------------------------------------------------*/
 
-static wd_status_t ProcessErrorHandler(void* data)
+static wd_status_t ProcessCrushHandler(void* data)
 {
     char** argv = (char**)data;
     sem_t* sync_sem = {0};
@@ -290,13 +298,13 @@ static wd_status_t ProcessErrorHandler(void* data)
         return DAEMON_CREATE_FAILURE;
     }
     kill(getpid() , SIGSTOP);
-    sync_sem = sem_open("sync_sem", O_CREAT, 0666);
+    sync_sem = sem_open(NAMED_SEM, O_CREAT, SEM_INIT);
     sem_wait(sync_sem);
     sem_close(sync_sem);
     return SUCCESS;
 }
 
-static wd_status_t WatchdogErrorHandler(void* data)
+static wd_status_t WatchdogCrushHandler(void* data)
 {
     char** argv = (char**)data;
 
