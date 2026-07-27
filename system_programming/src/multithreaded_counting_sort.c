@@ -1,3 +1,9 @@
+/**********************
+* multithreaded counting sort
+* Author: Tal Frank
+* Reviewer: Almog Nimni
+* Last update: 30/07/2026
+**********************/
 
 #include <stddef.h> /* size_t */
 #include <unistd.h> /* sysconf */
@@ -35,12 +41,12 @@ void MultiThreadedCountingSort(char arr[], size_t size, size_t number_of_threads
     size_t start_index = 0;
     int thread_num_of_elements = (size / number_of_threads);
     pthread_t threads[NUMBER_OF_THREADS] = {0};
-	thread_sort_part_t parts[NUMBER_OF_THREADS] = {0};
+    thread_sort_part_t parts[NUMBER_OF_THREADS] = {0};
 
     memset(sorted_arr, 0, sizeof(size_t) * MAX_CHAR);
-	
-	for (i = 0; i < number_of_threads; ++i)
-	{
+    
+    for (i = 0; i < number_of_threads; ++i)
+    {
         parts[i].arr = arr;
         parts[i].start_index = start_index;
         parts[i].num_of_elements = thread_num_of_elements;
@@ -50,7 +56,7 @@ void MultiThreadedCountingSort(char arr[], size_t size, size_t number_of_threads
             perror("could not create thread");
         }
         start_index += thread_num_of_elements;
-	}
+    }
     
     for (i = 0; i < number_of_threads; ++i)
     {
@@ -60,25 +66,26 @@ void MultiThreadedCountingSort(char arr[], size_t size, size_t number_of_threads
         }
     }
 
-	AddAdjacent(sorted_arr, MAX_CHAR);
-	
-	SetSortedArr(arr, sorted_arr, size, MAX_CHAR);
+    /* AddAdjacent(sorted_arr, MAX_CHAR); */
+    
+    SetSortedArr(arr, sorted_arr, size, MAX_CHAR);
 }
 
-static void SetSortedArr(char dest_arr[], size_t sorted_arr[], size_t size, size_t sorted_size)
+static void SetSortedArr(char dest_arr[], size_t histogram[], size_t size, size_t sorted_size)
 {
-	size_t cnt = 0;
-	size_t i = 0;
-	size_t j = 0;
-	for (i = 0; i < size && j < sorted_size; ++j)
-	{
-		while (cnt < sorted_arr[j])
-		{
-			dest_arr[i] = j;
-			++cnt;
-			++i;
-		}
-	}	
+    size_t cnt = 0;
+    size_t write_i = 0;
+    size_t read_i = 0;
+    for (write_i = 0; write_i < size && read_i < sorted_size; ++read_i)
+    {
+        cnt = 0;
+        while (cnt < histogram[read_i])
+        {
+            dest_arr[write_i] = read_i;
+            ++cnt;
+            ++write_i;
+        }
+    }	
 }
 
 void* ThreadCountingSort(void* data)
@@ -93,7 +100,7 @@ void* ThreadCountingSort(void* data)
     {
         ++sorted_part_arr[(int)arr[i]];
     }
-    
+
     pthread_mutex_lock(&mutex);
     for (i = 0; i < MAX_CHAR; ++i)
     {

@@ -8,6 +8,7 @@
 #include "../src/multithreaded_counting_sort.c"
 
 #define SIZE_OF_DICT (1000000)
+#define NUMBER_OF_DICT (64)
 
 int main()
 {
@@ -28,9 +29,9 @@ int main()
     /****************************************************************************** 1 thread **********/
     fseek(file, 0, SEEK_END);
     file_size = ftell(file);
-    arr = (char*)malloc(8 * file_size);
+    arr = (char*)malloc(NUMBER_OF_DICT * file_size);
     rewind(file);
-    for(i = 0; i < 8; ++i)
+    for(i = 0; i < NUMBER_OF_DICT; ++i)
     {
         fread(arr + i * file_size, 1, file_size , file);
         rewind(file);
@@ -38,7 +39,7 @@ int main()
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     
-    MultiThreadedCountingSort(arr, 8 * file_size, 1);
+    MultiThreadedCountingSort(arr, NUMBER_OF_DICT * file_size, 1);
     
     clock_gettime(CLOCK_MONOTONIC, &end);
     time_taken = (end.tv_sec - start.tv_sec)
@@ -50,7 +51,7 @@ int main()
     fseek(file, 0, SEEK_END);
     file_size = ftell(file);
     rewind(file);
-    for(i = 0; i < 8; ++i)
+    for(i = 0; i < NUMBER_OF_DICT; ++i)
     {
         fread(arr + i * file_size, 1, file_size , file);
         rewind(file);
@@ -58,7 +59,7 @@ int main()
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     
-    MultiThreadedCountingSort(arr, 8 * file_size, 2);
+    MultiThreadedCountingSort(arr, NUMBER_OF_DICT * file_size, 2);
     
     clock_gettime(CLOCK_MONOTONIC, &end);
     time_taken = (end.tv_sec - start.tv_sec)
@@ -70,7 +71,7 @@ int main()
     fseek(file, 0, SEEK_END);
     file_size = ftell(file);
     rewind(file);
-    for(i = 0; i < 8; ++i)
+    for(i = 0; i < NUMBER_OF_DICT; ++i)
     {
         fread(arr + i * file_size, 1, file_size , file);
         rewind(file);
@@ -78,7 +79,7 @@ int main()
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     
-    MultiThreadedCountingSort(arr, 8 * file_size, 4);
+    MultiThreadedCountingSort(arr, NUMBER_OF_DICT * file_size, 4);
     
     clock_gettime(CLOCK_MONOTONIC, &end);
     time_taken = (end.tv_sec - start.tv_sec)
@@ -90,7 +91,7 @@ int main()
     fseek(file, 0, SEEK_END);
     file_size = ftell(file);
     rewind(file);
-    for(i = 0; i < 8; ++i)
+    for(i = 0; i < NUMBER_OF_DICT; ++i)
     {
         fread(arr + i * file_size, 1, file_size , file);
         rewind(file);
@@ -98,7 +99,7 @@ int main()
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     
-    MultiThreadedCountingSort(arr, 8 * file_size, 8);
+    MultiThreadedCountingSort(arr, NUMBER_OF_DICT * file_size, 8);
     
     clock_gettime(CLOCK_MONOTONIC, &end);
     time_taken = (end.tv_sec - start.tv_sec)
@@ -110,7 +111,7 @@ int main()
     fseek(file, 0, SEEK_END);
     file_size = ftell(file);
     rewind(file);
-    for(i = 0; i < 8; ++i)
+    for(i = 0; i < NUMBER_OF_DICT; ++i)
     {
         fread(arr + i * file_size, 1, file_size , file);
         rewind(file);
@@ -118,7 +119,7 @@ int main()
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     
-    MultiThreadedCountingSort(arr, 8 * file_size, 16);
+    MultiThreadedCountingSort(arr, NUMBER_OF_DICT * file_size, 16);
     
     clock_gettime(CLOCK_MONOTONIC, &end);
     time_taken = (end.tv_sec - start.tv_sec)
@@ -130,7 +131,7 @@ int main()
     fseek(file, 0, SEEK_END);
     file_size = ftell(file);
     rewind(file);
-    for(i = 0; i < 8; ++i)
+    for(i = 0; i < NUMBER_OF_DICT; ++i)
     {
         fread(arr + i * file_size, 1, file_size , file);
         rewind(file);
@@ -138,7 +139,7 @@ int main()
 
     clock_gettime(CLOCK_MONOTONIC, &start);
     
-    MultiThreadedCountingSort(arr, 8 * file_size, 32);
+    MultiThreadedCountingSort(arr, NUMBER_OF_DICT * file_size, 32);
     
     clock_gettime(CLOCK_MONOTONIC, &end);
     time_taken = (end.tv_sec - start.tv_sec)
@@ -150,18 +151,18 @@ int main()
     /* for (i = 0; i < 8 * file_size; ++i)
     {
         printf(" %d ", arr[i]);
-    }
+    } */
     for (i = 0; i < 8 * file_size; ++i)
     {
         if (arr[i] > arr[i + 1])
         {
             printf("ERROR\n");
         }
-        else
+        /* else
         {
             printf("SUCCESS\n");
-        }
-    } */
+        } */ 
+    } 
     free(arr);
     return 0;
 }
