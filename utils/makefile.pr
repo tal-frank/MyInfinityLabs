@@ -84,13 +84,14 @@ TARGET_MODULE_SRCS := $(shell \
     }' 2>/dev/null \
 )
 
-# Remove the active/test files from shared module list to get pure dependency modules
-DEP_MODULE_SRCS := $(filter-out $(ACTIVE_SRC) $(MAIN_SRC) %_test.c %/test_%.c, $(TARGET_MODULE_SRCS))
+# Keep MAIN_SRC as a dependency module so it gets built into a shared library,
+# but filter out the ACTIVE_SRC (test files) to serve as the entry point.
+DEP_MODULE_SRCS := $(sort $(filter-out $(ACTIVE_SRC) %_test.c %/test_%.c, $(TARGET_MODULE_SRCS) $(MAIN_SRC)))
 
 # Fallback just in case parsing failed entirely
 ifeq ($(strip $(DEP_MODULE_SRCS)),)
     ifeq ($(strip $(TARGET_MODULE_SRCS)),)
-        DEP_MODULE_SRCS := $(filter-out $(ACTIVE_SRC) $(MAIN_SRC) %_test.c %/test_%.c, $(ALL_SRC))
+        DEP_MODULE_SRCS := $(filter-out $(ACTIVE_SRC) %_test.c %/test_%.c, $(ALL_SRC))
     endif
 endif
 
@@ -140,6 +141,7 @@ $(RELEASE_PATH)lib%.so : %.c
 test:
 	@echo "NAME:            $(NAME)"
 	@echo "ACTIVE_SRC:      $(ACTIVE_SRC)"
+	@echo "MAIN_SRC:        $(MAIN_SRC)"
 	@echo "DEP_MODULE_SRCS: $(DEP_MODULE_SRCS)"
 	@echo "DYLIBS_DB count: $(words $(DYLIBS_DB))"
 	@echo "DYLIBS_RL count: $(words $(DYLIBS_RL))"
@@ -147,7 +149,7 @@ test:
 
 debug: TRGTFLAGS = $(CFLAGS) $(DEBUG_FLAGS) $(INCLUDE_FLAGS)
 debug: TRGTPATH = $(DEBUG_PATH)
-debug: $(notdir $(DEP_MODULE_SRCS:.c=.o)) $(notdir $(MAIN_SRC:.c=.o)) $(notdir $(ACTIVE_SRC:.c=.o))
+debug: $(notdir $(DEP_MODULE_SRCS:.c=.o)) $(notdir $(ACTIVE_SRC:.c=.o))
 	@mkdir -p $(TRGTPATH)
 	@$(CC) $(TRGTFLAGS) $^ -o $(TRGTPATH)$(NAME).out -lm
 	@rm -f *.o *.d
@@ -157,18 +159,18 @@ dbso: TRGTFLAGS = $(CFLAGS) $(DEBUG_FLAGS) $(INCLUDE_FLAGS)
 dbso: TRGTPATH = $(DEBUG_PATH)
 dbso: $(addprefix $(DEBUG_PATH),$(DYLIBS_DB))
 	@echo "Linking test binary against relevant debug shared libraries..."
-	@$(CC) $(TRGTFLAGS) $(ACTIVE_SRC) $(MAIN_SRC) \
+	@$(CC) $(TRGTFLAGS) $(ACTIVE_SRC) \
 		-L$(TRGTPATH) \
 		-Wl,-rpath,$(TRGTPATH) \
 		-Wl,--start-group $(patsubst lib%_db.so,-l%_db,$(DYLIBS_DB)) \
-		-Wl,--end-group -o $(TRGTPATH)$(NAME).out -lm
+		-Wl,--end-group -o $(TRGTPATH)$(NAME)_db.out -lm
 	@echo "Finished dynamic debug compilation for $(NAME)."
 
 rlso: TRGTFLAGS = $(CFLAGS) $(RELEASE_FLAGS) $(INCLUDE_FLAGS)
 rlso: TRGTPATH = $(RELEASE_PATH)
 rlso: $(addprefix $(RELEASE_PATH),$(DYLIBS_RL))
 	@echo "Linking test binary against relevant release shared libraries..."
-	@$(CC) $(TRGTFLAGS) $(ACTIVE_SRC) $(MAIN_SRC) \
+	@$(CC) $(TRGTFLAGS) $(ACTIVE_SRC) \
 		-L$(TRGTPATH) \
 		-Wl,-rpath,$(TRGTPATH) \
 		-Wl,--start-group $(patsubst lib%.so,-l%,$(DYLIBS_RL)) \
