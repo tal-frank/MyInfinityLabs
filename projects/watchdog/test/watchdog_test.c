@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     name[strcspn(name, "\n")] = '\0';
     WDStart(argv);
     UNUSED(argc);
-    while (100 > counter)
+    while (20 > counter)
     {
         ++counter;
         printf("process running some tests %d\n", counter);

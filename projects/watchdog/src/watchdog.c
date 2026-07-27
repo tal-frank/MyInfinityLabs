@@ -15,8 +15,7 @@
 #include <signal.h> /* SIGUSER1 , sigaction */
 #include <stdlib.h> /* getenv */
 #include <errno.h> /* perror */
-
-#include <stdio.h> /*tests*/
+#include <stdio.h> /* fprintf */
 
 #include "watchdog.h" /* watchdog API */
 #include "scheduler.h" /* scheduler API */
@@ -48,6 +47,7 @@ volatile int is_watch_dog = FALSE;
 volatile int finish = 0;
 volatile pid_t pid = {0};
 static pthread_t sched_thread = {0};
+static sem_t* sync_sem = {0};
 
 /*------------------------------------------------------------------*/
 /************************* STATIC FUNCTIONS *************************/
@@ -74,7 +74,7 @@ wd_status_t WDStart(char* argv[])
     wd_status_t status = SUCCESS;
     char* wd_pid_env = getenv(argv[0]);
 
-    sem_t* sync_sem = sem_open(NAMED_SEM, O_CREAT, SEM_INIT);
+    sync_sem = sem_open(NAMED_SEM, O_CREAT, SEM_INIT, 0);
 
     InitSignals();
     if (TRUE == is_watch_dog)
@@ -83,7 +83,6 @@ wd_status_t WDStart(char* argv[])
         {
             return SCHED_CREATE_FAILURE;
         }
-        
         sem_post(sync_sem);
         kill((0 == pid) ? getppid() : pid, SIGCONT);
         SchedRun(sched);
@@ -107,7 +106,7 @@ wd_status_t WDStart(char* argv[])
     {
         status = InitProcess(argv);
     }
-    sem_close(sync_sem);
+
     return status;
 }
 
@@ -130,7 +129,7 @@ wd_status_t WDStop(time_t timeout)
         finish = 1;
         status = STOP_TIMEOUT;
     }
-
+    sem_close(sync_sem);
     sem_unlink(NAMED_SEM);
     pthread_join(sched_thread, NULL);
     
@@ -254,21 +253,21 @@ static void InitSignals(void)
 {
     struct sigaction living_signal = {0};
     struct sigaction kill_signal = {0};
+    struct sigaction child_signal = {0};
 
     living_signal.sa_handler = CounterIncrement;
     kill_signal.sa_handler = closeWD;
+    child_signal.sa_handler = SIG_IGN;
+    child_signal.sa_flags = SA_NOCLDWAIT;
 
     sigaction(SIGUSR1, &living_signal, NULL);
     sigaction(SIGUSR2, &kill_signal, NULL);
+    sigaction(SIGCHLD, &child_signal, NULL);
 }
 
 static wd_status_t InitProcess(char* argv[])
 {
-    sem_t* sync_sem = {0};
-    
-    sync_sem = sem_open(NAMED_SEM, O_CREAT, SEM_INIT);
     sem_wait(sync_sem);
-   
     if (SUCCESS != InitSched(argv))
     {
         return SCHED_CREATE_FAILURE;
@@ -278,8 +277,7 @@ static wd_status_t InitProcess(char* argv[])
     {
         return THREAD_CREATE_FAILURE;
     }
-
-    sem_close(sync_sem);
+    
     return SUCCESS;
 }
 
@@ -290,7 +288,6 @@ static wd_status_t InitProcess(char* argv[])
 static wd_status_t ProcessCrushHandler(void* data)
 {
     char** argv = (char**)data;
-    sem_t* sync_sem = {0};
     pid = fork();
     if (0 == pid)
     {
@@ -298,9 +295,8 @@ static wd_status_t ProcessCrushHandler(void* data)
         return DAEMON_CREATE_FAILURE;
     }
     kill(getpid() , SIGSTOP);
-    sync_sem = sem_open(NAMED_SEM, O_CREAT, SEM_INIT);
     sem_wait(sync_sem);
-    sem_close(sync_sem);
+    
     return SUCCESS;
 }
 

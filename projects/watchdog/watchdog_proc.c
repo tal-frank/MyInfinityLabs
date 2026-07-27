@@ -1,5 +1,6 @@
-#include <stdio.h>
-
+#ifndef NDEBUG
+    #include <stdio.h>
+#endif
 #include "watchdog.h"
 
 extern int is_watch_dog;
@@ -12,7 +13,9 @@ enum
 
 int main(int argc, char* argv[])
 {
-    printf("im am the watcdog! respect my athoretaaa\n");
+    #ifndef NDEBUG
+        printf("im am the watcdog! respect my athoretaaa\n");
+    #endif
     is_watch_dog = TRUE;
     WDStart(argv);
     return 0;
