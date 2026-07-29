@@ -3,5 +3,8 @@
 *.bin
 *.o
 exercises
+*.d
+*.so
+*.txt
 
 

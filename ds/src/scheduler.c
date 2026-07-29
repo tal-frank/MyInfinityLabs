@@ -1,281 +1,222 @@
-/**********************
-* schedualer
-* Author: Tal Frank
-* Reviewer: Moshe Moiseev
-* Last update: 10/05/2026
-**********************/
-
-#include <stddef.h> /* NULL */
-#include <stdlib.h> /* malloc , free*/
+/*
+ * Author: Ori Joseph
+ * Reviewer: Roman
+ * Last changed: 11.5.26
+ * */
+#include <stdlib.h> /* malloc, free, NULL*/
 #include <assert.h> /* assert */
-#include <time.h> /* time() , time_t */
+#include <time.h>   /* time */
 #include <unistd.h> /* sleep */
 
-#include "scheduler.h"
 #include "priority_queue.h"
 #include "task.h"
 #include "uid.h"
-
-#define NOT_EMPTY (0)
-#define RUN (1)
-#define DONT_RUN (0)
+#include "scheduler.h"
 
 struct Scheduler
 {
-    pq_t* pq;
-    task_t* current_task;
-    int to_run;
+    pq_t *pq;
+    task_t *curr_task;
+    volatile int stop_flag;
 };
 
 typedef enum
 {
-	FAILURE = -1,
-	SUCCESS
-}status_t;
+    FAIL = -1,
+    SUCCESS = 0
+} status_t;
 
+static int SchedTaskCmp(const void *task1, const void *task2);
+static int SchedTaskIsMatch(const void *task, const void *uid);
+static void SleepUntilExecutionTime(const task_t *task);
 
-/*------------------------------------------------------------------------------*/
-/************************* STATIC FUNCTIONS DECLARATION *************************/
-/*------------------------------------------------------------------------------*/
-
-static int UidIsEqualWrapper(const void* sched1, const void* sched2);
-static int SchedTaskCmp(const void* sched1_param, const void* sched2_param);
-static status_t UpdateAndPush(sched_t* sched);
-static void WaitForOperationTime(time_t ttr);
-
-
-/*-----------------------------------------------------------------*/
-/************************* CREAT & DESTROY *************************/
-/*-----------------------------------------------------------------*/
-
-sched_t* SchedCreate(void)
+sched_t *SchedCreate()
 {
-	sched_t* sched = (sched_t*)malloc(sizeof(sched_t));
-	if (NULL == sched)
-	{
-		return NULL;
-	}
-	sched->pq = PQCreate(SchedTaskCmp);
-	if (NULL == sched->pq)
-	{
-		free(sched);
-		sched = NULL;
-		return NULL;
-	}
-	sched->current_task = NULL;
-	sched->to_run = DONT_RUN;
-	
-	return sched;
+    pq_t *pq = NULL;
+    sched_t *sched = (sched_t *)malloc(sizeof(sched_t));
+    if (NULL == sched)
+    {
+        return NULL;
+    }
+
+    pq = PQCreate(&SchedTaskCmp);
+    if (NULL == pq)
+    {
+        free(sched);
+        sched = NULL;
+        return NULL;
+    }
+
+    sched->pq = pq;
+    sched->curr_task = NULL;
+    sched->stop_flag = 0;
+
+    return sched;
 }
 
-
-void SchedDestroy(sched_t* sched)
+void SchedDestroy(sched_t *sched)
 {
-	assert(NULL != sched);
-	
-	SchedClear(sched);
-	PQDestroy(sched->pq);
-	sched->pq = NULL;
-	free(sched);
-	sched = NULL;
+    assert(NULL != sched);
+    SchedClear(sched);
+    PQDestroy(sched->pq);
+    sched->pq = NULL;
+    free(sched);
+    sched = NULL;
 }
 
-
-/*----------------------------------------------------------*/
-/************************* IS EMPTY *************************/
-/*----------------------------------------------------------*/
-
-int SchedIsEmpty(const sched_t* sched)
+ilrd_uid_t SchedTaskAdd(sched_t *sched,
+                        size_t interval,
+                        time_t time_to_run,
+                        int (*op_func)(void *param),
+                        int (*clean_func)(void *param),
+                        void *param)
 {
-	assert(NULL != sched);
-	
-	if (NULL != sched->current_task)
-	{
-		return NOT_EMPTY;
-	}
-	return PQIsEmpty(sched->pq);
+    status_t status = SUCCESS;
+    task_t *task = NULL;
+
+    assert(NULL != op_func);
+    assert(NULL != sched);
+
+    task = TaskCreate(interval, time_to_run, op_func,
+                      clean_func, param);
+    if (NULL == task)
+    {
+        return UIDBadUID;
+    }
+
+    status = PQEnqueue(sched->pq, task);
+    if (SUCCESS != status)
+    {
+        TaskDestroy(task);
+        return UIDBadUID;
+    }
+
+    return TaskGetUid(task);
 }
 
-
-
-
-
-/*-------------------------------------------------------*/
-/************************* COUNT *************************/
-/*-------------------------------------------------------*/
-
-size_t SchedCount(const sched_t* sched)
+int SchedTaskRemove(sched_t *sched, ilrd_uid_t uid)
 {
-	assert(NULL != sched);
-	
-	if (NULL != sched->current_task)
-	{
-		return 1 + PQSize(sched->pq);
-	}
-	
-	return PQSize(sched->pq);
+    task_t *task = NULL;
+
+    assert(NULL != sched);
+
+    if (NULL != sched->curr_task &&
+        UIDIsEqual(uid, TaskGetUid(sched->curr_task)))
+    {
+        sched->curr_task = NULL;
+        return SUCCESS;
+    }
+
+    task = (task_t *)PQErase(sched->pq, SchedTaskIsMatch, &uid);
+    if (NULL == task)
+    {
+        return FAIL;
+    }
+
+    TaskDestroy(task);
+    return SUCCESS;
 }
 
-
-/*----------------------------------------------------------------*/
-/************************* CLEAR & REMOVE *************************/
-/*----------------------------------------------------------------*/
-
-void SchedClear(sched_t* sched)
+int SchedRun(sched_t *sched)
 {
-	assert(NULL != sched);
-	
-	while (!SchedIsEmpty(sched))
-	{
-		TaskDestroy((task_t*)PQDequeue(sched->pq));
-	}
+    task_t *task = NULL;
+    int status = SUCCESS;
+
+    assert(NULL != sched);
+
+    sched->stop_flag = 0;
+
+    while (!sched->stop_flag &&
+           !SchedIsEmpty(sched))
+    {
+        task = PQDequeue(sched->pq);
+        sched->curr_task = task;
+
+        SleepUntilExecutionTime(task);
+
+        status = TaskRun(task);
+
+        if (SUCCESS != status ||
+            !TaskIsRepeatable(task) ||
+            NULL == sched->curr_task)
+        {
+            TaskDestroy(task);
+        }
+        else
+        {
+            TaskUpdateTimeToRun(task);
+            status = PQEnqueue(sched->pq, task);
+            if (SUCCESS != status)
+            {
+                TaskDestroy(task);
+                sched->curr_task = NULL;
+                return status;
+            }
+        }
+
+        sched->curr_task = NULL;
+    }
+    return SUCCESS;
 }
 
-
-int SchedTaskRemove(sched_t* sched, ilrd_uid_t uid)
+void SchedStop(sched_t *sched)
 {
-	task_t* task = NULL;
-	
-	assert(NULL != sched);
-	
-	if (NULL != sched->current_task &&
-	    UIDIsEqual(uid, TaskGetUid(sched->current_task)))
-	{
-		sched->current_task = NULL;
-		return SUCCESS;
-	}
-	
-	task = PQErase(sched->pq, UidIsEqualWrapper , &uid);
-	if (NULL == task)
-	{
-		return FAILURE;
-	}
-	TaskDestroy(task);
-
-	return SUCCESS;
+    assert(NULL != sched);
+    sched->stop_flag = 1;
 }
 
-
-/*----------------------------------------------------------*/
-/************************* ADD TASK *************************/
-/*----------------------------------------------------------*/
-
-ilrd_uid_t SchedTaskAdd(sched_t* sched,
-                   	size_t interval,
-                   	time_t time_to_run,
-                   	int (*op_func)(void* param),
-                   	int (*clean_func)(void* param),
-                   	void* param)
+int SchedIsEmpty(const sched_t *sched)
 {
-	task_t* task = NULL;
-	
-	assert(NULL != sched);
-	assert(NULL != op_func);
-	
-	task = TaskCreate(interval, time_to_run, op_func, clean_func, param);
-	if (NULL == task)
-	{
-		return UIDBadUID;
-	}
-	
-	if (SUCCESS != PQEnqueue(sched->pq, task))
-	{
-		TaskDestroy(task);
-		task = NULL;
-		return UIDBadUID;
-	}
-	
-	return TaskGetUid(task);
+    assert(NULL != sched);
+    return NULL == sched->curr_task && PQIsEmpty(sched->pq);
 }
 
-
-/*------------------------------------------------------------*/
-/************************* RUN & STOP *************************/
-/*------------------------------------------------------------*/
-
-int SchedRun(sched_t* sched)
+size_t SchedCount(const sched_t *sched)
 {
-	time_t current_time = 0;
-	task_t* task = NULL;
-	sched->to_run = RUN;
-	time(&current_time);
-	
-	assert(NULL != sched);
-	
-	while (sched->to_run && !SchedIsEmpty(sched))
-	{
-		sched->current_task = (task_t*)PQDequeue(sched->pq);
-		task = sched->current_task;
-		
-		WaitForOperationTime(TaskGetTimeToRun(task));
-		
-		if ((SUCCESS != TaskRun(task) || 
-		    !TaskIsRepeatable(task))  ||
-		    NULL == sched->current_task)
-		{
-			TaskDestroy(task);
-			task = NULL;
-			sched->current_task = NULL;
-			continue;
-		}
+    size_t count = 0;
 
-		if (FAILURE == UpdateAndPush(sched))
-		{
-			sched->to_run = DONT_RUN;
-			return FAILURE;
-		}
+    assert(NULL != sched);
 
-		sched->current_task = NULL;
-	}
-
-	return SUCCESS;
+    count = PQSize(sched->pq);
+    if (NULL != sched->curr_task)
+    {
+        ++count;
+    }
+    return count;
 }
 
-void SchedStop(sched_t* sched)
+void SchedClear(sched_t *sched)
 {
-	assert(NULL != sched);
-	
-	sched->to_run = DONT_RUN;
+    task_t *task = NULL;
+
+    assert(NULL != sched);
+
+    while (!SchedIsEmpty(sched))
+    {
+        task = (task_t *)PQDequeue(sched->pq);
+        TaskDestroy(task);
+    }
+
+    sched->curr_task = NULL;
 }
 
-/*------------------------------------------------------------------------------*/
-/************************* STATIC FUNCTIONS DECLARATION *************************/
-/*------------------------------------------------------------------------------*/
-
-static void WaitForOperationTime(time_t ttr)
+static int SchedTaskCmp(const void *task1, const void *task2)
 {
-	time_t time_to_run = ttr - time(NULL);
-	while(time_to_run)
-	{
-		time_to_run = sleep(time_to_run);
-	}
+    return (int)TaskGetTimeToRun((task_t *)task1) - (int)TaskGetTimeToRun((task_t *)task2);
 }
 
-static status_t UpdateAndPush(sched_t* sched)
+static int SchedTaskIsMatch(const void *task, const void *uid)
 {
-	TaskUpdateTimeToRun(sched->current_task);
-	if (SUCCESS != PQEnqueue(sched->pq, sched->current_task))
-	{
-		TaskDestroy(sched->current_task);
-		return FAILURE;
-	}
-	return SUCCESS;
+    return UIDIsEqual(TaskGetUid((task_t *)task), *(ilrd_uid_t *)uid);
 }
 
-static int UidIsEqualWrapper(const void* data, const void* param_uid)
+static void SleepUntilExecutionTime(const task_t *task)
 {
-	task_t* task = (task_t*)data;
-	ilrd_uid_t* uid = (ilrd_uid_t*)param_uid;
-	
-	return UIDIsEqual(TaskGetUid(task), *uid);
+    time_t ttr = TaskGetTimeToRun(task);
+    while (ttr > time(NULL))
+    {
+        sleep(ttr - time(NULL));
+    }
 }
 
-
-static int SchedTaskCmp(const void* task1_param, const void* task2_param)
-{
-	task_t* task1 = (task_t*)task1_param;
-	task_t* task2 = (task_t*)task2_param;
-	
-	return TaskGetTimeToRun(task1) - TaskGetTimeToRun(task2);
-}
 
