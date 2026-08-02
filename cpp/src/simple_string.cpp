@@ -8,6 +8,7 @@ namespace ilrd_178
 {
     String::String (const char* string)
     {
+        //extract this, I wont mention it agagins
         m_cstr = new char[strlen(string) + 1];
         strcpy(m_cstr, string);
     }
