@@ -1,3 +1,10 @@
+/**********************
+* simple string
+* Author: Tal Frank
+* Reviewer: Ori Joseph
+* Last update: 17/08/2026
+**********************/
+
 #include <cstring> // strcpy
 #include <iostream> // std
 #include <cstddef> // size_t
