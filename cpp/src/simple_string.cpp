@@ -4,19 +4,19 @@
 
 #include "simple_string.hpp"
 
+
 namespace ilrd_178
 {
+    static char* CopyToNew(const char* src);
+
     String::String (const char* string)
     {
-        //extract this, I wont mention it agagins
-        m_cstr = new char[strlen(string) + 1];
-        strcpy(m_cstr, string);
+        m_cstr = CopyToNew(string);
     }
 
     String::String (const String& other_)
     {
-        m_cstr = new char[other_.Length() + 1];
-        strcpy(m_cstr, other_.m_cstr);
+        m_cstr = CopyToNew(other_.Cstr());
     }
 
     String& String::operator=(const String& other_)
@@ -27,9 +27,7 @@ namespace ilrd_178
         }
 
         delete[] m_cstr;
-        m_cstr = new char[other_.Length() + 1];
-        
-        strcpy(m_cstr, other_.m_cstr);
+        m_cstr = CopyToNew(other_.Cstr());
 
         return *this;
     }
@@ -47,5 +45,12 @@ namespace ilrd_178
     const char* String::Cstr() const
     {
         return m_cstr;
+    }
+
+    static char* CopyToNew(const char* src)
+    {
+        char* dest = new char[strlen(src) + 1];  
+        strcpy(dest, src);
+        return dest;
     }
 }

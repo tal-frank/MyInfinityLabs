@@ -1,21 +1,21 @@
 #include <iostream>
 
-#include "simple_string_roman.hpp"
+#include "simple_string.hpp"
 
 using namespace ilrd_178;
 
-// void Foo(String s);
-// String Bla();
+void Foo(String s);
+String Bla();
 
-// void Foo(String s)
-// {
-//     std::cout << s.Cstr() << std::endl;
-// }
+void Foo(String s)
+{
+    std::cout << s.Cstr() << std::endl;
+}
 
-// String Bla()
-// {
-//     return "BlaBla";
-// }
+String Bla()
+{
+    return "BlaBla";
+}
 
 int main()
 {
