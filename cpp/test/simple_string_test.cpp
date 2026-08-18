@@ -20,7 +20,7 @@ String Bla()
 int main()
 {
     String s1("hello");
-    String s3("world!");
+    String s3("world");
     String s4("bla");
     std::cout << s1.Cstr() << " " << s3.Cstr() << std::endl;
 
@@ -40,5 +40,16 @@ int main()
     std::cout << s4.Cstr() << std::endl;
     s4 = Bla();
     std::cout << s4.Cstr() << std::endl;
+
+    s1 = "abcd";
+    s2 = "abcd";
+
+    std::cout << "s1 == s2 gives " << (s1 == s2) << std::endl;
+    std::cout << "s1 > s2 gives " << (s1 > s2) << std::endl;
+    std::cout << "s1 < s2 gives " << (s1 < s2) << std::endl;
+    std::cout << "s1 < 'abce' gives " << (s1 < "abce") << std::endl;
+    std::cout << "abce < s1 gives " << ("abce" < s1) << std::endl;
+    std::cout << s1 << " " <<s2 << std::endl;
+
     return 0;
 }
