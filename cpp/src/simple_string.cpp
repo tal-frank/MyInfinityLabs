@@ -14,50 +14,62 @@
 
 namespace ilrd_178
 {
-    static char* CopyToNew(const char* src);
+String::String (const char* string) : m_cstr(CopyToNew(string)) {}
 
-    String::String (const char* string)
+String::String (const String& other_) : m_cstr(CopyToNew(other_.Cstr())) {}
+
+String& String::operator=(const String& other_)
+{
+    if (this == &other_)
     {
-        m_cstr = CopyToNew(string);
-    }
-
-    String::String (const String& other_)
-    {
-        m_cstr = CopyToNew(other_.Cstr());
-    }
-
-    String& String::operator=(const String& other_)
-    {
-        if (this == &other_)
-        {
-            return *this;
-        }
-
-        delete[] m_cstr;
-        m_cstr = CopyToNew(other_.Cstr());
-
         return *this;
     }
 
-    String::~String()
-    {
-        delete[] m_cstr;
-    }
+    delete[] m_cstr;
+    m_cstr = CopyToNew(other_.Cstr());
 
-    size_t String::Length() const
-    {
-        return strlen(m_cstr);
-    }
+    return *this;
+}
 
-    const char* String::Cstr() const
-    {
-        return m_cstr;
-    }
+String::~String()
+{
+    delete[] m_cstr;
+}
 
-    static char* CopyToNew(const char* src)
-    {
-        char* dest = new char[strlen(src) + 1];  
-        strcpy(dest, src);
-        return dest;
-    }
+size_t String::Length() const
+{
+    return strlen(m_cstr);
+}
+
+const char* String::Cstr() const
+{
+    return m_cstr;
+}
+
+char* String::CopyToNew(const char* src)
+{
+    char* dest = new char[strlen(src) + 1];
+    strcpy(dest, src);
+    return dest;
+}
+
+bool operator==(const String& str1, const String& str2)
+{
+    return 0 == strcmp(str1.Cstr(), str2.Cstr());
+}
+
+bool operator<(const String& str1, const String& str2)
+{
+    return 0 > strcmp(str1.Cstr(), str2.Cstr());
+}
+
+bool operator>(const String& str1, const String& str2)
+{
+    return 0 < strcmp(str1.Cstr(), str2.Cstr());
+}
+
+std::ostream& operator<<(std::ostream& os_, const String& str)
+{
+    return os_<< str.Cstr();
+}
 }
