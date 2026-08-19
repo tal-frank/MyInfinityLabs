@@ -34,6 +34,7 @@ String& String::operator=(const String& other_)
 String::~String()
 {
     delete[] m_cstr;
+    m_cstr = NULL;
 }
 
 size_t String::Length() const
@@ -48,8 +49,9 @@ const char* String::Cstr() const
 
 char* String::CopyToNew(const char* src)
 {
-    char* dest = new char[strlen(src) + 1];
-    strcpy(dest, src);
+    size_t len = strlen(src) + 1;
+    char* dest = new char[len];
+    memcpy(dest, src, len);
     return dest;
 }
 
