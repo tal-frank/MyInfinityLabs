@@ -15,11 +15,25 @@ public:
     Complex_Number& operator*=(const Complex_Number &other);
     Complex_Number& operator/=(const Complex_Number &other);
     
+    inline void SetReal(double real)
+    {
+        this->real = real;
+    }
 
-    void SetReal(double real);
-    void SetImaginary(double imaginary);
-    double GetReal() const;
-    double GetImaginary() const;
+    inline void SetImaginary(double imaginary)
+    {
+          this->imaginary = imaginary;
+    }
+
+    inline double GetReal() const
+    {
+        return real;
+    }
+
+    inline double GetImaginary() const
+    {
+        return imaginary;
+    }
 
 private:
     double real;

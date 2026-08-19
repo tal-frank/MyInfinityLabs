@@ -5,37 +5,12 @@
 * Last update: 19/08/2026
 **********************/
 
-#include "complex_number.hpp"
-
 #include <iostream>
+
+#include "complex_number.hpp"
 
 namespace ilrd_178
 {
-
-//-----------------------------------------------------------------//
-//************************ GETERS & SETERS ************************//
-//-----------------------------------------------------------------//
-
-void Complex_Number::SetReal(double real)
-{
-    this->real = real;
-}
-
-void Complex_Number::SetImaginary(double imaginary)
-{
-    this->imaginary = imaginary;
-}
-
-double Complex_Number::GetReal() const
-{
-    return real;
-}
-
-double Complex_Number::GetImaginary() const
-{
-    return imaginary;
-}
-
 //--------------------------------------------------------------//
 //************************ CONSTRUCTORS ************************//
 //--------------------------------------------------------------//
@@ -51,6 +26,7 @@ Complex_Number& Complex_Number::operator+=(const Complex_Number &other)
 {
     real += other.real;
     imaginary += other.imaginary;
+
     return *this;
 }
 
@@ -58,6 +34,7 @@ Complex_Number& Complex_Number::operator-=(const Complex_Number &other)
 {
     real -= other.real;
     imaginary -= other.imaginary;
+    
     return *this;
 }
 
@@ -102,13 +79,16 @@ Complex_Number operator+(const Complex_Number& cmplx1, const Complex_Number& cmp
 {
     double r_result = cmplx1.GetReal() + cmplx2.GetReal();
     double i_result = cmplx1.GetImaginary() + cmplx2.GetImaginary();
+
     Complex_Number result(r_result, i_result);
     return result;
 }
+
 Complex_Number operator-(const Complex_Number& cmplx1, const Complex_Number& cmplx2)
 {
     double r_result = cmplx1.GetReal() - cmplx2.GetReal();
     double i_result = cmplx1.GetImaginary() - cmplx2.GetImaginary();
+
     Complex_Number result(r_result, i_result);
     return result;
 }
