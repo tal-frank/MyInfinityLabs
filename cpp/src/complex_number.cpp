@@ -77,51 +77,30 @@ Complex_Number& Complex_Number::operator*=(const Complex_Number &other)
 
 Complex_Number operator+(const Complex_Number& cmplx1, const Complex_Number& cmplx2)
 {
-    double r_result = cmplx1.GetReal() + cmplx2.GetReal();
-    double i_result = cmplx1.GetImaginary() + cmplx2.GetImaginary();
+    Complex_Number result(cmplx1);
 
-    Complex_Number result(r_result, i_result);
-    return result;
+    return result += cmplx2;
 }
 
 Complex_Number operator-(const Complex_Number& cmplx1, const Complex_Number& cmplx2)
 {
-    double r_result = cmplx1.GetReal() - cmplx2.GetReal();
-    double i_result = cmplx1.GetImaginary() - cmplx2.GetImaginary();
+    Complex_Number result(cmplx1);
 
-    Complex_Number result(r_result, i_result);
-    return result;
+    return result -= cmplx2;
 }
 
 Complex_Number operator*(const Complex_Number& cmplx1, const Complex_Number &cmplx2)
 {
-    double r_p1 = cmplx1.GetReal();
-    double r_p2 = cmplx2.GetReal();
-    double im_p1 = cmplx1.GetImaginary();
-    double im_p2 = cmplx2.GetImaginary();
-    
-    double r_result = ((r_p1 * r_p2) - (im_p1 * im_p2));
-    double i_result = ((im_p1 * r_p2) + (r_p1 * im_p2));
-    
-    Complex_Number result(r_result, i_result);
-    
-    return result;
+    Complex_Number result(cmplx1);
+
+    return result *= cmplx2;
 }
 
 Complex_Number operator/(const Complex_Number& cmplx1, const Complex_Number &cmplx2)
 {
-    double r_p1 = cmplx1.GetReal();
-    double r_p2 = cmplx2.GetReal();
-    double im_p1 = cmplx1.GetImaginary();
-    double im_p2 = cmplx2.GetImaginary();
-    double divisor = ((r_p2 * r_p2) + (im_p2 * im_p2));
+    Complex_Number result(cmplx1);
 
-    double r_result = ((r_p1 * r_p2) + (im_p1 * im_p2)) / divisor;
-    double i_result = ((im_p1 * r_p2) - (r_p1 * im_p2)) / divisor;
-
-    Complex_Number result(r_result, i_result);
-
-    return result;
+    return result /= cmplx2;
 }
 
 //--------------------------------------------------------------------//
