@@ -22,7 +22,7 @@ Complex_Number::Complex_Number(double real, double imaginary) :
 //************************ ASSIGNMENT OPERATORS ************************//
 //----------------------------------------------------------------------//
 
-Complex_Number& Complex_Number::operator+=(const Complex_Number &other) 
+Complex_Number& Complex_Number::operator+=(const Complex_Number& other) 
 {
     real += other.real;
     imaginary += other.imaginary;
@@ -30,7 +30,7 @@ Complex_Number& Complex_Number::operator+=(const Complex_Number &other)
     return *this;
 }
 
-Complex_Number& Complex_Number::operator-=(const Complex_Number &other)
+Complex_Number& Complex_Number::operator-=(const Complex_Number& other)
 {
     real -= other.real;
     imaginary -= other.imaginary;
@@ -38,7 +38,7 @@ Complex_Number& Complex_Number::operator-=(const Complex_Number &other)
     return *this;
 }
 
-Complex_Number& Complex_Number::operator/=(const Complex_Number &other)
+Complex_Number& Complex_Number::operator/=(const Complex_Number& other)
 {
     double r_p1 = this->real;
     double r_p2 = other.real;
@@ -55,7 +55,7 @@ Complex_Number& Complex_Number::operator/=(const Complex_Number &other)
     return *this;
 }
 
-Complex_Number& Complex_Number::operator*=(const Complex_Number &other)
+Complex_Number& Complex_Number::operator*=(const Complex_Number& other)
 {
     double r_p1 = this->real;
     double r_p2 = other.real;
