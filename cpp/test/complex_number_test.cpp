@@ -90,7 +90,7 @@ int main()
     time_t start = clock();
     for (size_t i = 0; i < 100000; ++i)
     {
-        cmplx1 = cmplx2 +cmplx3;
+        cmplx2 + cmplx3;
     }
     time_t end = clock();
     std::cout << "time for 100k times operator + is : " << 1000 * (double(end - start)) / CLOCKS_PER_SEC << "ms" << std::endl;
