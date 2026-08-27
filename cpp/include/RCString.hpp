@@ -21,7 +21,6 @@ static const int first_ref = 1;
 class RCString_Data
 {
 public:
-    // inline RCString_Data();
     inline RCString_Data(const char* str = "");
     inline ~RCString_Data();
 
@@ -103,7 +102,6 @@ inline char& RCString_Data::SetStr(size_t index)
     return m_str[index];
 }
 
-
 //-----------------------------------------------------------------------------------//
 //################################# DESTRUCTORS #####################################//
 //-----------------------------------------------------------------------------------//
@@ -180,9 +178,6 @@ inline char& RCString::operator[](size_t index)
     }
     return this->m_data->SetStr(index);
 }
-
-
-
 
 inline char* RCString_Data::InitRCString(const char* src)
 {
