@@ -8,7 +8,6 @@
 #include <cstring> // memcpy
 #include <cstddef> // size_t
 #include <new> // bad_alloc
-#include <iostream> // bad_alloc
 
 namespace ilrd178
 {
@@ -52,7 +51,7 @@ public:
     inline char& operator[](size_t index) const;
     inline char& operator[](size_t index);
 
-    inline size_t Length();
+    inline size_t Length() const;
     inline char* ToCStr() const;
     
 private:
@@ -71,7 +70,18 @@ inline RCString::RCString(const RCString& other_) : m_data(other_.m_data)
 }
 
 inline RCString_Data::RCString_Data(const char* str) : 
-                      m_str(InitRCString(str)), m_ref_cnt(first_ref) {}
+                      /*m_str(InitRCString(str)),*/ m_ref_cnt(first_ref) 
+{
+    try
+    {
+        m_str = (InitRCString(str));
+    }
+    catch(const std::bad_alloc& ba)
+    {
+        std::cerr << "allocation failure : " <<ba.what() << std::endl;
+        throw std::bad_alloc();
+    }
+}
 
 //---------------------------------------------------------------------------------------//
 //################################# SETERS & GETERS #####################################//
@@ -144,22 +154,22 @@ inline RCString& RCString::operator=(const RCString& other_)
 
 inline int operator==(const RCString& str1, const RCString str2)
 {
-    return !!strcmp(str1.ToCStr(), str2.ToCStr());
+    return !strcmp(str1.ToCStr(), str2.ToCStr());
 }
 
 inline int operator!=(const RCString& str1, const RCString str2)
 {
-    return !strcmp(str1.ToCStr(), str2.ToCStr());
+    return !!strcmp(str1.ToCStr(), str2.ToCStr());
 }
 
 inline int operator<(const RCString& str1, const RCString str2)
 {
-    return 0 < strcmp(str1.ToCStr(), str2.ToCStr());
+    return 0 > strcmp(str1.ToCStr(), str2.ToCStr());
 }
 
 inline int operator>(const RCString& str1, const RCString str2)
 {
-    return 0 > strcmp(str1.ToCStr(), str2.ToCStr());
+    return 0 < strcmp(str1.ToCStr(), str2.ToCStr());
 }
 
 inline char& RCString::operator[](size_t index) const
@@ -191,11 +201,11 @@ inline char* RCString_Data::InitRCString(const char* src)
     catch (const std::bad_alloc& ba)
     {
         std::cerr << "allocation failure : " <<ba.what() << std::endl;
-        return NULL;
+        throw std::bad_alloc();
     }
 }
 
-inline size_t RCString::Length()
+inline size_t RCString::Length() const
 {
     return strlen(this->ToCStr());
 }

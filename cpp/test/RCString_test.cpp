@@ -14,13 +14,14 @@ int main()
 {
     char* str = new char[100];
     strcpy(str, "are you copying me??");
-    char* s_ = "another copy";
+    char* s_1 = "another copy";
+    char* s_2 = "bnother copy";
 
     RCString str1;
     RCString str2(str);
     RCString str3(str2);
     RCString str4;
-    RCString str5(s_);
+    RCString str5(s_1);
     RCString str6(str5);
     str4 = str3;
 
@@ -58,12 +59,6 @@ int main()
     'e' != ch ? std::cout << RED << "reading wrong\n---SUCCESS---\n" << RESET << std::endl :
                 std::cout << GREEN << "reading right\n---FAILURE---\n" << RESET << std::endl;
     
-    // std::cout << "str2 = " << str2.ToCStr() << std::endl;
-    // std::cout << "str3 = " << str3.ToCStr() << std::endl;
-    // std::cout << "str1 place = " << static_cast<void*>(str1.ToCStr()) << std::endl;
-    // std::cout << "str2 place = " << static_cast<void*>(str2.ToCStr()) << std::endl;
-    // std::cout << "str3 place = " << static_cast<void*>(str3.ToCStr()) << std::endl;
-    
     static_cast<void*>(str2.ToCStr()) != static_cast<void*>(str3.ToCStr()) ? 
             std::cout << RED << "copying wrong\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "copying right\n---SUCCESS---\n" << RESET << std::endl;
@@ -86,11 +81,6 @@ int main()
     static_cast<void*>(str2.ToCStr()) == static_cast<void*>(str3.ToCStr()) ? 
             std::cout << RED << "copying wrong\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "copying right\n---SUCCESS---\n" << RESET << std::endl;
-
-    // std::cout << "str1 place = " << static_cast<void*>(str1.ToCStr()) << std::endl;
-    // std::cout << "str2 place = " << static_cast<void*>(str2.ToCStr()) << std::endl;
-    // std::cout << "str3 place = " << static_cast<void*>(str3.ToCStr()) << std::endl;
- 
 
 //---------------------------------------------------------------------------------------//
 //################################# ASSIGNMENT TEST #####################################//
@@ -119,9 +109,34 @@ int main()
             std::cout << GREEN << "copying right\n---SUCCESS---\n" << RESET << std::endl;
 
 //-----------------------------------------------------------------------------------//
-//################################# LENGTH TEST #####################################//
+//################################# EQUALITY TEST #####################################//
 //-----------------------------------------------------------------------------------// 
 
+    RCString str7(s_1);
+    RCString str8(s_1);
+    RCString str9(s_2);
+
+    std::cout << BLUE << "EQUALITY TEST" << RESET << std::endl;
+
+    0 == (str7 == str8) ? 
+            std::cout << RED << "equality is wrong\n---FAILURE---\n" << RESET << std::endl :
+            std::cout << GREEN << "equality is right\n---SUCCESS---\n" << RESET << std::endl;
+
+    0 == (str7 != str9) ? 
+            std::cout << RED << "equality is wrong\n---FAILURE---\n" << RESET << std::endl :
+            std::cout << GREEN << "equality is right\n---SUCCESS---\n" << RESET << std::endl;
+    
+    0 == (str8 < str9) ? 
+            std::cout << RED << "equality is wrong\n---FAILURE---\n" << RESET << std::endl :
+            std::cout << GREEN << "equality is right\n---SUCCESS---\n" << RESET << std::endl;
+
+    0 == (str9 > str8) ? 
+            std::cout << RED << "equality is wrong\n---FAILURE---\n" << RESET << std::endl :
+            std::cout << GREEN << "equality is right\n---SUCCESS---\n" << RESET << std::endl;
+
+//-----------------------------------------------------------------------------------//
+//################################# LENGTH TEST #####################################//
+//-----------------------------------------------------------------------------------// 
 
     std::cout << BLUE << "LENGTH TEST" << RESET << std::endl;
     std::cout << "sring length is : "<< str2.Length() << std::endl;
@@ -129,7 +144,17 @@ int main()
             std::cout << RED << "wrong length\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "right length\n---SUCCESS---\n" << RESET << std::endl;
 
-
     delete[] str;
+    
+    //-----------------------------------------------------------------------------------//
+    //################################# LENGTH TEST #####################################//
+    //-----------------------------------------------------------------------------------// 
+    
+    const RCString str10(str2);
+    ch = str10[4];
+    std::cout << "str10 = " << str10.ToCStr() << std::endl;
+    std::cout << "ch = " << ch << std::endl;
+    std::cout << "length = " << str10.Length() << std::endl;
+
     return 0;
 }
