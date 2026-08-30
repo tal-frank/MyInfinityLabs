@@ -35,15 +35,15 @@ int main()
     std::cout << "str2 = " << str2.ToCStr() << std::endl;
     std::cout << "str3 = " << str3.ToCStr() << std::endl;
 
-    static_cast<void*>(str1.ToCStr()) == static_cast<void*>(str2.ToCStr()) ? 
+    (str1.ToCStr()) == (str2.ToCStr()) ? 
             std::cout << RED << "creating wrong\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "creating right\n---SUCCESS---\n" << RESET << std::endl;
 
-    static_cast<void*>(str2.ToCStr()) != static_cast<void*>(str3.ToCStr()) ? 
+    (str2.ToCStr()) != (str3.ToCStr()) ? 
             std::cout << RED << "copying wrong\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "copying right\n---SUCCESS---\n" << RESET << std::endl;
 
-    static_cast<void*>(str4.ToCStr()) != static_cast<void*>(str3.ToCStr()) ? 
+    (str4.ToCStr()) != (str3.ToCStr()) ? 
             std::cout << RED << "copying wrong\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "copying right\n---SUCCESS---\n" << RESET << std::endl;
 
@@ -59,7 +59,7 @@ int main()
     'e' != ch ? std::cout << RED << "reading wrong\n---SUCCESS---\n" << RESET << std::endl :
                 std::cout << GREEN << "reading right\n---FAILURE---\n" << RESET << std::endl;
     
-    static_cast<void*>(str2.ToCStr()) != static_cast<void*>(str3.ToCStr()) ? 
+    (str2.ToCStr()) != (str3.ToCStr()) ? 
             std::cout << RED << "copying wrong\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "copying right\n---SUCCESS---\n" << RESET << std::endl;
     
@@ -78,7 +78,7 @@ int main()
     'e' != str2[1] ? std::cout << RED << " and writing\n---FAILURE---\n" << RESET << std::endl :
                      std::cout << GREEN << "reading without writing\n---SUCCESS---\n" << RESET << std::endl;
 
-    static_cast<void*>(str2.ToCStr()) == static_cast<void*>(str3.ToCStr()) ? 
+    (str2.ToCStr()) == (str3.ToCStr()) ? 
             std::cout << RED << "copying wrong\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "copying right\n---SUCCESS---\n" << RESET << std::endl;
 
@@ -94,17 +94,17 @@ int main()
     std::cout << "str5 = " << str5.ToCStr() << std::endl;
     std::cout << "str6 = " << str6.ToCStr() << std::endl;
 
-    static_cast<void*>(str5.ToCStr()) == static_cast<void*>(str3.ToCStr()) ? 
+    (str5.ToCStr()) == (str3.ToCStr()) ? 
             std::cout << RED << "copying wrong\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "copying right\n---SUCCESS---\n" << RESET << std::endl;
 
-    static_cast<void*>(str6.ToCStr()) != static_cast<void*>(str3.ToCStr()) ? 
+    (str6.ToCStr()) != (str3.ToCStr()) ? 
             std::cout << RED << "copying wrong\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "copying right\n---SUCCESS---\n" << RESET << std::endl;
             
     str5 = str3;
     std::cout << "str5 = " << str5.ToCStr() << std::endl;
-    static_cast<void*>(str5.ToCStr()) != static_cast<void*>(str3.ToCStr()) ? 
+    (str5.ToCStr()) != (str3.ToCStr()) ? 
             std::cout << RED << "copying wrong\n---FAILURE---\n" << RESET << std::endl :
             std::cout << GREEN << "copying right\n---SUCCESS---\n" << RESET << std::endl;
 

@@ -48,11 +48,11 @@ public:
     inline ~RCString();
 
     inline RCString& operator=(const RCString& other_);
-    inline char& operator[](size_t index) const;
+    inline const char& operator[](size_t index) const;
     inline char& operator[](size_t index);
 
     inline size_t Length() const;
-    inline char* ToCStr() const;
+    inline const char* ToCStr() const;
     
 private:
     RCString_Data* m_data;
@@ -87,7 +87,7 @@ inline RCString_Data::RCString_Data(const char* str) :
 //################################# SETERS & GETERS #####################################//
 //---------------------------------------------------------------------------------------//
 
-inline char* RCString::ToCStr() const
+inline const char* RCString::ToCStr() const
 {
     return this->m_data->GetStr();
 }
@@ -152,27 +152,28 @@ inline RCString& RCString::operator=(const RCString& other_)
     return *this;
 }
 
-inline int operator==(const RCString& str1, const RCString str2)
+inline bool operator==(const RCString& str1, const RCString str2)
 {
-    return !strcmp(str1.ToCStr(), str2.ToCStr());
+    return str1.ToCStr() == str2.ToCStr() ||
+           !strcmp(str1.ToCStr(), str2.ToCStr());
 }
 
-inline int operator!=(const RCString& str1, const RCString str2)
+inline bool operator!=(const RCString& str1, const RCString str2)
 {
     return !!strcmp(str1.ToCStr(), str2.ToCStr());
 }
 
-inline int operator<(const RCString& str1, const RCString str2)
+inline bool operator<(const RCString& str1, const RCString str2)
 {
     return 0 > strcmp(str1.ToCStr(), str2.ToCStr());
 }
 
-inline int operator>(const RCString& str1, const RCString str2)
+inline bool operator>(const RCString& str1, const RCString str2)
 {
     return 0 < strcmp(str1.ToCStr(), str2.ToCStr());
 }
 
-inline char& RCString::operator[](size_t index) const
+inline const char& RCString::operator[](size_t index) const
 {
     return this->ToCStr()[index];
 }
