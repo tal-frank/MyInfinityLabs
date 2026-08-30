@@ -4,23 +4,16 @@
 #include <list> // STL list
 
 void PrintAllInputs(std::map<std::string, int>& map, std::list<std::string>& list)
-{
-    std::map<std::string, int>::iterator map_iter;
-    
+{  
     std::list<std::string>::iterator list_iter;
-    std::list<std::string>::iterator list_end;
-    list_iter = list.begin();
-    list_end = list.end();
-    
-    while (list_end != list_iter)
+
+    for(list_iter = list.begin(); list_iter != list.end(); ++list_iter)
     {
-        map_iter = map.find(*list_iter);
-        if (1 < map_iter->second)
+        if (1 < map[*list_iter])
         {
-            std::cout << map_iter->second << " X ";
+            std::cout << map[*list_iter] << " X ";
         }
         std::cout << *list_iter << std::endl;
-        ++list_iter;
     }
 }
 
@@ -28,16 +21,13 @@ void Histo()
 {
     std::map<std::string, int> map;
     std::list<std::string> list;
-    std::string input;
+    std::string input = "";
 
     while ("." != input)
     {
         std::getline(std::cin, input);
 
-        std::map<std::string, int>::iterator map_iter;
-        map_iter = map.find(input);
-
-        if (map.end() == map_iter)
+        if (map.end() == map.find(input))
         {
             list.push_back(input);
         }
