@@ -6,7 +6,7 @@ const char* RESET = "\033[0m";
 
 #include <iostream>
 
-#include "RCString.hpp"
+#include "rcstring.hpp"
 
 using namespace ilrd178;
 
