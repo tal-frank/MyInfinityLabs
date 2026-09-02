@@ -37,25 +37,25 @@ private:
 class rectangle : public shape
 {
 public:
-    inline rectangle();
+    inline rectangle() : shape("rectangle") {}
 };
 
 class square : public shape
 {
 public:
-    inline square();
+    inline square() : shape("square") {}
 };
 
 class circle : public shape
 {
 public:
-    inline circle();
+    inline circle() : shape("circle") {}
 };
 
 class line : public shape
 {
 public:
-    inline line();
+    inline line() : shape("line") {}
 };
 
 //---------------------------------------------------------------//
@@ -67,14 +67,6 @@ inline shape::shape(std::string shape_name) : shape_name(shape_name), offset(0){
 inline shape::shape() : offset(0) {}
 
 inline shape::~shape() {}
-
-inline line::line() : shape("line") {}
-
-inline square::square() : shape("square") {}
-
-inline rectangle::rectangle() : shape("rectangle") {}
-
-inline circle::circle() : shape("circle") {}
 
 //------------------------------------------------------------------//
 //************************ MEMBER FUNCTIONS ************************//

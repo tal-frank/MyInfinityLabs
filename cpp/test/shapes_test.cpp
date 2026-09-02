@@ -1,7 +1,21 @@
+#include <iostream>
+#include <list>
+
 #include "shapes.hpp"
+
+void PrintShapeList(std::list<shape*> shape_list)
+{
+    std::list<shape*>::iterator iter;
+    for (iter = shape_list.begin(); iter != shape_list.end(); ++iter)
+    {
+        (*iter)->Draw();
+    }
+
+}
 
 int main()
 {
+    
     line l;
     rectangle r;
     square s;
@@ -32,5 +46,13 @@ int main()
     s.Draw();
     c.Draw();
 
+    std::list<shape*> shape_list;
+
+    shape_list.push_back(&l);
+    shape_list.push_back(&r);
+    shape_list.push_back(&s);
+    shape_list.push_back(&c);
+
+    PrintShapeList(shape_list);
     return 0;
 }
