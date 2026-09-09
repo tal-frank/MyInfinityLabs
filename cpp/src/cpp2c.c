@@ -290,11 +290,9 @@ void PublicConvoyCCtor(PublicConvoy* const this,
 
     this->m_pt1 = malloc(sizeof(PublicTransport));
     PublicTransportCCtor(this->m_pt1, other_->m_pt1);
-    /* this->m_pt1->vptr = other_->m_pt1->vptr; */
 
     this->m_pt2 = malloc(sizeof(PublicTransport));
     PublicTransportCCtor(this->m_pt2, other_->m_pt2);
-    /* this->m_pt1->vptr = other_->m_pt1->vptr; */
 
     MinibusCCtor(&this->m_m, &other_->m_m);
     TaxiCCtor(&this->m_t, &other_->m_t);
