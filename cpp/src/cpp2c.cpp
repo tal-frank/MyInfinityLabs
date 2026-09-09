@@ -1,4 +1,5 @@
 #include <iostream> //cout
+
 using namespace std;
 
 class PublicTransport {
@@ -151,14 +152,24 @@ public:
 private:
 };
 
-/*class PublicConvoy: public PublicTransport {
+class PublicConvoy: public PublicTransport {
 public:
     PublicConvoy() : m_pt1(new Minibus()), m_pt2(new Taxi())
     {
+        cout<< "PublicConvoy::Ctor()" << endl;
+    }
+
+    PublicConvoy(const PublicConvoy& other_) : m_pt1(new PublicTransport(other_)),
+                                               m_pt2(new PublicTransport(other_)),
+                                               m_m(other_.m_m),
+                                               m_t(other_.m_t) 
+    {
+        cout<< "PublicConvoy::CCtor" << endl;
     }
 
     ~PublicConvoy()
     {
+        cout<< "PublicConvoy::Dtor" << endl;
         delete m_pt1;
         delete m_pt2;
     }
@@ -176,7 +187,7 @@ private:
     PublicTransport *m_pt2;
     Minibus m_m;
     Taxi m_t;
-};*/
+};
 
 void print_info(PublicTransport &a)
 {
@@ -241,13 +252,13 @@ int main(int argc, char **argv, char **envp)
     SpecialTaxi st;
     taxi_display(st);
 
-    /*PublicConvoy *ts1 = new PublicConvoy();
+    PublicConvoy *ts1 = new PublicConvoy();
     PublicConvoy *ts2 = new PublicConvoy(*ts1);
     ts1->display();
     ts2->display();
     delete ts1;
     ts2->display(); // this crashes. fix the bug!
-    delete ts2;*/
+    delete ts2;
 
     ArmyMinibus* army_minibus = new ArmyMinibus;
     army_minibus->display();
