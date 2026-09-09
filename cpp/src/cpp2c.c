@@ -542,29 +542,17 @@ int main(int arg, char** argv, char** envp)
     {
         MinibusCtor(&array3[i]);
     }
-    /* MinibusCtor(&array3[0]);
-    MinibusCtor(&array3[1]);
-    MinibusCtor(&array3[2]);
-    MinibusCtor(&array3[3]); */
 
     array4 = malloc(4 * sizeof(Taxi));
     for(i = 0; i < 4; ++i)
     {
         TaxiCtor(&array4[i]);
     }
-    /* TaxiCtor(&array4[0]);
-    TaxiCtor(&array4[1]);
-    TaxiCtor(&array4[2]);
-    TaxiCtor(&array4[3]); */
 
     for(i = 4; i > 0; --i)
     {
         TaxiDtor(&array4[i - 1]);
     }
-    /* TaxiDtor(&array4[3]);
-    TaxiDtor(&array4[2]);
-    TaxiDtor(&array4[1]);
-    TaxiDtor(&array4[0]); */
 
 /*---------------- template ----------------*/
 
@@ -616,18 +604,12 @@ int main(int arg, char** argv, char** envp)
         MinibusDtor(&array3[i - 1]);
     }
 
-    /* MinibusDtor(&array3[3]);
-    MinibusDtor(&array3[2]);
-    MinibusDtor(&array3[1]);
-    MinibusDtor(&array3[0]); */
-
     MinibusDtor(&m2);
 
     for(i = 3; i > 0; --i)
     {
         PublicTransportDtor(&array2[i - 1]);
     }
-
 
     MinibusDtor(&m);
     return 0;
