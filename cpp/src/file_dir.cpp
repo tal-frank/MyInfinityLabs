@@ -25,6 +25,14 @@ void FileComponent::Print(size_t depth) const
 //############################# DIR FUNCTIONS #################################//
 //-----------------------------------------------------------------------------//
 
+Dir::~Dir()
+{
+    for (size_t i = 0; i < this->m_children.size(); ++i)
+    {
+        delete m_children[i];
+    }
+}
+
 void Dir::Print(size_t depth) const
 {
     FileComponent::Print(depth++);
@@ -36,10 +44,9 @@ void Dir::Print(size_t depth) const
 
 Dir::Dir(const Dir& other_) : FileComponent(other_)
 {
-    for(size_t i = 0; i < other_.m_children.size(); ++i)
+    for (size_t i = 0; i < other_.m_children.size(); ++i)
     {
-        this->m_children.push_back(other_.m_children[i]);
-        this->m_children[i] = other_.m_children[i]->clone();
+        this->m_children.push_back(other_.m_children[i]->clone());
     }
 }
 

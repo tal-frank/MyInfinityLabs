@@ -29,73 +29,78 @@ int main()
     std::string File8 = "file 8";
     std::string File9 = "file 9";
     
-    Dir dir1(Dir1);
-    Dir dir2(Dir2);
-    dir1.Add(&dir2);
-    Dir dir3(Dir3);
-    dir1.Add(&dir3);
-    Dir dir4(Dir4);
-    dir1.Add(&dir4);
-    Dir dir5(Dir5);
-    dir3.Add(&dir5);
-    Dir dir6(Dir6);
-    dir3.Add(&dir6);
-    Dir dir7(Dir7);
-    dir6.Add(&dir7);
-    Dir dir8(Dir8);
-    dir3.Add(&dir8);
-    Dir dir9(Dir9);
-    dir5.Add(&dir9);
-    Dir dir10(Dir10);
-    dir2.Add(&dir10);
-    Dir dir11(Dir11);
-    dir1.Add(&dir11);
+    Dir* dir1 = new Dir(Dir1);
+    Dir* dir2 = new Dir(Dir2);
+    dir1->Add(dir2);
+    Dir* dir3 = new Dir(Dir3);
+    dir1->Add(dir3);
+    Dir* dir4 = new Dir(Dir4);
+    dir1->Add(dir4);
+    Dir* dir5 = new Dir(Dir5);
+    dir3->Add(dir5);
+    Dir* dir6 = new Dir(Dir6);
+    dir3->Add(dir6);
+    Dir* dir7 = new Dir(Dir7);
+    dir6->Add(dir7);
+    Dir* dir8 = new Dir(Dir8);
+    dir3->Add(dir8);
+    Dir* dir9 = new Dir(Dir9);
+    dir5->Add(dir9);
+    Dir* dir10 = new Dir(Dir10);
+    dir2->Add(dir10);
+    Dir* dir11 = new Dir(Dir11);
+    dir1->Add(dir11);
 
-    File file1(File1);
-    dir1.Add(&file1);
-    File file2(File2);
-    dir1.Add(&file2);
-    File file3(File3);
-    dir3.Add(&file3);
-    File file4(File4);
-    dir3.Add(&file4);
-    File file5(File5);
-    dir3.Add(&file5);
-    File file6(File6);
-    dir6.Add(&file6);
-    File file7(File7);
-    dir6.Add(&file7);
-    File file8(File8);
-    dir8.Add(&file8);
-    File file9(File9);
-    dir8.Add(&file9);
+    File* file1 = new File(File1);
+    dir1->Add(file1);
+    File* file2 = new File(File2);
+    dir1->Add(file2);
+    File* file3 = new File(File3);
+    dir3->Add(file3);
+    File* file4 = new File(File4);
+    dir3->Add(file4);
+    File* file5 = new File(File5);
+    dir3->Add(file5);
+    File* file6 = new File(File6);
+    dir6->Add(file6);
+    File* file7 = new File(File7);
+    dir6->Add(file7);
+    File* file8 = new File(File8);
+    dir8->Add(file8);
+    File* file9 = new File(File9);
+    dir8->Add(file9);
 
-    dir1.Print();
+    dir1->Print();
     std::cout << std::endl;
 
-    dir3.Print();
+    dir3->Print();
     std::cout << std::endl;
 
-    dir1.Delete(&dir4);
-    dir1.Print();
+    dir1->Delete(dir4);
+    delete dir4;
+    dir1->Print();
     std::cout << std::endl;
 
-    dir3.Delete(&dir6);
-    dir1.Print();
+    dir3->Delete(dir6);
+    dir1->Print();
     std::cout << std::endl;
 
-    FileComponent* dir12 = dir3.clone();
+    FileComponent* dir12 = dir3->clone();
     dir12->Print();
     std::cout << std::endl;
 
-    (*(Dir*)dir12).Delete(&dir4);
-    dir3.Delete(&dir5);
-    dir3.Add(&dir6);
+    (*(Dir*)dir12).Delete(dir4);
+    dir3->Delete(dir5);
+    delete dir5;
+    dir3->Add(dir6);
 
     dir12->Print();
     std::cout << std::endl;
-    dir3.Print();
+    dir3->Print();
     std::cout << std::endl;
+
+    delete dir1;
+    delete dir12;
 
     return 0;
 }

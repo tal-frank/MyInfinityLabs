@@ -30,7 +30,7 @@ class Dir : public FileComponent
 public:
     explicit inline Dir(const std::string& file_name) 
                         : FileComponent(file_name) {}
-    virtual inline ~Dir() {}
+    virtual ~Dir();
     virtual void Print(size_t depth = 0) const;
     virtual void Add(FileComponent* to_insert);
     virtual void Delete(const FileComponent* to_delete);
