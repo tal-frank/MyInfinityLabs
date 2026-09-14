@@ -10,11 +10,7 @@ namespace ilrd_178
 //############################# FILECOMPONENT FUNCTIONS #################################//
 //---------------------------------------------------------------------------------------//
 
-// FileComponent::FileComponent(const std::string& file_name) : m_name(file_name) {}
-
 FileComponent::~FileComponent() {}
-
-// FileComponent::FileComponent(const FileComponent& other_) : m_name(other_.m_name) {}
 
 void FileComponent::Print(size_t depth) const
 {
@@ -28,10 +24,6 @@ void FileComponent::Print(size_t depth) const
 //-----------------------------------------------------------------------------//
 //############################# DIR FUNCTIONS #################################//
 //-----------------------------------------------------------------------------//
-
-// Dir::Dir(const std::string& file_name) : FileComponent(file_name) {}
-
-// Dir::Dir() {}
 
 void Dir::Print(size_t depth) const
 {
@@ -74,10 +66,6 @@ FileComponent* Dir::clone()
 //------------------------------------------------------------------------------//
 //############################# FILE FUNCTIONS #################################//
 //------------------------------------------------------------------------------//
-
-// File::File(const std::string& file_name) : FileComponent(file_name) {}
-
-// File::~File() {}
 
 File::File(const File& other_) : FileComponent(other_) {}
 
