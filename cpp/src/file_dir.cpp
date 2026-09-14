@@ -1,3 +1,10 @@
+/**********************
+* file_dir
+* Author: Tal Frank
+* Reviewer: Ori Joseph
+* Last update: 14/09/2026
+**********************/
+
 #include <iostream>
 #include <algorithm>
 
@@ -57,8 +64,8 @@ void Dir::Add(FileComponent* to_insert)
 
 void Dir::Delete(const FileComponent* to_delete)
 {
-    std::vector<FileComponent*>::iterator iter_to_delete = m_children.begin();
-    iter_to_delete = std::find(m_children.begin(), m_children.end(), to_delete);
+    std::vector<FileComponent*>::iterator iter_to_delete =
+                                 std::find(m_children.begin(), m_children.end(), to_delete);
     if (iter_to_delete != m_children.end())
     {
         iter_to_delete = m_children.erase(iter_to_delete);
@@ -75,11 +82,6 @@ FileComponent* Dir::clone()
 //------------------------------------------------------------------------------//
 
 File::File(const File& other_) : FileComponent(other_) {}
-
-void File::Print(size_t depth) const
-{
-    FileComponent::Print(depth);
-}
 
 FileComponent* File::clone()
 {
