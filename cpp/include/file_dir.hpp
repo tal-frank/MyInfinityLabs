@@ -23,7 +23,7 @@ public:
     virtual FileComponent* clone() = 0;
 
 protected:
-    inline FileComponent(const FileComponent& other_);
+    explicit inline FileComponent(const FileComponent& other_);
     FileComponent operator=(const FileComponent& file_comp);
     
 private:
