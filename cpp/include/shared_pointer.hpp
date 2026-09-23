@@ -1,9 +1,14 @@
+/**********************
+* shared pointer
+* Author: Tal Frank
+* Reviewer: Or Zellner
+* Last update: 22/09/2026
+**********************/
+
 #ifndef __SHARED_POINTER__
 #define __SHARED_POINTER__
 
-#include <pthread.h>
-
-#include <cstddef> // size_t
+#include <cstddef> // size_t , NULL
 
 namespace ilrd178
 {
@@ -34,7 +39,6 @@ private:
     T* m_data;
     size_t* m_ref_cnt;
 
-    SharedPtr();
     template <typename U>
     friend class SharedPtr;
 };
@@ -44,10 +48,7 @@ private:
 //---------------------------------------------------------------------------------------//
 
 template <typename T>
-inline SharedPtr<T>::SharedPtr(T* ptr) : m_data(ptr), m_ref_cnt(new size_t)
-{
-    *m_ref_cnt = 1;
-}
+inline SharedPtr<T>::SharedPtr(T* ptr) : m_data(ptr), m_ref_cnt(new size_t(1)) {}
 
 template <typename T>
 inline SharedPtr<T>::SharedPtr(const SharedPtr& other_) : m_data(other_.m_data), 
