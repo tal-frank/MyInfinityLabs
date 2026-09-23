@@ -59,5 +59,42 @@ int main()
     bs_and &= bs;
     std::cout << bs_and.ToString() << std::endl;
 
+    std::cout << (bs == bs10) << std::endl;
+    std::cout << (bs != bs10) << std::endl;
+    std::cout << (bs == bs_and) << std::endl;
+    std::cout << (bs != bs_and) << std::endl;
+
+    std::cout << bs.ToString() << std::endl;
+    bs.FlipAll();
+    std::cout << bs.ToString() << std::endl;
+
+    bs.FlipBit(5);
+    std::cout << bs.ToString() << std::endl;
+
+    bool c = bs[2];
+    std::cout << c << std::endl;
+
+    bool bit4 = bs.GetBit(4);
+    std::cout << bit4 << std::endl;
+
+    bool bit3 = bs.GetBit(3);
+    std::cout << bit3 << std::endl;
+
+    bs.SetBit(1, 5);
+    std::cout << bs.ToString() << std::endl;
+
+    bs.SetBit(0, 0);
+    std::cout << bs.ToString() << std::endl;
+
+    bs.SetBit(0, 2);
+    std::cout << bs.ToString() << std::endl;
+
+    
+    std::cout << bs.CountOn() << std::endl;
+
+    bool b = false;
+    bs.SetAll(b);
+    std::cout << bs.ToString() << std::endl;
+    
     return 0;
 }
