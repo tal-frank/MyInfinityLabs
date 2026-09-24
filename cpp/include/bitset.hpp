@@ -18,8 +18,7 @@
 //************************ GLOBAL CONSTANTS ************************//
 //------------------------------------------------------------------//
 
-const int num_of_bits_on_lut[16] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
-const int BYTE_SIZE_IN_BITS = sizeof(char) * 8;
+const int NUM_OF_BITS_IN_BYTE = sizeof(char) * 8;
 
 //------------------------------------------------------------------//
 //************************ CLASS DEFINITION ************************//
@@ -74,10 +73,26 @@ private:
         size_t m_indx;
     };
     
-    unsigned char m_bitmap[((SIZE - 1) / BYTE_SIZE_IN_BITS) + 1];
+    unsigned char m_bitmap[((SIZE - 1) / NUM_OF_BITS_IN_BYTE) + 1];
 };
 
-static char FlipBits(char byte);
+//----------------------------------------------------------//
+//************************ FUNCTORS ************************//
+//----------------------------------------------------------//
+
+struct OnBits
+{
+public:
+    size_t operator()(size_t total_cnt, unsigned char part_val)
+    {
+        return total_cnt + num_of_bits_on_lut[0x0F & part_val] + num_of_bits_on_lut[part_val >> 4];
+    }
+private:
+    static const int num_of_bits_on_lut[16];
+
+};
+
+const int OnBits::num_of_bits_on_lut[16] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 
 //--------------------------------------------------------------//
 //************************ CONSTRUCTORS ************************//
@@ -86,13 +101,13 @@ static char FlipBits(char byte);
 template<size_t SIZE>
 BitSet<SIZE>::BitSet()
 {
-    std::fill(m_bitmap, m_bitmap + ((SIZE - 1) / BYTE_SIZE_IN_BITS) + 1, 0);
+    std::fill(m_bitmap, m_bitmap + ((SIZE - 1) / NUM_OF_BITS_IN_BYTE) + 1, 0);
 }
 
 template<size_t SIZE>
 BitSet<SIZE>::BitSet(const BitSet& other) 
 {
-    memcpy(m_bitmap, other.m_bitmap, ((SIZE - 1) / BYTE_SIZE_IN_BITS) + 1);
+    memcpy(m_bitmap, other.m_bitmap, ((SIZE - 1) / NUM_OF_BITS_IN_BYTE) + 1);
 }
 
 template <size_t SIZE>
@@ -107,18 +122,15 @@ BitSet<SIZE>& BitSet<SIZE>::operator=(const BitSet& other)
 {
     if (this != &other)
     {
-        memcpy(m_bitmap, other.m_bitmap, ((SIZE - 1) / BYTE_SIZE_IN_BITS) + 1);
+        memcpy(m_bitmap, other.m_bitmap, ((SIZE - 1) / NUM_OF_BITS_IN_BYTE) + 1);
     }
     return *this;
 }
 
 template <size_t SIZE>
 inline typename BitSet<SIZE>::BitProxy& BitSet<SIZE>::BitProxy::operator=(bool x)
-{
-    char mask = 1 << (m_indx % BYTE_SIZE_IN_BITS);
-    
-    false == x ? m_bitset.m_bitmap[m_indx / BYTE_SIZE_IN_BITS] &= ~mask
-               : m_bitset.m_bitmap[m_indx / BYTE_SIZE_IN_BITS] |= mask;
+{   
+    this->m_bitset.SetBit(x, m_indx);
     
     return *this;
 }
@@ -126,25 +138,18 @@ inline typename BitSet<SIZE>::BitProxy& BitSet<SIZE>::BitProxy::operator=(bool x
 template <size_t SIZE>
 inline typename BitSet<SIZE>::BitProxy& BitSet<SIZE>::BitProxy::operator=(const BitProxy &BitProxy)
 {
-    char mask = 0x01 << (BitProxy.m_indx % BYTE_SIZE_IN_BITS);
-    bool bit = !!(mask & BitProxy.m_bitset.m_bitmap[BitProxy.m_indx / BYTE_SIZE_IN_BITS]);
-    mask = 1 << (m_indx % BYTE_SIZE_IN_BITS);
+    const char mask = 0x01 << (BitProxy.m_indx % NUM_OF_BITS_IN_BYTE);
+    bool bit = !!(mask & BitProxy.m_bitset.m_bitmap[BitProxy.m_indx / NUM_OF_BITS_IN_BYTE]);
 
-    false == bit ? m_bitset.m_bitmap[m_indx / BYTE_SIZE_IN_BITS] &= ~mask
-                 : m_bitset.m_bitmap[m_indx / BYTE_SIZE_IN_BITS] |= mask;
+    this->m_bitset.SetBit(bit, m_indx);
     
     return *this;
 }
 
-
-
 template<size_t SIZE>
 bool BitSet<SIZE>::operator[](size_t indx) const 
 {
-    size_t byte_index = indx / (BYTE_SIZE_IN_BITS);
-    size_t bit_index = indx % (BYTE_SIZE_IN_BITS);
-    char mask = 1 << bit_index;
-    return !!(m_bitmap[byte_index] & mask);
+    return this->GetBit(indx);
 }
 
 template<size_t SIZE>
@@ -164,7 +169,7 @@ template<size_t SIZE>
 BitSet<SIZE>& BitSet<SIZE>::operator^=(const BitSet& bs) 
 {
     std::transform(bs.m_bitmap, 
-                   bs.m_bitmap + ((SIZE - 1) / BYTE_SIZE_IN_BITS) + 1,
+                   bs.m_bitmap + ((SIZE - 1) / NUM_OF_BITS_IN_BYTE) + 1,
                    m_bitmap,
                    m_bitmap,
                    std::bit_xor<char>());
@@ -175,7 +180,7 @@ template<size_t SIZE>
 BitSet<SIZE>& BitSet<SIZE>::operator&=(const BitSet& bs) 
 {
     std::transform(bs.m_bitmap, 
-                   bs.m_bitmap + ((SIZE - 1) / BYTE_SIZE_IN_BITS) + 1,
+                   bs.m_bitmap + ((SIZE - 1) / NUM_OF_BITS_IN_BYTE) + 1,
                    m_bitmap,
                    m_bitmap,
                    std::bit_and<char>());
@@ -186,7 +191,7 @@ template<size_t SIZE>
 BitSet<SIZE>& BitSet<SIZE>::operator|=(const BitSet& bs) 
 {
     std::transform(bs.m_bitmap, 
-                   bs.m_bitmap + ((SIZE - 1) / BYTE_SIZE_IN_BITS) + 1,
+                   bs.m_bitmap + ((SIZE - 1) / NUM_OF_BITS_IN_BYTE) + 1,
                    m_bitmap,
                    m_bitmap,
                    std::bit_or<char>());
@@ -197,22 +202,22 @@ BitSet<SIZE>& BitSet<SIZE>::operator|=(const BitSet& bs)
 template<size_t SIZE>
 void BitSet<SIZE>::FlipBit(size_t indx)
 {
-    unsigned char mask = (1 << ((indx % BYTE_SIZE_IN_BITS)));
-    m_bitmap[(indx - 1) / BYTE_SIZE_IN_BITS] ^= mask;
+    const unsigned char mask = (1 << ((indx % NUM_OF_BITS_IN_BYTE)));
+    m_bitmap[(indx - 1) / NUM_OF_BITS_IN_BYTE] ^= mask;
 }
 
 template<size_t SIZE>
 void BitSet<SIZE>::FlipAll()
 {
     std::transform(m_bitmap, 
-                   m_bitmap + ((SIZE - 1) / BYTE_SIZE_IN_BITS),
+                   m_bitmap + ((SIZE - 1) / NUM_OF_BITS_IN_BYTE),
                    m_bitmap,
-                   std::ptr_fun(FlipBits));
+                   std::bit_not<char>());
 
-    if (0 != SIZE % BYTE_SIZE_IN_BITS)
+    if (0 != SIZE % NUM_OF_BITS_IN_BYTE)
     {
-        unsigned char mask = (1 << (SIZE % BYTE_SIZE_IN_BITS)) - 1;
-        m_bitmap[(SIZE - 1) / BYTE_SIZE_IN_BITS] ^= mask;
+        const unsigned char mask = (1 << (SIZE % NUM_OF_BITS_IN_BYTE)) - 1;
+        m_bitmap[(SIZE - 1) / NUM_OF_BITS_IN_BYTE] ^= mask;
     }
 }
 
@@ -223,7 +228,7 @@ void BitSet<SIZE>::FlipAll()
 template<size_t SIZE>  
 bool BitSet<SIZE>::operator==(const BitSet& bs) const 
 {
-    return std::equal(m_bitmap, m_bitmap + ((SIZE - 1) / BYTE_SIZE_IN_BITS) + 1, bs.m_bitmap);
+    return std::equal(m_bitmap, m_bitmap + ((SIZE - 1) / NUM_OF_BITS_IN_BYTE) + 1, bs.m_bitmap);
 }
 
 template<size_t SIZE>
@@ -240,46 +245,32 @@ template<size_t SIZE>
 void BitSet<SIZE>::SetAll(bool val)
 {
     std::fill(m_bitmap,
-              m_bitmap + ((SIZE - 1) / BYTE_SIZE_IN_BITS), 
-              val ? 0xFF : 0x00);
+              m_bitmap + ((SIZE - 1) / NUM_OF_BITS_IN_BYTE), 
+              val ? static_cast<char>(~0) : static_cast<char>(0));
 
-    if (0 != SIZE % BYTE_SIZE_IN_BITS)
+    if (0 != SIZE % NUM_OF_BITS_IN_BYTE)
     {
-        unsigned char mask = (1 << (SIZE % BYTE_SIZE_IN_BITS)) - 1;
-        false == val ? m_bitmap[(SIZE - 1) / BYTE_SIZE_IN_BITS] &= ~mask
-                     : m_bitmap[(SIZE - 1) / BYTE_SIZE_IN_BITS] |= mask;
+        const unsigned char mask = (1 << (SIZE % NUM_OF_BITS_IN_BYTE)) - 1;
+        false == val ? m_bitmap[(SIZE - 1) / NUM_OF_BITS_IN_BYTE] &= ~mask
+                     : m_bitmap[(SIZE - 1) / NUM_OF_BITS_IN_BYTE] |= mask;
     }
 }
 
 template <size_t SIZE>
 inline void BitSet<SIZE>::SetBit(bool val, size_t indx)
 {
-    char mask = 1 << (indx % BYTE_SIZE_IN_BITS);
-    false == val ? m_bitmap[indx / BYTE_SIZE_IN_BITS] &= ~mask
-                 : m_bitmap[indx / BYTE_SIZE_IN_BITS] |= mask;
+    const char mask = 1 << (indx % NUM_OF_BITS_IN_BYTE);
+    false == val ? m_bitmap[indx / NUM_OF_BITS_IN_BYTE] &= ~mask
+                 : m_bitmap[indx / NUM_OF_BITS_IN_BYTE] |= mask;
 }
 
 template <size_t SIZE>
 inline bool BitSet<SIZE>::GetBit(size_t indx) const
 {
-    char mask = 1 << (indx % BYTE_SIZE_IN_BITS);
-    char byte = m_bitmap[indx / BYTE_SIZE_IN_BITS];
+    const char mask = 1 << (indx % NUM_OF_BITS_IN_BYTE);
+    const char byte = m_bitmap[indx / NUM_OF_BITS_IN_BYTE];
 
     return !!(byte & mask);
-}
-
-//------------------------------------------------------------------//
-//************************ STATIC FUNCTIONS ************************//
-//------------------------------------------------------------------//
-
-static char FlipBits(char byte)
-{
-    return ~byte;
-}
-
-static size_t OnBits(size_t total_cnt, unsigned char part_val)
-{
-    return total_cnt + num_of_bits_on_lut[0x0F & part_val] + num_of_bits_on_lut[part_val >> 4];
 }
 
 //-----------------------------------------------------------------//
@@ -300,15 +291,13 @@ std::string BitSet<SIZE>::ToString() const
 template <size_t SIZE>
 inline size_t BitSet<SIZE>::CountOn() const
 {
-    return std::accumulate(m_bitmap, m_bitmap + ((SIZE - 1) / BYTE_SIZE_IN_BITS) + 1, 0, std::ptr_fun(OnBits));
+    return std::accumulate(m_bitmap, m_bitmap + ((SIZE - 1) / NUM_OF_BITS_IN_BYTE) + 1, 0, OnBits());
 }
 
 template <size_t SIZE>
 inline BitSet<SIZE>::BitProxy::operator bool() const
 {
-    char mask = 1 << (m_indx % BYTE_SIZE_IN_BITS);
-    char byte = m_bitset.m_bitmap[m_indx / BYTE_SIZE_IN_BITS];
-    return !!(byte &= mask);
+    return this->m_bitset.GetBit(m_indx);
 }
 
 }
