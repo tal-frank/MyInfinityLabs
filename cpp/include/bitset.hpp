@@ -1,3 +1,10 @@
+/**********************
+* bitset
+* Author: Tal Frank
+* Reviewer: Moshe Moiseev
+* Last update: 24/09/2026
+**********************/
+
 #ifndef ILRD_178_BITSET_HPP
 #define ILRD_178_BITSET_HPP
 
@@ -37,7 +44,7 @@ public:
     BitSet& operator&=(const BitSet& bs);
     BitSet& operator|=(const BitSet& bs);
     void SetAll(bool val);
-    void SetBit(bool val, size_t indx);
+    void SetBit(bool val, size_t indx); 
     bool GetBit(size_t indx) const;
     void FlipBit(size_t indx);
     void FlipAll();
