@@ -69,8 +69,10 @@ inline void WaitableQueue<T, CONTAINER>::Pop(T &dest)
 template <typename T, typename CONTAINER>
 inline void WaitableQueue<T, CONTAINER>::Push(const T &element)
 {
-    std::lock_guard<std::mutex> lock(m_mutx);
-    m_container.push(element);
+    {
+        std::lock_guard<std::mutex> lock(m_mutx);
+        m_container.push(element);
+    }
     m_cv.notify_one();
 }
 
