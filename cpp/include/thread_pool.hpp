@@ -1,7 +1,7 @@
 /**********************
 * thread pool
 * Author: Tal Frank
-* Reviewer: Almog Nimni
+* Reviewer: Roman Polugrudov
 * Last update: 27/09/2026
 **********************/
 
@@ -111,7 +111,7 @@ public:
         void Run();
         OUTPUT get(); // todo (blocking function) //-> return m_output;
     private:
-        std::function<OUTPUT(void)> m_func;
+        std::function<OUTPUT(void)> m_func; 
         OUTPUT& m_output;
     };
 
