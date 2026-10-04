@@ -44,7 +44,7 @@ public:
     using TASK_PRIORITY_PTR = std::shared_ptr<TaskPriority>;
     
     
-    enum Priority
+    enum Priority : int
     {
         HIGH = 1,
         NORMAL,

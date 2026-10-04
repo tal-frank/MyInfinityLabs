@@ -98,11 +98,15 @@ void ThreadPool::SetNumOfThreads(size_t nthreads)
             sem_wait(&sem_thread_erase);
         }
 
-        for (auto iter = m_threads.begin(); iter != m_threads.end(); ++iter)
+        for (auto iter = m_threads.begin(); iter != m_threads.end();)
         {
             if (false == (*iter)->is_running)
             {
                 iter = m_threads.erase(iter);
+            }
+            else
+            {
+                ++iter;
             }
         }
     }
