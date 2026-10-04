@@ -2,20 +2,22 @@
 * thread pool
 * Author: Tal Frank
 * Reviewer: Roman Polugrudov
-* Last update: 27/09/2026
+* Last update: 04/10/2026
 **********************/
 
 #ifndef ILRD_178_THREAD_POOL_HPP
 #define ILRD_178_THREAD_POOL_HPP
 
-#include <cstddef>    // size_t , NULL
-#include <memory>     // shared_ptr
-#include <functional> // std::function
-#include <vector>     // vector
-#include <thread>     // threads
-#include <atomic>     // atomic
+#include <cstddef>     // size_t , NULL
+#include <memory>      // shared_ptr
+#include <functional>  // std::function
+#include <vector>      // vector
+#include <thread>      // threads
+#include <atomic>      // atomic
+#include <list>        // list
+#include <future>      // future, promise
+#include <semaphore.h> // semaphore
 
-#include <iostream> // print for tests
 
 #include "waitable_queue.hpp"
 #include "priority_queue.hpp"
@@ -32,7 +34,6 @@ class ThreadPool
 
 private:
     struct TaskPriority;
-    // class CmpFunc;
 public:
     class Task;
     template<typename OUTPUT>
@@ -56,7 +57,10 @@ public:
 
     ~ThreadPool();
     
-    void AddTask(TASK_PTR task, Priority priority); 
+    void Pause();
+    void Resume();
+    void SetNumOfThreads(size_t nthreads);
+    void AddTask(TASK_PTR task, Priority priority);
     
 //----------------------------------------------------------------------------------//
 //################################# TASK CLASS #####################################//
@@ -74,10 +78,7 @@ public:
         class CmpFunc
         {
         public:
-            bool operator()(const TASK_PRIORITY_PTR& task1, const TASK_PRIORITY_PTR& task2)
-            {
-                return (task1->m_priority > task2->m_priority);
-            }
+            bool operator()(const TASK_PRIORITY_PTR& task1, const TASK_PRIORITY_PTR& task2);
         };
     };
 
@@ -109,8 +110,9 @@ public:
         explicit FutureTask(std::function<OUTPUT(void)>& func, 
                             OUTPUT& output);
         void Run();
-        OUTPUT get(); // todo (blocking function) //-> return m_output;
+        OUTPUT Get(); // todo (blocking function) //-> return m_output;
     private:
+        sem_t sem_get_output;
         std::function<OUTPUT(void)> m_func; 
         OUTPUT& m_output;
     };
@@ -125,15 +127,17 @@ private:
     {
         friend class ThreadPool;
     public:
-        WorkerThread() : is_running(true) {}
-        WorkerThread(WPQ* m_wpq);
+        WorkerThread();
+        WorkerThread(WPQ* m_wpq_ptr);
+
         ~WorkerThread();
-        void Stop(); // todo
         void Run();
         
     private:
+        static thread_local WorkerThread* this_thread;
+        
         std::atomic<bool> is_running;
-        WPQ* m_wpq;
+        WPQ* m_wpq_ptr;
         std::thread m_thread;
     };
 
@@ -150,9 +154,9 @@ private:
         Priority m_priority;
     };
 
-
-    WPQ m_wpq; //(waitable priority queue)
-    std::vector<WorkerThread> m_threads;
+    static std::atomic<bool> is_paused;
+    WPQ m_wpq;
+    std::list<std::shared_ptr<WorkerThread> > m_threads;
 };
 
 //-----------------------------------------------------------------------------------------//
@@ -162,13 +166,27 @@ private:
 template <typename OUTPUT>
 ThreadPool::FutureTask<OUTPUT>::
 FutureTask(std::function<OUTPUT(void)> &func, OUTPUT &output)
-          : m_func(func), m_output(output) {}
+        : m_func(func), 
+        m_output(output)
+{
+    sem_init(&sem_get_output, 0, 0);    
+}
 
 template <typename OUTPUT>
 void ThreadPool::FutureTask<OUTPUT>::Run()
 {
     m_output = m_func();
+    sem_post(&sem_get_output);
 }
+
+template<typename OUTPUT>
+OUTPUT ThreadPool::FutureTask<OUTPUT>::Get()
+{
+    sem_wait(&sem_get_output);
+    sem_post(&sem_get_output);
+    return m_output;
+}
+
 
 } // namespace ilrd_178
 

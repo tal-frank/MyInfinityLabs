@@ -1,24 +1,50 @@
 #include "thread_pool.hpp"
 
+#include <iostream>
 namespace ilrd_178
 {
+
+void PauseAllThreads(void);
+void ResumeAllThreads(void);
+
+thread_local ThreadPool::WorkerThread* ThreadPool::WorkerThread::this_thread = NULL;
+std::atomic<bool> ThreadPool::is_paused(false);
+
+sem_t sem_pause = {0};
+sem_t sem_thread_erase = {0};
+
 //-----------------------------------------------------------------------------------------//
 //############################### THREAD POOL FUNCTIONS ###################################//
 //-----------------------------------------------------------------------------------------//
 
-ThreadPool::ThreadPool(size_t n_threads) : m_wpq(), m_threads(n_threads)
+ThreadPool::ThreadPool(size_t n_threads) : m_wpq()
 {
-    // m_threads.reserve(n_threads);
-    // for (size_t i = 0; i < n_threads; ++i)
-    // {
-    //     m_threads.emplace_back(&m_wpq);
-    //     std::cout << "threadpool Ctor" << std::endl;
-    // }
-    for(WorkerThread& wt : m_threads)
+    if (0 == n_threads)
     {
-        wt.m_wpq = &m_wpq;
-        wt.m_thread = std::thread(&WorkerThread::Run, &wt);
+        size_t hc_result = std::thread::hardware_concurrency();
+        n_threads = hc_result ? hc_result : 1;
     }
+
+    sem_init(&sem_pause, 0, 0);
+    for (size_t i = 0; i < n_threads; ++i)
+    {
+        m_threads.emplace_back(std::make_shared<WorkerThread>(&m_wpq));
+    }
+}
+
+ThreadPool::~ThreadPool() 
+{
+    TASK_PTR task(new ThreadPool::FunctionTask(
+                     [this] ()
+                    {
+                        WorkerThread::this_thread->is_running = false;
+                    }));
+
+    for(auto iter = m_threads.begin(); iter != m_threads.end(); ++iter)
+    {
+        AddTask(task, static_cast<Priority>(LOW + 1));
+    }
+    m_threads.clear();
 }
 
 void ThreadPool::AddTask(TASK_PTR task, Priority priority)
@@ -27,33 +53,95 @@ void ThreadPool::AddTask(TASK_PTR task, Priority priority)
     m_wpq.Push(TP);
 }
 
-ThreadPool::~ThreadPool() 
+void ThreadPool::Pause()
+{
+    if (false == ThreadPool::is_paused)
     {
-        for(WorkerThread& wt : m_threads)
+        ThreadPool::is_paused = true;
+        for (auto iter = m_threads.begin(); iter != m_threads.end(); ++iter)
         {
-            wt.is_running = false;
-        }
-
-        std::shared_ptr<ThreadPool::Task> task(new ThreadPool::FunctionTask(JustForDebug));
-        for(size_t i = 0; i < m_threads.size(); ++i)
-        {
+            TASK_PTR task(new ThreadPool::FunctionTask(PauseAllThreads));
             AddTask(task, HIGH);
         }
     }
+}
+
+void ThreadPool::Resume()
+{
+    if (true == ThreadPool::is_paused)
+    {
+        for (auto iter = m_threads.begin(); iter != m_threads.end(); ++iter)
+        {
+            sem_post(&sem_pause);
+        }
+        ThreadPool::is_paused = false;
+    }
+}
+
+void ThreadPool::SetNumOfThreads(size_t nthreads)
+{
+    if (nthreads < m_threads.size())
+    {
+        TASK_PTR task(new ThreadPool::FunctionTask(
+                     [this] ()
+                    {
+                        WorkerThread::this_thread->is_running = false;
+                        sem_post(&sem_thread_erase);
+                    }));
+
+        for (size_t i = nthreads; i < m_threads.size(); ++i)
+        {
+            AddTask(task, HIGH);
+        }
+        for (size_t i = nthreads; i < m_threads.size(); ++i)
+        {
+            sem_wait(&sem_thread_erase);
+        }
+
+        for (auto iter = m_threads.begin(); iter != m_threads.end(); ++iter)
+        {
+            if (false == (*iter)->is_running)
+            {
+                iter = m_threads.erase(iter);
+            }
+        }
+    }
+    else
+    {
+        for (size_t i = m_threads.size(); i < nthreads; ++i)
+        {
+            m_threads.emplace_back(std::make_shared<WorkerThread>(&m_wpq));
+        }
+    }
+}
+
+void PauseAllThreads(void)
+{
+    sem_wait(&sem_pause);
+}
+
+void ResumeAllThreads(void)
+{
+    sem_post(&sem_pause);
+}
 
 //-------------------------------------------------------------------------------------------//
 //############################### WORKER THREAD FUNCTIONS ###################################//
 //-------------------------------------------------------------------------------------------//
 
-ThreadPool::WorkerThread::WorkerThread(WPQ* m_wpq) : is_running(true),
-                                                     m_wpq(m_wpq) {}
+ThreadPool::WorkerThread::WorkerThread() : is_running(true) {}
+
+ThreadPool::WorkerThread::WorkerThread(WPQ* m_wpq_ptr) : is_running(true),
+                                                         m_wpq_ptr(m_wpq_ptr),
+                                                         m_thread(std::thread(&WorkerThread::Run, this)) {}
 
 void ThreadPool::WorkerThread::Run()
 {
+    this_thread = this;
     while(is_running)
     {
         TASK_PRIORITY_PTR TP(NULL);
-        m_wpq->Pop(TP);
+        m_wpq_ptr->Pop(TP);
         if (!is_running)
         {
             break;
@@ -98,5 +186,11 @@ void ThreadPool::FunctionTask::Run()
 
 ThreadPool::TaskPriority::
 TaskPriority(TASK_PTR task, ThreadPool::Priority priority) : m_ptask(task), m_priority(priority) {}
+
+bool ThreadPool::Task::
+CmpFunc::operator()(const TASK_PRIORITY_PTR &task1, const TASK_PRIORITY_PTR &task2)
+{
+    return (task1->m_priority > task2->m_priority);
+}
 
 }
