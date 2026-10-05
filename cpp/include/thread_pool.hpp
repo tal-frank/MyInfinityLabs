@@ -155,6 +155,7 @@ private:
         Priority m_priority;
     };
 
+    size_t m_num_threads;
     std::atomic<bool> is_paused;
     WPQ m_wpq;
     std::list<std::shared_ptr<WorkerThread> > m_threads;
