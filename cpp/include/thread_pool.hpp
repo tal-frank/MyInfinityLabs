@@ -17,6 +17,7 @@
 #include <list>        // list
 #include <future>      // future, promise
 #include <semaphore.h> // semaphore
+#include <exception>   // exception
 
 
 #include "waitable_queue.hpp"
@@ -24,7 +25,6 @@
 
 namespace ilrd_178
 {
-inline void JustForDebug() {};
 
 class ThreadPool
 {
@@ -107,7 +107,7 @@ public:
     class FutureTask: public Task
     {
     public:
-        explicit FutureTask(std::function<OUTPUT(void)>& func, 
+        explicit FutureTask(const std::function<OUTPUT(void)>& func, 
                             OUTPUT& output);
         void Run();
         OUTPUT Get(); // todo (blocking function) //-> return m_output;
@@ -115,6 +115,7 @@ public:
         sem_t sem_get_output;
         std::function<OUTPUT(void)> m_func; 
         OUTPUT& m_output;
+        std::exception_ptr m_exception;
     };
 
 
@@ -154,7 +155,7 @@ private:
         Priority m_priority;
     };
 
-    static std::atomic<bool> is_paused;
+    std::atomic<bool> is_paused;
     WPQ m_wpq;
     std::list<std::shared_ptr<WorkerThread> > m_threads;
 };
@@ -165,17 +166,24 @@ private:
 
 template <typename OUTPUT>
 ThreadPool::FutureTask<OUTPUT>::
-FutureTask(std::function<OUTPUT(void)> &func, OUTPUT &output)
-        : m_func(func), 
-        m_output(output)
-{
+FutureTask(const std::function<OUTPUT(void)> &func, OUTPUT &output)
+          : m_func(func), 
+            m_output(output)
+    {
     sem_init(&sem_get_output, 0, 0);    
 }
 
 template <typename OUTPUT>
 void ThreadPool::FutureTask<OUTPUT>::Run()
 {
-    m_output = m_func();
+    try
+    {
+        m_output = m_func();
+    }
+    catch(...)
+    {
+        m_exception = std::current_exception();
+    }
     sem_post(&sem_get_output);
 }
 
@@ -184,9 +192,12 @@ OUTPUT ThreadPool::FutureTask<OUTPUT>::Get()
 {
     sem_wait(&sem_get_output);
     sem_post(&sem_get_output);
+    if (NULL != m_exception)
+    {
+        std::rethrow_exception(m_exception);
+    }
     return m_output;
 }
-
 
 } // namespace ilrd_178
 

@@ -1,14 +1,13 @@
+#include <iostream>
+
 #include "thread_pool.hpp"
 
-#include <iostream>
 namespace ilrd_178
 {
 
-void PauseAllThreads(void);
-void ResumeAllThreads(void);
+static void PauseAllThreads(void);
 
 thread_local ThreadPool::WorkerThread* ThreadPool::WorkerThread::this_thread = NULL;
-std::atomic<bool> ThreadPool::is_paused(false);
 
 sem_t sem_pause = {0};
 sem_t sem_thread_erase = {0};
@@ -17,7 +16,7 @@ sem_t sem_thread_erase = {0};
 //############################### THREAD POOL FUNCTIONS ###################################//
 //-----------------------------------------------------------------------------------------//
 
-ThreadPool::ThreadPool(size_t n_threads) : m_wpq()
+ThreadPool::ThreadPool(size_t n_threads) : is_paused(false), m_wpq() 
 {
     if (0 == n_threads)
     {
@@ -55,26 +54,27 @@ void ThreadPool::AddTask(TASK_PTR task, Priority priority)
 
 void ThreadPool::Pause()
 {
-    if (false == ThreadPool::is_paused)
+    if (false == is_paused)
     {
-        ThreadPool::is_paused = true;
+        is_paused = true;
         for (auto iter = m_threads.begin(); iter != m_threads.end(); ++iter)
         {
+
             TASK_PTR task(new ThreadPool::FunctionTask(PauseAllThreads));
-            AddTask(task, HIGH);
+            AddTask(task, static_cast<Priority>(HIGH - 1));
         }
     }
 }
 
 void ThreadPool::Resume()
 {
-    if (true == ThreadPool::is_paused)
+    if (true == is_paused)
     {
         for (auto iter = m_threads.begin(); iter != m_threads.end(); ++iter)
         {
             sem_post(&sem_pause);
         }
-        ThreadPool::is_paused = false;
+        is_paused = false;
     }
 }
 
@@ -91,7 +91,7 @@ void ThreadPool::SetNumOfThreads(size_t nthreads)
 
         for (size_t i = nthreads; i < m_threads.size(); ++i)
         {
-            AddTask(task, HIGH);
+            AddTask(task, static_cast<Priority>(HIGH - 1));
         }
         for (size_t i = nthreads; i < m_threads.size(); ++i)
         {
@@ -119,14 +119,9 @@ void ThreadPool::SetNumOfThreads(size_t nthreads)
     }
 }
 
-void PauseAllThreads(void)
+static void PauseAllThreads(void)
 {
     sem_wait(&sem_pause);
-}
-
-void ResumeAllThreads(void)
-{
-    sem_post(&sem_pause);
 }
 
 //-------------------------------------------------------------------------------------------//
@@ -157,7 +152,14 @@ void ThreadPool::WorkerThread::Run()
             {
                 TP->m_ptask->Run();
             }
-            catch(...) {}
+            catch (const std::exception& ex)
+            {
+                std::cerr << ex.what() << std::endl;
+            }
+            catch(...) 
+            {
+                std::cerr << "exception thrown during task.run() operation" << std::endl;
+            }
         }
     }
 }
