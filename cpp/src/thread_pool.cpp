@@ -10,6 +10,7 @@ static void PauseAllThreads(void);
 thread_local ThreadPool::WorkerThread* ThreadPool::WorkerThread::this_thread = NULL;
 
 sem_t sem_pause = {0};
+sem_t sem_thread_erase = {0};
 
 //-----------------------------------------------------------------------------------------//
 //############################### THREAD POOL FUNCTIONS ###################################//
@@ -87,6 +88,7 @@ void ThreadPool::SetNumOfThreads(size_t nthreads)
                      [this] ()
                     {
                         WorkerThread::this_thread->is_running = false;
+                        sem_post(&sem_thread_erase);
                     }));
         
         m_num_threads = nthreads;
@@ -94,6 +96,23 @@ void ThreadPool::SetNumOfThreads(size_t nthreads)
         {
             AddTask(task, static_cast<Priority>(HIGH - 1));
         }
+        for (size_t i = nthreads; i < m_threads.size(); ++i)
+        {
+            sem_wait(&sem_thread_erase);
+        }
+
+        for (auto iter = m_threads.begin(); iter != m_threads.end();)
+        {
+            if (false == (*iter)->is_running)
+            {
+                iter = m_threads.erase(iter);
+            }
+            else
+            {
+                ++iter;
+            }
+        }
+
     }
     else
     {
