@@ -10,13 +10,14 @@ static void PauseAllThreads(void);
 thread_local ThreadPool::WorkerThread* ThreadPool::WorkerThread::this_thread = NULL;
 
 sem_t sem_pause = {0};
-sem_t sem_thread_erase = {0};
 
 //-----------------------------------------------------------------------------------------//
 //############################### THREAD POOL FUNCTIONS ###################################//
 //-----------------------------------------------------------------------------------------//
 
-ThreadPool::ThreadPool(size_t n_threads) : is_paused(false), m_wpq() 
+ThreadPool::ThreadPool(size_t n_threads) : m_num_threads(n_threads), 
+                                           is_paused(false), 
+                                           m_wpq() 
 {
     if (0 == n_threads)
     {
@@ -57,7 +58,7 @@ void ThreadPool::Pause()
     if (false == is_paused)
     {
         is_paused = true;
-        for (auto iter = m_threads.begin(); iter != m_threads.end(); ++iter)
+        for (size_t i = 0; i < m_num_threads; ++i)
         {
 
             TASK_PTR task(new ThreadPool::FunctionTask(PauseAllThreads));
@@ -70,11 +71,11 @@ void ThreadPool::Resume()
 {
     if (true == is_paused)
     {
-        for (auto iter = m_threads.begin(); iter != m_threads.end(); ++iter)
+        is_paused = false;
+        for (size_t i = 0; i < m_num_threads; ++i)
         {
             sem_post(&sem_pause);
         }
-        is_paused = false;
     }
 }
 
@@ -86,28 +87,12 @@ void ThreadPool::SetNumOfThreads(size_t nthreads)
                      [this] ()
                     {
                         WorkerThread::this_thread->is_running = false;
-                        sem_post(&sem_thread_erase);
                     }));
-
+        
+        m_num_threads = nthreads;
         for (size_t i = nthreads; i < m_threads.size(); ++i)
         {
             AddTask(task, static_cast<Priority>(HIGH - 1));
-        }
-        for (size_t i = nthreads; i < m_threads.size(); ++i)
-        {
-            sem_wait(&sem_thread_erase);
-        }
-
-        for (auto iter = m_threads.begin(); iter != m_threads.end();)
-        {
-            if (false == (*iter)->is_running)
-            {
-                iter = m_threads.erase(iter);
-            }
-            else
-            {
-                ++iter;
-            }
         }
     }
     else
