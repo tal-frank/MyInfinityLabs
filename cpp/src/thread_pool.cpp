@@ -16,8 +16,7 @@ sem_t sem_thread_erase = {0};
 //############################### THREAD POOL FUNCTIONS ###################################//
 //-----------------------------------------------------------------------------------------//
 
-ThreadPool::ThreadPool(size_t n_threads) : m_num_threads(n_threads), 
-                                           is_paused(false), 
+ThreadPool::ThreadPool(size_t n_threads) : is_paused(false), 
                                            m_wpq() 
 {
     if (0 == n_threads)
@@ -59,9 +58,8 @@ void ThreadPool::Pause()
     if (false == is_paused)
     {
         is_paused = true;
-        for (size_t i = 0; i < m_num_threads; ++i)
+        for (size_t i = 0; i < m_threads.size() ; ++i)
         {
-
             TASK_PTR task(new ThreadPool::FunctionTask(PauseAllThreads));
             AddTask(task, static_cast<Priority>(HIGH - 1));
         }
@@ -73,7 +71,7 @@ void ThreadPool::Resume()
     if (true == is_paused)
     {
         is_paused = false;
-        for (size_t i = 0; i < m_num_threads; ++i)
+        for (size_t i = 0; i < m_threads.size() ; ++i)
         {
             sem_post(&sem_pause);
         }
@@ -91,7 +89,6 @@ void ThreadPool::SetNumOfThreads(size_t nthreads)
                         sem_post(&sem_thread_erase);
                     }));
         
-        m_num_threads = nthreads;
         for (size_t i = nthreads; i < m_threads.size(); ++i)
         {
             AddTask(task, static_cast<Priority>(HIGH - 1));
@@ -145,25 +142,17 @@ void ThreadPool::WorkerThread::Run()
     {
         TASK_PRIORITY_PTR TP(NULL);
         m_wpq_ptr->Pop(TP);
-        if (!is_running)
+        try
         {
-            break;
+            TP->m_ptask->Run();
         }
-
-        if(NULL != TP && NULL != TP->m_ptask)
+        catch (const std::exception& ex)
         {
-            try
-            {
-                TP->m_ptask->Run();
-            }
-            catch (const std::exception& ex)
-            {
-                std::cerr << ex.what() << std::endl;
-            }
-            catch(...) 
-            {
-                std::cerr << "exception thrown during task.run() operation" << std::endl;
-            }
+            std::cerr << ex.what() << std::endl;
+        }
+        catch(...) 
+        {
+            std::cerr << "exception thrown during task.run() operation" << std::endl;
         }
     }
 }

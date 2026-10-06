@@ -110,7 +110,7 @@ public:
         explicit FutureTask(const std::function<OUTPUT(void)>& func, 
                             OUTPUT& output);
         void Run();
-        OUTPUT Get(); // todo (blocking function) //-> return m_output;
+        OUTPUT Get();
     private:
         sem_t sem_get_output;
         std::function<OUTPUT(void)> m_func; 
@@ -155,7 +155,6 @@ private:
         Priority m_priority;
     };
 
-    size_t m_num_threads;
     std::atomic<bool> is_paused;
     WPQ m_wpq;
     std::list<std::shared_ptr<WorkerThread> > m_threads;
