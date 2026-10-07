@@ -47,15 +47,17 @@ template <typename BASE, typename KEY, typename... ARGS>
 std::shared_ptr<BASE> Factory<BASE, KEY, ARGS...>::Create(const KEY &key, ARGS... args) const
 {
     std::shared_ptr<BASE> object;
+    CREATE_FUNC creator;
     try
     {
-        object = m_creators_map.at(key)(args ...);
+        creator = m_creators_map.at(key);
     }
     catch(const std::out_of_range& e) 
     {
         throw InvalidKey("key not found");
     }
 
+    object = (creator(args ...));
     return object;
 }
 }
