@@ -1,50 +1,66 @@
+/**********************
+* factory
+* Author: Tal Frank
+* Reviewer: Almog Nimni
+* Last update: 07/10/2026
+**********************/
+
+#ifndef __ILRD_178__FACTORY__HPP__
+#define __ILRD_178__FACTORY__HPP__
+
 #include <functional>
 #include <unordered_map>
 #include <memory>
 #include <stdexcept>
-#include <iostream>
-
+ 
+namespace ilrd_178
+{
 template <typename BASE, typename KEY, typename ... ARGS>
 class Factory
 {
 public:
-    using CREATE_FUNC = std::function<std::shared_ptr<BASE>(KEY key, ARGS ... args)>;
+    using CREATE_FUNC = std::function<std::shared_ptr<BASE>(ARGS ... args)>;
 
-    Factory();
-    ~Factory();
+    Factory() = default;
+    ~Factory() = default;
     
-    void Add(const KEY& key, const CREATE_FUNC Creator);
+    void Add(const KEY& key, CREATE_FUNC Creator);
     std::shared_ptr<BASE> Create(const KEY& key, ARGS ... args);
+
+    struct InvalidKey : public std::runtime_error 
+    {
+    public:
+        InvalidKey(const char* str) : runtime_error(str) {}
+    };
 
 private:
     std::unordered_map<KEY, CREATE_FUNC> m_creators_map;
 
 };
- 
-template <typename BASE, typename KEY, typename... ARGS>
-inline Factory<BASE, KEY, ARGS...>::Factory() {}
 
 template <typename BASE, typename KEY, typename... ARGS>
-inline Factory<BASE, KEY, ARGS...>::~Factory() {}
-
-template <typename BASE, typename KEY, typename... ARGS>
-inline void Factory<BASE, KEY, ARGS...>::Add(const KEY& key, const CREATE_FUNC Creator) 
+inline void Factory<BASE, KEY, ARGS...>::Add(const KEY& key, CREATE_FUNC Creator) 
 {
-    m_creators_map.emplace(key, Creator);
+    m_creators_map[key] = Creator;
 }
 
 template <typename BASE, typename KEY, typename... ARGS>
 std::shared_ptr<BASE> Factory<BASE, KEY, ARGS...>::Create(const KEY &key, ARGS... args)
 {
     std::shared_ptr<BASE> object;
+    CREATE_FUNC creator;
     try
     {
-        CREATE_FUNC creator = m_creators_map.at(key);
-        object = (creator(key, args ...));
+        creator = m_creators_map.at(key);
     }
-    catch(const std::out_of_range& e)
+    catch(const std::out_of_range& e) 
     {
-        std::cerr << e.what() << '\n';
+        throw InvalidKey("key not found");
     }
+
+    object = (creator(args ...));
     return object;
 }
+}
+
+#endif

@@ -1,8 +1,11 @@
+
+
 // #include <iostream>
 // #include <string>
 
 // #include "factory.hpp"
 
+// using namespace ilrd_178;
 // class IqLevel
 // {
 // public:
@@ -86,6 +89,8 @@
 // Test Hierarchy & Creators
 // ==========================================
 
+using namespace ilrd_178;
+
 class BaseClass 
 {
 public:
@@ -117,15 +122,13 @@ private:
 };
 
 // Creator functions matching std::function signature
-static std::shared_ptr<BaseClass> CreateDerivedA(std::string key, int val, std::string name) 
+static std::shared_ptr<BaseClass> CreateDerivedA(int val, std::string name) 
 {
-    (void)key;
     return std::make_shared<DerivedA>(val, name);
 }
 
-static std::shared_ptr<BaseClass> CreateDerivedB(std::string key, int val, std::string name) 
+static std::shared_ptr<BaseClass> CreateDerivedB(int val, std::string name) 
 {
-    (void)key;
     return std::make_shared<DerivedB>(val, name);
 }
 
@@ -184,8 +187,7 @@ void TestLambdaCreator()
     Factory<BaseClass, std::string, int, std::string> factory;
 
     // Register creator using C++11 Lambda
-    factory.Add("lambda_type", [](std::string key, int val, std::string name) -> std::shared_ptr<BaseClass> {
-        (void)key;
+    factory.Add("lambda_type", [](int val, std::string name) -> std::shared_ptr<BaseClass> {
         return std::make_shared<DerivedA>(val * 2, "Lambda_" + name);
     });
 
@@ -206,9 +208,10 @@ int main()
 
     TestFactoryCreation();
     TestDowncasting();
-    TestInvalidKeyHandling();
     TestLambdaCreator();
-
+    
     std::cout << "--- All Tests Passed Successfully! ---\n";
+    
+    TestInvalidKeyHandling();
     return 0;
 }
