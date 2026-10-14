@@ -1,7 +1,7 @@
 /**********************
 * singleton
 * Author: Tal Frank
-* Reviewer: 
+* Reviewer: Yael Novick
 * Last update: 08/10/2026
 **********************/
 
@@ -53,7 +53,7 @@ inline void Singleton<T>::CleanUp()
 }
 
 template <typename T>
-inline T* Singleton<T>::GetInstance()
+T* Singleton<T>::GetInstance()
 {
     if (nullptr == s_instance)
     {
