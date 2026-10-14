@@ -7,16 +7,28 @@
 namespace ilrd_178
 {
 
+//-------------------------------------------------------------------------------//
+//################################# CLASSES #####################################//
+//-------------------------------------------------------------------------------//
+
+//------------------------ CallbackBase ------------------------//
+
 template<typename T>
 class CallbackBase
 {
 public:
-    CallbackBase() = default;
+    CallbackBase();
     virtual ~CallbackBase() = 0;
     virtual void Callback(const T& message) = 0;
     virtual void Stop() = 0;
 
+private:
+    friend class Dispatcher<T>;
+
+    Dispatcher<T>* m_dispatcher;
 };
+
+//------------------------ Callback ------------------------//
 
 template<typename SUBSCRIBER, typename T>
 class CallBack : public CallbackBase<T>
@@ -40,6 +52,8 @@ private:
     StopFunc    m_stop;
 };
 
+//------------------------ dispatcher ------------------------//
+
 template<typename T>
 class Dispatcher
 {
@@ -58,9 +72,31 @@ private:
     std::vector<CallbackBase<T>*> m_subscribers;
 };
 
+//----------------------------------------------------------------------------------------------//
+//################################# CALLBACKBASE FUNCTIONS #####################################//
+//----------------------------------------------------------------------------------------------//
+
+template <typename T>
+inline CallbackBase<T>::CallbackBase() : m_dispatcher(nullptr) {}
+
+template <typename T>
+CallbackBase<T>::~CallbackBase()
+{
+    if (nullptr != m_dispatcher)
+    {
+        m_dispatcher
+    }
+}
+
+//------------------------------------------------------------------------------------------//
+//################################# CALLBACK FUNCTIONS #####################################//
+//------------------------------------------------------------------------------------------//
+
 template <typename SUBSCRIBER, typename T>
 inline CallBack<SUBSCRIBER, T>::CallBack(SUBSCRIBER &subscriber, ActionFunc action, StopFunc stop)
-                               : m_subscriber(subscriber), m_action(action), m_stop(stop) {}
+                               : m_subscriber(subscriber), 
+                                 m_action(action), 
+                                 m_stop(stop) {}
 
 template <typename SUBSCRIBER, typename T>
 CallBack<SUBSCRIBER, T>::~CallBack() {}
@@ -80,6 +116,10 @@ inline void CallBack<SUBSCRIBER, T>::Stop()
     }
 }
 
+//--------------------------------------------------------------------------------------------//
+//################################# DISPATCHER FUNCTIONS #####################################//
+//--------------------------------------------------------------------------------------------//
+
 template <typename T>
 Dispatcher<T>::~Dispatcher()
 {
@@ -87,6 +127,7 @@ Dispatcher<T>::~Dispatcher()
     {
         if (nullptr != subscriber)
         {
+            subscriber->m_dispatcher = nullptr;
             subscriber->Stop();
         }
     }
@@ -107,7 +148,7 @@ void Dispatcher<T>::Unsubscribe(CallbackBase<T> *Callback)
     auto iter = std::find(m_subscribers.begin(), m_subscribers.end(), Callback);
     if (iter != m_subscribers.end())
     {
-        (*iter) = nullptr;
+        (*iter)->m_dispatcher = nullptr;
         m_subscribers.erase(iter);
     }
 }
@@ -124,8 +165,7 @@ void Dispatcher<T>::NotifyAll(const T &message)
     }
 }
 
-template<typename T>
-inline CallbackBase<T>::~CallbackBase() {}
+
 
 } // namespace ilrd_178
 
