@@ -11,6 +11,9 @@ namespace ilrd_178
 //################################# CLASSES #####################################//
 //-------------------------------------------------------------------------------//
 
+template<typename T>
+class Dispatcher;
+
 //------------------------ CallbackBase ------------------------//
 
 template<typename T>
@@ -84,7 +87,7 @@ CallbackBase<T>::~CallbackBase()
 {
     if (nullptr != m_dispatcher)
     {
-        m_dispatcher
+        m_dispatcher->Unsubscribe(this);
     }
 }
 
@@ -123,7 +126,9 @@ inline void CallBack<SUBSCRIBER, T>::Stop()
 template <typename T>
 Dispatcher<T>::~Dispatcher()
 {
-    for (CallbackBase<T>* subscriber : m_subscribers)
+    std::vector<CallbackBase<T>*> subs = m_subscribers;
+    m_subscribers.clear();
+    for (CallbackBase<T>* subscriber : subs)
     {
         if (nullptr != subscriber)
         {
@@ -138,6 +143,7 @@ void Dispatcher<T>::Subscribe(CallbackBase<T> *Callback)
 {
     if (nullptr != Callback)
     {
+        Callback->m_dispatcher = this;
         m_subscribers.push_back(Callback);
     }
 }
@@ -156,9 +162,11 @@ void Dispatcher<T>::Unsubscribe(CallbackBase<T> *Callback)
 template <typename T>
 void Dispatcher<T>::NotifyAll(const T &message)
 {
-    for (CallbackBase<T>* subscriber : m_subscribers)
+    std::vector<CallbackBase<T>*> subs = m_subscribers;
+    for (CallbackBase<T>* subscriber : subs)
     {
-        if (nullptr != subscriber)
+        auto iter = std::find(m_subscribers.begin(), m_subscribers.end(), subscriber);
+        if (iter != m_subscribers.end() && nullptr != subscriber)
         {
             subscriber->Callback(message);
         }
