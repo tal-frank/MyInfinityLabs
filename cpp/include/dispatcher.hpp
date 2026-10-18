@@ -10,7 +10,6 @@
 
 #include <vector>    // vector
 #include <algorithm> // find
-#include <set>       // set
 
 namespace ilrd_178
 {
@@ -80,7 +79,7 @@ public:
     void NotifyAll(const T& message);
 
 private:
-    std::set<CallbackBase<T>*> m_subscribers;
+    std::vector<CallbackBase<T>*> m_subscribers;
 };
 
 //----------------------------------------------------------------------------------------------//
@@ -134,9 +133,9 @@ void CallBack<SUBSCRIBER, T>::Stop()
 template <typename T>
 Dispatcher<T>::~Dispatcher()
 {
-    // std::set<CallbackBase<T>*> subs = m_subscribers;
-    // m_subscribers.clear();
-    for (CallbackBase<T>* subscriber : m_subscribers)//subs)
+    std::vector<CallbackBase<T>*> subs = m_subscribers;
+    m_subscribers.clear();
+    for (CallbackBase<T>* subscriber : subs)
     {
         if (nullptr != subscriber)
         {
@@ -149,27 +148,30 @@ Dispatcher<T>::~Dispatcher()
 template <typename T>
 void Dispatcher<T>::Subscribe(CallbackBase<T> *Callback)
 {
-    if (nullptr != Callback)
+    if (nullptr != Callback && 
+        m_subscribers.end() == std::find(m_subscribers.begin(), m_subscribers.end(), Callback))
     {
         Callback->m_dispatcher = this;
-        m_subscribers.insert(Callback);
+        m_subscribers.push_back(Callback);
     }
 }
 
 template <typename T>
 void Dispatcher<T>::Unsubscribe(CallbackBase<T> *Callback)
 {
-    if (0 != m_subscribers.erase(Callback))
+    auto iter = std::find(m_subscribers.begin(), m_subscribers.end(), Callback);
+    if (iter != m_subscribers.end())
     {
-        Callback->m_dispatcher = nullptr;
+        (*iter)->m_dispatcher = nullptr;
+        m_subscribers.erase(iter);
     }
 }
 
 template <typename T>
 void Dispatcher<T>::NotifyAll(const T &message)
 {
-    // std::set<CallbackBase<T>*> subs = m_subscribers;
-    for (CallbackBase<T>* subscriber : m_subscribers)//subs)
+    std::vector<CallbackBase<T>*> subs = m_subscribers;
+    for (CallbackBase<T>* subscriber : subs)
     {
         auto iter = std::find(m_subscribers.begin(), m_subscribers.end(), subscriber);
         if (iter != m_subscribers.end() && nullptr != subscriber)
