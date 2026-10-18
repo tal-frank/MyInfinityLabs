@@ -10,6 +10,7 @@
 
 #include <vector>    // vector
 #include <algorithm> // find
+#include <set>       // set
 
 namespace ilrd_178
 {
@@ -79,7 +80,7 @@ public:
     void NotifyAll(const T& message);
 
 private:
-    std::vector<CallbackBase<T>*> m_subscribers;
+    std::set<CallbackBase<T>*> m_subscribers;
 };
 
 //----------------------------------------------------------------------------------------------//
@@ -87,7 +88,7 @@ private:
 //----------------------------------------------------------------------------------------------//
 
 template <typename T>
-inline CallbackBase<T>::CallbackBase() : m_dispatcher(nullptr) {}
+CallbackBase<T>::CallbackBase() : m_dispatcher(nullptr) {}
 
 template <typename T>
 CallbackBase<T>::~CallbackBase()
@@ -103,7 +104,7 @@ CallbackBase<T>::~CallbackBase()
 //------------------------------------------------------------------------------------------//
 
 template <typename SUBSCRIBER, typename T>
-inline CallBack<SUBSCRIBER, T>::CallBack(SUBSCRIBER &subscriber, ActionFunc action, StopFunc stop)
+CallBack<SUBSCRIBER, T>::CallBack(SUBSCRIBER &subscriber, ActionFunc action, StopFunc stop)
                                : m_subscriber(subscriber), 
                                  m_action(action), 
                                  m_stop(stop) {}
@@ -118,7 +119,7 @@ void CallBack<SUBSCRIBER, T>::Callback(const T &message)
 }
 
 template <typename SUBSCRIBER, typename T>
-inline void CallBack<SUBSCRIBER, T>::Stop()
+void CallBack<SUBSCRIBER, T>::Stop()
 {
     if (nullptr != m_stop)
     {
@@ -133,9 +134,9 @@ inline void CallBack<SUBSCRIBER, T>::Stop()
 template <typename T>
 Dispatcher<T>::~Dispatcher()
 {
-    std::vector<CallbackBase<T>*> subs = m_subscribers;
-    m_subscribers.clear();
-    for (CallbackBase<T>* subscriber : subs)
+    // std::set<CallbackBase<T>*> subs = m_subscribers;
+    // m_subscribers.clear();
+    for (CallbackBase<T>* subscriber : m_subscribers)//subs)
     {
         if (nullptr != subscriber)
         {
@@ -151,26 +152,24 @@ void Dispatcher<T>::Subscribe(CallbackBase<T> *Callback)
     if (nullptr != Callback)
     {
         Callback->m_dispatcher = this;
-        m_subscribers.push_back(Callback);
+        m_subscribers.insert(Callback);
     }
 }
 
 template <typename T>
 void Dispatcher<T>::Unsubscribe(CallbackBase<T> *Callback)
 {
-    auto iter = std::find(m_subscribers.begin(), m_subscribers.end(), Callback);
-    if (iter != m_subscribers.end())
+    if (0 != m_subscribers.erase(Callback))
     {
-        (*iter)->m_dispatcher = nullptr;
-        m_subscribers.erase(iter);
+        Callback->m_dispatcher = nullptr;
     }
 }
 
 template <typename T>
 void Dispatcher<T>::NotifyAll(const T &message)
 {
-    std::vector<CallbackBase<T>*> subs = m_subscribers;
-    for (CallbackBase<T>* subscriber : subs)
+    // std::set<CallbackBase<T>*> subs = m_subscribers;
+    for (CallbackBase<T>* subscriber : m_subscribers)//subs)
     {
         auto iter = std::find(m_subscribers.begin(), m_subscribers.end(), subscriber);
         if (iter != m_subscribers.end() && nullptr != subscriber)
