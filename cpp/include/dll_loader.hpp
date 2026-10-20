@@ -1,90 +1,62 @@
-// WS: 
-// Author: 
-// Reviewer: 
-// Last Changed: 
+/**********************
+* dll loader
+* Author: Tal Frank
+* Reviewer: Or Zellner
+* Last update: 20/10/2026
+**********************/
 
 #ifndef ILRD_178_DLL_LOADER_DIR_MONITOR_HPP
 #define ILRD_178_DLL_LOADER_DIR_MONITOR_HPP
 
-// ******************************************************* personal Libraries */
+#include "dispatcher.hpp" 
 
-#include <unistd.h>         // read
-#include <cstdint>          // uint32_t
-#include <sys/inotify.h>    // inotify
-#include <string>           // string
+#include <sys/inotify.h> // inotify
+#include <string>        // std::string
+#include <cstdio>        // FILE
 
-// ******************************************************* personal Libraries */
-
-#include "temp_dispatcher.hpp"  // CallBack
+const int FAILURE = -1;
+const int SUCCESS = 0;
 
 namespace ilrd_178
 {
 
-// ******************************************************** struct DllMessage */
-
-struct DllMessage
-{
-public:
-    explicit DllMessage(uint32_t event_mask, std::string file_path)
-                                                : m_event_mask(event_mask),
-                                                  m_file_path(file_path) { }
-
-    uint32_t m_event_mask;
-    std::string m_file_path;
-};
-
-// ******************************************************* using declerations */
-
 using INotify_Event = struct inotify_event;
-using path = std::string;
-using callback = CallbackBase<DllMessage>;
-
-// ********************************************************* class DirMonitor */
+using Key = std::string;
+using Path = std::string;
+using CallBackBaseType = CallbackBase<Key>;
 
 class DirMonitor
-{
-static const uint32_t FLAGS = IN_CREATE | IN_DELETE | IN_MOVE | IN_MODIFY;
-
+{    
 public:
-    explicit DirMonitor(path dir_path);
-    DirMonitor(const DirMonitor& other) = delete;
-    DirMonitor& operator=(const DirMonitor& other) = delete;
+    explicit DirMonitor(Path dir_path);
     ~DirMonitor();
-
-    void AddSubscriber(callback* callback);
+    
+    void AddSubscriber(CallBackBaseType* callback);
     void Run();
-
-    void RemoveSubscriber(callback* callback); // optional
-
+    
 private:
-    static thread_local DirMonitor* th_param;
+    int init_monitoring();
 
-    static int InitNotify();
-    void ThreadRoutine();
-
-    path m_path;
-    int m_events_q;
-    int m_watch_id;
+    int m_fd;
+    const Path m_dir_path;
+    Dispatcher<Key> m_dispatcher;
     bool is_running;
-    Dispatcher<DllMessage> m_dispatcher;
-
-}; // class DirMonitor
+};
 
 class DllLoader
 {
-
 public:
-    void EventHandler(const DllMessage& message);
+    explicit DllLoader();
+    ~DllLoader() = default;
+
+    CallBackBaseType* GetCallBack();
 
 private:
-    bool IsSharedObject(path& file_path);
-    void LoadNewSO(const path& so_name);
-    void UnLoadSO(const path& so_name); // optional
-    void ReLoadSO(const path& so_name); // optional
+    void LoadNewSO(const Path& so_name);
 
-}; // class DllLoader
+    CallBack<DllLoader, Key> m_callback;
+};
 
-}// namespace ilrd_178
+} // namespace ilrd_178
 
-
-#endif // End of ILRD_178_DLL_LOADER_DIR_MONITOR_HPP
+#endif // ILRD_178_DLL_LOADER_DIR_MONITOR_HPP
