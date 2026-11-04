@@ -14,13 +14,13 @@ public:
     class ISchedulerTask
     {
     public:
-        inline virtual ~ISchedulerTask();
+        inline virtual ~ISchedulerTask() = default;
         virtual void Execute() = 0;
     };
 
     void AddTask(std::shared_ptr<ISchedulerTask> task, 
                  std::chrono::milliseconds time_to_exec);
-
+    
     friend class Singleton<Scheduler>;
 
 private:
@@ -30,11 +30,14 @@ private:
     struct SchedulerTaskWrapper
     {
         SchedulerTaskWrapper(std::shared_ptr<ISchedulerTask> task,
-                             std::chrono::milliseconds time) : m_schedTask(task) ,
+                            //  std::chrono::milliseconds time) 
+                            std::chrono::steady_clock::time_point time)
+                                                             : m_schedTask(task) ,
                                                                m_exec_time_ms(time) {}
 
         std::shared_ptr<ISchedulerTask> m_schedTask;
-        std::chrono::milliseconds m_exec_time_ms;
+        // std::chrono::milliseconds m_exec_time_ms;
+        std::chrono::steady_clock::time_point m_exec_time_ms;
     };
 
     class CompareTasks
@@ -55,7 +58,7 @@ private:
     std::shared_ptr<SchedulerTaskWrapper> m_curr_task;
 
     std::mutex m_mutex;
-    std::mutex m_mutex_clock;
+    // std::mutex m_mutex_clock;
     std::condition_variable m_cvar;
     std::unique_ptr<std::thread> m_thread;
 
