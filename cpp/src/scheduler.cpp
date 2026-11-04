@@ -70,7 +70,12 @@ Scheduler::~Scheduler()
     }
 
     m_cvar.notify_one();
-    AddTask(std::make_shared<ISchedulerTask>(PosionPill()), std::chrono::milliseconds(0));
+
+    try
+    {
+        AddTask(std::make_shared<PoisonPill>(), std::chrono::milliseconds(0));
+    }
+    catch(...) {}
     
     if (m_thread->joinable())
     {
@@ -101,6 +106,11 @@ static void SetItimerspec (std::chrono::steady_clock::time_point time_point,
     auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>
                  (duration).count();
 
+    if (nanos <= 0) // FIX 2
+    {
+        nanos = 1;
+    }
+    
     delay.it_value.tv_sec = (nanos / 1000000000);
     delay.it_value.tv_nsec = nanos % 1000000000;
 

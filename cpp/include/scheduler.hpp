@@ -33,13 +33,11 @@ private:
     struct SchedulerTaskWrapper
     {
         SchedulerTaskWrapper(std::shared_ptr<ISchedulerTask> task,
-                            //  std::chrono::milliseconds time) 
                             std::chrono::steady_clock::time_point time)
                                                              : m_schedTask(task) ,
                                                                m_exec_time_ms(time) {}
 
         std::shared_ptr<ISchedulerTask> m_schedTask;
-        // std::chrono::milliseconds m_exec_time_ms;
         std::chrono::steady_clock::time_point m_exec_time_ms;
     };
 
@@ -53,7 +51,7 @@ private:
         }
     };
 
-    class PosionPill: public ISchedulerTask
+    class PoisonPill: public ISchedulerTask
     {
         public:
         void Execute() override { }
@@ -67,7 +65,6 @@ private:
     std::shared_ptr<SchedulerTaskWrapper> m_curr_task;
 
     std::mutex m_mutex;
-    // std::mutex m_mutex_clock;
     std::condition_variable m_cvar;
     std::unique_ptr<std::thread> m_thread;
 
