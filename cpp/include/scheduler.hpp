@@ -1,3 +1,6 @@
+#ifndef SCHEDULER_CPP
+#define SCHEDULER_CPP
+
 #include <memory> // shared_ptr
 #include <chrono> // milliseconds
 
@@ -50,6 +53,12 @@ private:
         }
     };
 
+    class PosionPill: public ISchedulerTask
+    {
+        public:
+        void Execute() override { }
+    };
+
     bool m_invoke;
     bool m_is_running;
     bool m_is_earlier_task;
@@ -69,3 +78,5 @@ private:
 };
 
 }
+
+#endif
