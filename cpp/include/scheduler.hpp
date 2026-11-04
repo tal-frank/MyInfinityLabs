@@ -1,5 +1,5 @@
-#ifndef SCHEDULER_CPP
-#define SCHEDULER_CPP
+#ifndef ILRD_178_SCHEDULER_HPP
+#define ILRD_178_SCHEDULER_HPP
 
 #include <memory> // shared_ptr
 #include <chrono> // milliseconds
@@ -33,7 +33,7 @@ private:
     struct SchedulerTaskWrapper
     {
         SchedulerTaskWrapper(std::shared_ptr<ISchedulerTask> task,
-                            std::chrono::steady_clock::time_point time)
+                             std::chrono::steady_clock::time_point time)
                                                              : m_schedTask(task) ,
                                                                m_exec_time_ms(time) {}
 
@@ -45,7 +45,7 @@ private:
     {
     public:
         inline bool operator() (const std::shared_ptr<SchedulerTaskWrapper>& task_lhs,
-                                const std::shared_ptr<SchedulerTaskWrapper>& task_rhs)
+                                const std::shared_ptr<SchedulerTaskWrapper>& task_rhs) const
         {
             return task_lhs->m_exec_time_ms > task_rhs->m_exec_time_ms;
         }
