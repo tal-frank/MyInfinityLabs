@@ -3,6 +3,7 @@
 
 #include <memory> // shared_ptr
 #include <chrono> // milliseconds
+#include <thread> // thread
 
 #include "singleton.hpp"
 #include "waitable_queue.hpp"
