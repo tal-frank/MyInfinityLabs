@@ -8,11 +8,11 @@
 #ifndef ILRD_178_DLL_LOADER_DIR_MONITOR_HPP
 #define ILRD_178_DLL_LOADER_DIR_MONITOR_HPP
 
-#include "dispatcher.hpp" 
-
 #include <sys/inotify.h> // inotify
 #include <string>        // std::string
 #include <cstdio>        // FILE
+
+#include "dispatcher.hpp" 
 
 const int FAILURE = -1;
 const int SUCCESS = 0;

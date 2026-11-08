@@ -4,13 +4,15 @@
 
 #include "dll_loader.hpp"
 
+const ssize_t NO_FILE = -1;
+
 namespace ilrd_178
 {
 
 //-----------------------------------------------------------------------------------//
 //################################# DIR MONITOR #####################################//
 //-----------------------------------------------------------------------------------//
-DirMonitor::DirMonitor(Path dir_path) : m_fd(-1),
+DirMonitor::DirMonitor(Path dir_path) : m_fd(NO_FILE),
                                         m_dir_path(dir_path),
                                         m_dispatcher(),
                                         is_running(false) {}
@@ -18,7 +20,7 @@ DirMonitor::DirMonitor(Path dir_path) : m_fd(-1),
 DirMonitor::~DirMonitor()
 {
     is_running = false;
-    if (0 < m_fd)
+    if (NO_FILE < m_fd)
     {
         close(m_fd);
     }
@@ -37,7 +39,7 @@ void DirMonitor::AddSubscriber(CallBackBaseType *callback)
 void DirMonitor::Run()
 {
     int watch_desc = init_monitoring();
-    if (-1 == watch_desc)
+    if (NO_FILE == watch_desc)
     {
         close(m_fd);
     }
