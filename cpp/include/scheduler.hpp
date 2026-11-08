@@ -1,8 +1,16 @@
+/**********************
+* scheduler
+* Author: Tal Frank
+* Reviewer:
+* Last update: 05/11/2026
+**********************/
+
 #ifndef ILRD_178_SCHEDULER_HPP
 #define ILRD_178_SCHEDULER_HPP
 
 #include <memory> // shared_ptr
 #include <chrono> // milliseconds
+#include <thread> // thread
 
 #include "singleton.hpp"
 #include "waitable_queue.hpp"
