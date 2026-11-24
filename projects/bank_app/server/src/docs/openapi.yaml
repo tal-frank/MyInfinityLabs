@@ -93,7 +93,13 @@ paths:
         `POST /auth/verify-otp`.
 
         If the email already exists - verified or not - the answer is `409`.
-        An unverified user who lost the code should call `POST /auth/resend-otp`.
+        An unverified user who lost the code should call `POST /auth/resend-otp`
+        before the code expires.
+
+        **A pending account lives only as long as its code** (5 min, extended
+        by each resend). Once the code expires, the account is deleted (TTL
+        index on `otp.expiresAt`, see `DbUser`) and the email is free to sign
+        up again.
       security: [] # public: you can't have a token before you have an account
       requestBody:
         required: true
@@ -193,7 +199,7 @@ paths:
                   code: ALREADY_VERIFIED
                   message: This account is already verified. Please log in.
         '429': # stops someone guessing all 1,000,000 codes
-          description: Too many wrong attempts for this code
+          description: Too many wrong attempts for this code (OTP_ATTEMPTS_EXCEEDED), or too many requests from this IP (RATE_LIMITED)
           content:
             application/json:
               schema:
@@ -212,6 +218,10 @@ paths:
         Invalidates the previous code and sends a new one over the channel
         chosen at sign-up. Rate-limited (e.g. 1 per minute) because every
         SMS costs money and repeated sends could be used to spam someone.
+
+        The new code's expiry also extends the pending account's life. Once
+        the old code expired, the account is deleted, and this returns
+        `404 USER_NOT_FOUND`: the user must sign up again.
       security: []
       requestBody:
         required: true
@@ -902,6 +912,8 @@ components:
                 - SELF_TRANSFER
                 - INSUFFICIENT_FUNDS
                 - RATE_LIMITED
+                - NOT_FOUND          # no such route (any unknown URL)
+                - PAYLOAD_TOO_LARGE  # request body over the 10kb limit (status 413)
                 - INTERNAL_ERROR
             message:
               # Human-readable: safe to show to the user. Never contains stack
@@ -913,3 +925,120 @@ components:
               type: object
               additionalProperties:
                 type: string
+
+    # ---- Database documents (Phase 3) -----------------------------------------
+    # NOT request or response bodies. These describe what MongoDB stores, so the
+    # spec documents the whole system in one place. The API never returns these
+    # shapes directly: responses go through whitelists (User, Transaction above).
+    # Source of truth for the code: server/src/models/*.js.
+    DbUser:
+      description: |
+        Collection `users`. Unique index on `email`.
+        TTL index on `otp.expiresAt`: MongoDB deletes an unverified user once
+        its code expires (its background job runs about once a minute, so up
+        to ~60 s late; sign-up also removes an expired pending user with the
+        same email at once). Verified users have `otp: null`, which a TTL
+        index ignores, so they are never deleted.
+        Private fields (passwordHash, otp) never appear in API responses.
+      type: object
+      required: [_id, email, passwordHash, phone, otpChannel, isVerified, balance, createdAt]
+      properties:
+        _id:
+          type: string
+          description: ObjectId. The API shows it as `User.id`.
+          example: 6730f1c2a9d4e2b1c8f0a123
+        email:
+          type: string
+          description: Trimmed + lowercased. Unique index.
+        passwordHash:
+          type: string
+          description: bcrypt hash (cost 12).
+        phone:
+          type: string
+          description: E.164.
+        otpChannel:
+          type: string
+          enum: [email, sms]
+        isVerified:
+          type: boolean
+        balance:
+          type: integer
+          minimum: 0
+          description: Agorot. 0 until verified, then random.
+        otp:
+          type: object
+          nullable: true
+          description: The pending code; null once verified.
+          required: [hash, expiresAt, attempts]
+          properties:
+            hash:
+              type: string
+              description: bcrypt hash (cost 10) of the 6-digit code.
+            expiresAt:
+              type: string
+              format: date-time
+              description: TTL index - the whole user is deleted after this time.
+            attempts:
+              type: integer
+              description: Wrong guesses so far (max 5). Incremented with $inc.
+        createdAt:
+          type: string
+          format: date-time
+
+    DbTransaction:
+      description: |
+        Collection `transactions`. Indexes: { fromId, createdAt } and { toId, createdAt }.
+        Written inside a MongoDB transaction together with both balance changes.
+      type: object
+      required: [_id, fromId, toId, fromEmail, toEmail, amount, createdAt]
+      properties:
+        _id:
+          type: string
+          description: ObjectId. The API shows it as `Transaction.id`.
+        fromId:
+          type: string
+          description: ObjectId of the sender (DbUser._id).
+        toId:
+          type: string
+          description: ObjectId of the receiver (DbUser._id).
+        fromEmail:
+          type: string
+          description: Copied at transfer time.
+        toEmail:
+          type: string
+          description: Copied at transfer time.
+        amount:
+          type: integer
+          minimum: 1
+          description: Always positive agorot; the API adds the sign per viewer.
+        createdAt:
+          type: string
+          format: date-time
+
+    DbRefreshToken:
+      description: |
+        Collection `refreshtokens`. Unique index on `tokenHash`, index on `userId`,
+        TTL index on `expiresAt` (MongoDB deletes expired documents by itself).
+      type: object
+      required: [_id, tokenHash, userId, expiresAt, createdAt]
+      properties:
+        _id:
+          type: string
+          description: ObjectId (never used by the API).
+        tokenHash:
+          type: string
+          description: SHA-256 of the refresh token. The token itself is never stored.
+        userId:
+          type: string
+          description: ObjectId of the owner (DbUser._id).
+        expiresAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Set when used (rotation) or on logout. Reuse of a revoked token signs out all sessions.
+        createdAt:
+          type: string
+          format: date-time
